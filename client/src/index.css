@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* base light minimal */
+:root{
+  color-scheme: light;
+  color: #111827;           /* ink */
+  background-color: #ffffff;/* paper */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html{ scroll-behavior: smooth; }
+body{ margin:0; padding:0; font-family: Inter, system-ui, sans-serif; }
+
+/* detalles finos */
+::selection{ background:#111827; color:#fff; }
