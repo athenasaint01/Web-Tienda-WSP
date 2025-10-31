@@ -1,4 +1,4 @@
-# Web Alahas - Joyería Artesanal
+# Web Joyería Artesanal
 
 Sitio web de comercio electrónico para joyería artesanal de alta gama, con catálogo de productos, filtros avanzados, animaciones 3D y integración con WhatsApp.
 
@@ -36,7 +36,7 @@ Sitio web de comercio electrónico para joyería artesanal de alta gama, con cat
 
 ```bash
 git clone <repository-url>
-cd "Web Alahas"
+cd "Web Joyeria"
 ```
 
 ### 2. Instalar dependencias del cliente
@@ -52,30 +52,6 @@ npm install
 cd ../server
 npm install
 ```
-
-### 4. Configurar variables de entorno
-
-**Cliente** (`client/.env`):
-```env
-VITE_WHATSAPP_PHONE=51980656823
-```
-
-**Servidor** (`server/.env`):
-```env
-PORT=3000
-
-# Configuración SMTP (Gmail)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=tu-app-password
-
-# Configuración de emails
-MAIL_FROM="Web Alahas <tu-email@gmail.com>"
-MAIL_TO=receptor@gmail.com
-```
-
-> **Nota**: Para Gmail, debes generar una "contraseña de aplicación" desde tu cuenta de Google. No uses tu contraseña regular.
 
 ## 🏃‍♂️ Ejecución en Desarrollo
 
@@ -134,7 +110,7 @@ npm start
 ## 🗂️ Estructura del Proyecto
 
 ```
-Web Alahas/
+Web Joyeria/
 ├── client/                    # Aplicación React
 │   ├── src/
 │   │   ├── pages/            # Páginas de rutas
@@ -316,7 +292,7 @@ cd ../server && npm run build
 # Servir cliente con servidor web (nginx/Apache)
 # Ejecutar servidor con PM2
 cd server
-pm2 start dist/index.js --name web-alahas-api
+pm2 start dist/index.js --name web-Joyeria-api
 pm2 save
 pm2 startup
 ```
