@@ -119,4 +119,5 @@ backup/
 #Claude
 CLAUDE.md
 
-client/public/
+/client/public/
+package.json
