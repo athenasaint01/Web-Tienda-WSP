@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ImagesSlider } from "../components/ui/images-slider";
 import { waLink } from "../lib/wa";
 import ProductCard from "../components/ProductCard";
-import { featuredProducts } from "../data/products";
+import { useProducts } from "../hooks/useProducts";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, FacebookIcon } from "lucide-react";
+import type { CollectionWithCategory } from "../types/api";
+import * as api from "../services/api";
 
 /* =========================
    HERO
@@ -43,7 +45,7 @@ function AutoSlider({
   }, [images, intervalMs]);
 
   return (
-    <div className={`relative overflow-hidden rounded-3xl border ${className}`}>
+    <div className={`relative overflow-hidden rounded-2xl ${className}`}>
       <div className={`relative ${aspectClass} w-full`}>
         {images.map((src, i) => (
           <img
@@ -92,7 +94,7 @@ const carouselImages = [
 ========================= */
 function BrilloTextBlock() {
   return (
-    <div className="h-full min-h-[320px] md:min-h-[360px] rounded-3xl border border-white/10 p-8 lg:p-12 bg-neutral-900 text-white flex items-center">
+    <div className="h-full min-h-[320px] md:min-h-[360px] rounded-2xl p-8 lg:p-12 bg-neutral-900 text-white flex items-center">
       <div>
         <div className="inline-flex items-center gap-2 text-amber-300">
           <span className="text-lg">✦</span>
@@ -191,12 +193,12 @@ function InfiniteGalleryCarousel({
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl bg-white"
+      className="relative overflow-hidden rounded-2xl bg-white"
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
 
       <div
         ref={trackRef}
@@ -206,7 +208,7 @@ function InfiniteGalleryCarousel({
         {[...images, ...images].map((src, i) => (
           <div
             key={`${src}-${i}`}
-            className="shrink-0 overflow-hidden rounded-2xl"
+            className="shrink-0 overflow-hidden rounded-xl"
             style={{ height, width: cardW }}
             aria-hidden={i >= images.length}
           >
@@ -228,7 +230,7 @@ function InfiniteGalleryCarousel({
 /* =========================
    Carrusel de Colecciones (fade simple)
 ========================= */
-type CollectionItem = { name: string; slug: string; img: string };
+type CollectionItem = { title: string; categorySlug: string; img: string };
 
 function usePerView() {
   const [perView, setPerView] = useState(3);
@@ -251,11 +253,43 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
 
   const windowItems = Array.from({ length: perView }, (_, k) => items[(start + k) % items.length]);
 
-  const groupVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1, transition: { duration: 0.22, ease: "easeOut" } },
-    exit: { opacity: 0, transition: { duration: 0.18, ease: "easeOut" } },
-  } as const;
+  const containerVariants = {
+    enter: {
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+    center: {
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+    exit: {
+      transition: {
+        staggerChildren: 0.05,
+        staggerDirection: -1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    enter: (direction: number) => ({
+      opacity: 0,
+      x: direction > 0 ? 60 : -60,
+      scale: 0.9,
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+    },
+    exit: (direction: number) => ({
+      opacity: 0,
+      x: direction > 0 ? -60 : 60,
+      scale: 0.9,
+    }),
+  };
 
   const next = () => {
     setDirection(1);
@@ -267,45 +301,57 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
   };
 
   return (
-    <div className="relative overflow-hidden">
-      <AnimatePresence initial={false} custom={direction} mode="wait">
-        <motion.div
-          key={`${start}-${perView}`}
-          custom={direction}
-          variants={groupVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {windowItems.map((c, i) => (
-            <Link
-              key={`${c.slug}-${i}`}
-              to={`/productos?categoria=${c.slug}`}
-              className="relative overflow-hidden rounded-3xl"
-            >
-              <img
-                src={c.img}
-                alt={c.name}
-                className="aspect-[3/2] w-full object-cover block"
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
-              />
-              {/* Velo desde ARRIBA para dar contraste al badge */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-transparent" />
-              {/* Badge arriba-izquierda */}
-              <span
-                className="absolute top-3 left-3 inline-flex items-center
-                          rounded-full bg-white/95 text-black
-                          text-xs font-medium px-3 py-1
-                          shadow-sm ring-1 ring-black/10"
+    <div className="relative">
+      <div className="overflow-hidden">
+        <AnimatePresence initial={false} custom={direction} mode="wait">
+          <motion.div
+            key={`${start}-${perView}`}
+            custom={direction}
+            variants={containerVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {windowItems.map((c, i) => (
+              <motion.div
+                key={`${c.categorySlug}-${i}`}
+                custom={direction}
+                variants={itemVariants}
+                transition={{
+                  x: { duration: 0.5, ease: [0.32, 0.72, 0, 1] },
+                  opacity: { duration: 0.4, ease: "easeInOut" },
+                  scale: { duration: 0.4, ease: "easeOut" },
+                }}
               >
-                {c.name}
-              </span>
-            </Link>
-          ))}
-        </motion.div>
-      </AnimatePresence>
+                <Link
+                  to={`/productos?categoria=${c.categorySlug}`}
+                  className="block relative overflow-hidden rounded-2xl"
+                >
+                  <img
+                    src={c.img}
+                    alt={c.title}
+                    className="aspect-[3/2] w-full object-cover block"
+                    loading={i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                  {/* Velo desde ARRIBA para dar contraste al badge */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-transparent" />
+                  {/* Badge arriba-izquierda */}
+                  <span
+                    className="absolute top-3 left-3 inline-flex items-center
+                              rounded-full bg-white/95 text-black
+                              text-xs font-medium px-3 py-1
+                              shadow-sm ring-1 ring-black/10"
+                  >
+                    {c.title}
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {items.length > perView && (
         <>
@@ -337,11 +383,33 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
 export default function Home() {
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
 
+  // Obtener productos destacados desde la API
+  const { products: featuredProducts, loading, error } = useProducts({ featured: true, limit: 6 });
+
+  // Obtener colecciones activas
+  const [collections, setCollections] = useState<CollectionWithCategory[]>([]);
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const data = await api.getActiveCollections();
+        setCollections(data);
+      } catch (error) {
+        console.error('Error al cargar colecciones:', error);
+      } finally {
+        setCollectionsLoading(false);
+      }
+    };
+
+    fetchCollections();
+  }, []);
+
   return (
     <>
       {/* HERO */}
-      <section className="relative">
-        <ImagesSlider images={heroImages} className="h-[75vh] md:h-[82vh] rounded-none">
+      <section className="relative overflow-hidden">
+        <ImagesSlider images={heroImages} className="h-[75vh] md:h-[82vh]">
           <motion.div
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -350,7 +418,7 @@ export default function Home() {
           >
             <div className="mx-auto max-w-7xl px-4">
               <div className="max-w-2xl text-left">
-                <p className="font-script text-white/90 text-3xl md:text-4xl leading-none">Alaha’s</p>
+                <p className="font-script text-white/90 text-3xl md:text-4xl leading-none">Alaha's</p>
                 <h1 className="mt-2 font-serif text-4xl md:text-6xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-300">
                   Joyas esenciales, elegancia cotidiana
                 </h1>
@@ -360,7 +428,7 @@ export default function Home() {
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
                     to="/productos"
-                    className="rounded-full px-6 py-3 bg-white text-black text-sm font-medium hover:opacity-90"
+                    className="rounded-full px-6 py-3 bg-white text-black text-sm font-medium hover:opacity-90 transition-opacity"
                   >
                     Ver productos
                   </Link>
@@ -369,7 +437,7 @@ export default function Home() {
                       href={waLink(phone, "Hola, ¿me ayudas a elegir un accesorio? ✨")}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full px-6 py-3 border border-white/70 text-white text-sm font-medium hover:bg-white/10"
+                      className="rounded-full px-6 py-3 border border-white/70 text-white text-sm font-medium hover:bg-white/10 transition-all"
                     >
                       WhatsApp
                     </a>
@@ -398,28 +466,26 @@ export default function Home() {
       </section>
 
       {/* Colecciones */}
-      <section className="mx-auto max-w-7xl px-4 py-14">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-2xl">Colecciones</h2>
-          <Link to="/productos" className="text-sm underline underline-offset-4 hover:opacity-80">
-            Ver todo
-          </Link>
-        </div>
+      {!collectionsLoading && collections.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-14">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-2xl">Colecciones</h2>
+            <Link to="/productos" className="text-sm underline underline-offset-4 hover:opacity-80">
+              Ver todo
+            </Link>
+          </div>
 
-        <div className="mt-6">
-          <CollectionsCarouselFader
-            items={[
-              { name: "Collares", slug: "collares", img: "/assets/cat-collar.jpg" },
-              { name: "Pulseras", slug: "pulseras", img: "/assets/cat-pulsera.jpg" },
-              { name: "Ropa", slug: "ropa", img: "/assets/cat-ropa.jpg" },
-              { name: "Anillos y aros", slug: "anillos", img: "/assets/cat-anillo.jpg" },
-              { name: "Dijes", slug: "dijes", img: "/assets/cat-dije.jpg" },
-              { name: "Aretes", slug: "aretes", img: "/assets/cat-arete.jpg" },
-              { name: "Pashminas y bufandas", slug: "bufandas", img: "/assets/cat-bufanda.jpg" },
-            ]}
-          />
-        </div>
-      </section>
+          <div className="mt-6">
+            <CollectionsCarouselFader
+              items={collections.map(collection => ({
+                title: collection.title,
+                categorySlug: collection.category_slug,
+                img: collection.image_url
+              }))}
+            />
+          </div>
+        </section>
+      )}
 
       {/* "No limites tu brillo" (banner más ancho) */}
       <section className="mx-auto max-w-7xl px-4 py-14">
@@ -431,8 +497,9 @@ export default function Home() {
             <AutoSlider
               images={brilloSliderImages}
               intervalMs={3000}
-              className="h-full min-h-[520px]"
+              className="h-full"
               imgClassName="object-cover"
+              aspectClass="aspect-[3/4] md:aspect-[4/5]"
             />
           </div>
         </div>
@@ -441,37 +508,43 @@ export default function Home() {
       {/* Destacados */}
       <section className="mx-auto max-w-7xl px-4 py-14">
         <h2 className="font-serif text-2xl">Destacados</h2>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-          {featuredProducts.map((p) => (
-            <ProductCard key={p.id} p={p} />
-          ))}
-        </div>
-      </section>
 
-      {/* Editorial */}
-      <section className="mx-auto max-w-7xl px-4 pb-16">
-        <div className="grid md:grid-cols-2 gap-6 items-stretch">
-          <div className="rounded-3xl overflow-hidden border">
-            <img src="/assets/demo/hero-1.jpg" alt="Editorial Alaha's" className="w-full h-full object-cover" />
-          </div>
-          <div className="rounded-3xl border p-8 flex items-center">
-            <div>
-              <h3 className="font-serif text-xl">Hecho para acompañarte</h3>
-              <p className="text-neutral-600 mt-3">
-                Accesorios atemporales que complementan tu estilo sin esfuerzo.
-                Ligeros, cómodos y con acabados que perduran.
-              </p>
-              <div className="mt-6 flex gap-3">
-                <Link to="/nosotros" className="rounded-full px-6 py-3 border text-sm font-medium hover:bg-neutral-50">
-                  Conócenos
-                </Link>
-                <Link to="/productos" className="rounded-full px-6 py-3 bg-black text-white text-sm font-medium hover:opacity-90">
-                  Explorar
-                </Link>
+        {/* Loading state */}
+        {loading && (
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 rounded-xl aspect-[3/4] mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
+        )}
+
+        {/* Error state */}
+        {error && !loading && (
+          <div className="mt-6 p-6 bg-red-50 border border-red-200 rounded-xl text-center">
+            <p className="text-red-600">Error al cargar productos destacados</p>
+            <p className="text-sm text-red-500 mt-1">{error}</p>
+          </div>
+        )}
+
+        {/* Products */}
+        {!loading && !error && featuredProducts.length > 0 && (
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {featuredProducts.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && featuredProducts.length === 0 && (
+          <div className="mt-6 p-10 text-center text-gray-500">
+            No hay productos destacados disponibles
+          </div>
+        )}
       </section>
 
       {/* Carrusel infinito de clientas */}

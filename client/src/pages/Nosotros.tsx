@@ -105,7 +105,7 @@ export default function Nosotros() {
 
         <div className="rounded-3xl overflow-hidden border">
           <img
-            src="/assets/about/story-1.jpg"
+            src="/assets/home/main-1.jpg"
             alt="Alaha’s: elegancia cotidiana"
             className="w-full h-full object-cover"
           />
@@ -116,7 +116,7 @@ export default function Nosotros() {
       <section className="mt-16 grid md:grid-cols-2 gap-6 items-center">
         <div className="rounded-3xl overflow-hidden border">
           <img
-            src="/assets/about/story-2.jpg"
+            src="/assets/home/main-4.jpg"
             alt="Prendas y accesorios Alaha’s"
             className="w-full h-full object-cover"
           />

@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
 import type { Product } from "../data/products";
+import type { ProductListItem } from "../types/api";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
-export default function ProductCard({ p }: { p: Product }) {
-  const img = p.images?.[0] ?? "/assets/demo/placeholder.jpg";
+// Tipo flexible que acepta tanto Product como ProductListItem
+type ProductCardProps = Product | ProductListItem;
+
+export default function ProductCard({ p }: { p: ProductCardProps }) {
+  // Manejar tanto el formato antiguo (images: string[]) como el nuevo (image_url: string)
+  const img = ('images' in p && p.images?.[0]) || ('image_url' in p && p.image_url) || "/assets/demo/placeholder.jpg";
 
   // --- Tilt 3D (solo en dispositivos con puntero fino) ---
   const [enableTilt, setEnableTilt] = useState(true);
@@ -56,18 +61,33 @@ export default function ProductCard({ p }: { p: Product }) {
       className="group rounded-3xl overflow-hidden border bg-white will-change-transform"
     >
       <Link to={`/producto/${p.slug}`} className="block" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <div className="relative">
+        <div className="relative aspect-square overflow-hidden">
           <img
             src={img}
             alt={p.name}
-            className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
+
+          {/* Badge de AGOTADO */}
+          {'is_out_of_stock' in p && p.is_out_of_stock && (
+            <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg z-10">
+              AGOTADO
+            </div>
+          )}
+
           {/* velo para realzar tipografía al hover */}
-          <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/35 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
         </div>
         <div className="p-4">
           <h3 className="font-serif text-lg leading-tight">{p.name}</h3>
           <p className="text-xs text-neutral-500 capitalize">{p.category}</p>
+
+          {/* Indicador de stock bajo */}
+          {'stock' in p && p.stock > 0 && p.stock <= 5 && (
+            <p className="text-xs text-amber-600 font-medium mt-1">
+              ¡Solo quedan {p.stock}!
+            </p>
+          )}
         </div>
       </Link>
     </motion.article>

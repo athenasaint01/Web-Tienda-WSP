@@ -117,9 +117,13 @@ backup/
 *.backup
 
 #Claude
-CLAUDE.md
+*.md
+!README.md
+.claude
+
 
 #Otros
 /client/public/
 package.json
 /client/src/data/
+/database

@@ -62,7 +62,7 @@ npm install
 cd client
 npm run dev
 ```
-El cliente estará disponible en: http://localhost:5173
+El cliente estará disponible en: http://localhost:5174
 
 **Terminal 2 - Servidor:**
 ```bash

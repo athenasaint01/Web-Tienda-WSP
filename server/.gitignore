@@ -6,3 +6,12 @@
 .envrc
 .envrc.local
 # (mantén un .env.example versionado)
+
+# --- Uploads (archivos subidos por usuarios) ---
+uploads/*
+!uploads/.gitkeep
+!uploads/products/.gitkeep
+!uploads/products/thumbnails/.gitkeep
+!uploads/products/medium/.gitkeep
+!uploads/products/original/.gitkeep
+!uploads/collections/.gitkeep
