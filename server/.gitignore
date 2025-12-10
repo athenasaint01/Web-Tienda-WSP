@@ -15,3 +15,5 @@ uploads/*
 !uploads/products/medium/.gitkeep
 !uploads/products/original/.gitkeep
 !uploads/collections/.gitkeep
+
+./server/README.md

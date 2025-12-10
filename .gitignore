@@ -118,7 +118,7 @@ backup/
 
 #Claude
 *.md
-!README.md
+/client/!README.md
 .claude
 
 
