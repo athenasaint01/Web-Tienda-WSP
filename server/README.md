@@ -36,12 +36,7 @@ JWT_SECRET=alahas-jwt-secret-2025-cambiar-en-produccion
 JWT_EXPIRES_IN=7d
 
 # SMTP (Email)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=diegonancay1@gmail.com
-SMTP_PASS=mpop zwkg znic tkyv
-MAIL_FROM="Web Alahas <diegonancay1@gmail.com>"
-MAIL_TO=diegonancay1@gmail.com
+
 ```
 
 ⚠️ **IMPORTANTE**: Cambiar `JWT_SECRET` en producción.
