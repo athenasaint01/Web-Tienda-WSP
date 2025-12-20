@@ -36,7 +36,6 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setValue,
   } = useForm<CollectionFormData>({
     resolver: zodResolver(collectionSchema),
     defaultValues: collection
@@ -147,13 +146,11 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           {/* Categoría */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-700">
-              Categoría <span className="text-red-500">*</span>
-            </label>
             {loadingCategories ? (
               <div className="text-sm text-neutral-500">Cargando categorías...</div>
             ) : (
               <FormSelect
+                label="Categoría"
                 {...register('category_id', { valueAsNumber: true })}
                 error={errors.category_id?.message}
               >

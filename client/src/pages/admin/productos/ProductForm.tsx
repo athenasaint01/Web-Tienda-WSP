@@ -16,9 +16,9 @@ const productSchema = z.object({
   slug: z.string().min(1, 'El slug es requerido').max(200).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
   description: z.string().optional(),
   category_id: z.number({ required_error: 'La categoría es requerida' }),
-  featured: z.boolean().default(false),
-  stock: z.number().min(0, 'El stock no puede ser negativo').default(0),
-  low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').default(5),
+  featured: z.boolean().optional(),
+  stock: z.number().min(0, 'El stock no puede ser negativo').optional(),
+  low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').optional(),
   wa_template: z.string().optional(),
   material_ids: z.array(z.number()).optional(),
   tag_ids: z.array(z.number()).optional(),
@@ -173,9 +173,9 @@ export default function ProductForm() {
           formData.append('name', data.name);
           formData.append('slug', data.slug);
           formData.append('category_id', data.category_id.toString());
-          formData.append('featured', data.featured ? 'true' : 'false');
-          formData.append('stock', data.stock.toString());
-          formData.append('low_stock_threshold', data.low_stock_threshold.toString());
+          formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
+          formData.append('stock', (data.stock ?? 0).toString());
+          formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
 
           if (data.description) formData.append('description', data.description);
           if (data.wa_template) formData.append('wa_template', data.wa_template);
@@ -229,9 +229,9 @@ export default function ProductForm() {
         formData.append('name', data.name);
         formData.append('slug', data.slug);
         formData.append('category_id', data.category_id.toString());
-        formData.append('featured', data.featured ? 'true' : 'false');
-        formData.append('stock', data.stock.toString());
-        formData.append('low_stock_threshold', data.low_stock_threshold.toString());
+        formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
+        formData.append('stock', (data.stock ?? 0).toString());
+        formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
 
         if (data.description) formData.append('description', data.description);
         if (data.wa_template) formData.append('wa_template', data.wa_template);
@@ -419,7 +419,7 @@ export default function ProductForm() {
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
                   AGOTADO
                 </span>
-              ) : watch('stock') <= (watch('low_stock_threshold') || 5) ? (
+              ) : (watch('stock') ?? 0) <= (watch('low_stock_threshold') ?? 5) ? (
                 <span className="inline-flex items-center gap-2 text-amber-700 font-medium">
                   <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
                   Stock bajo ({watch('stock')} unidades)
