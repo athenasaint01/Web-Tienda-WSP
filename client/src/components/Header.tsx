@@ -9,6 +9,10 @@ const navItems = [
   { to: "/nosotros", label: "Nosotros" },
 ];
 
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -22,7 +26,7 @@ export default function Header() {
       x: "100%",
       transition: {
         duration: 0.3,
-        ease: "easeInOut",
+        ease: "easeInOut" as const,
       },
     },
     open: {
@@ -30,7 +34,7 @@ export default function Header() {
       x: 0,
       transition: {
         duration: 0.4,
-        ease: "easeOut",
+        ease: "easeOut" as const,
         staggerChildren: 0.1,
         delayChildren: 0.1,
       },
@@ -47,7 +51,7 @@ export default function Header() {
       x: 0,
       transition: {
         duration: 0.4,
-        ease: "easeOut",
+        ease: "easeOut" as const,
       },
     },
   };
@@ -56,7 +60,7 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 bg-white/75 backdrop-blur border-b border-black/5">
         <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 relative z-[60]">
+          <Link to="/" onClick={scrollToTop} className="flex items-center gap-3 relative z-[60]">
             <img
               src="/brand/logo-wordmark.png.png"
               alt="Alaha's"
@@ -70,6 +74,7 @@ export default function Header() {
               <NavLink
                 key={i.to}
                 to={i.to}
+                onClick={scrollToTop}
                 className={({ isActive }) =>
                   `tracking-wide hover:opacity-70 transition-opacity ${
                     isActive ? "font-medium" : "opacity-90"
@@ -131,7 +136,10 @@ export default function Header() {
                     <motion.div key={item.to} variants={itemVariants}>
                       <NavLink
                         to={item.to}
-                        onClick={closeMenu}
+                        onClick={() => {
+                          closeMenu();
+                          scrollToTop();
+                        }}
                         end={item.to === "/"}
                         className={({ isActive }) =>
                           `block px-4 py-3 rounded-lg text-lg font-medium transition-all ${

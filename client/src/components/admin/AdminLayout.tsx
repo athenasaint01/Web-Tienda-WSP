@@ -62,7 +62,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-neutral-50 flex">
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-neutral-200">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:h-screen lg:sticky lg:top-0 bg-white border-r border-neutral-200">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-neutral-200">
           <h1 className="font-display text-xl font-bold text-neutral-900">
