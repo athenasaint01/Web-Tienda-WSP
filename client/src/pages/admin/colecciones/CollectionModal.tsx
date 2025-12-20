@@ -12,7 +12,7 @@ import FormSelect from '../../../components/admin/ui/FormSelect';
 import ImageUpload from '../../../components/admin/ui/ImageUpload';
 
 const collectionSchema = z.object({
-  category_id: z.number({ required_error: 'La categoría es requerida' }).int().positive(),
+  category_id: z.number({ message: 'La categoría es requerida' }).int().positive(),
   title: z.string().min(1, 'El título es requerido').max(255),
   description: z.string().optional(),
   display_order: z.number().int().min(0).optional(),

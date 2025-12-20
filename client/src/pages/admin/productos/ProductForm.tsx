@@ -15,7 +15,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(200),
   slug: z.string().min(1, 'El slug es requerido').max(200).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
   description: z.string().optional(),
-  category_id: z.number({ required_error: 'La categoría es requerida' }),
+  category_id: z.number({ message: 'La categoría es requerida' }),
   featured: z.boolean().optional(),
   stock: z.number().min(0, 'El stock no puede ser negativo').optional(),
   low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').optional(),
