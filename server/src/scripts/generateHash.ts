@@ -1,9 +1,9 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 const password = 'admin123';
 const saltRounds = 10;
 
-bcrypt.hash(password, saltRounds).then((hash) => {
+bcrypt.hash(password, saltRounds).then((hash: string) => {
   console.log('\nPassword:', password);
   console.log('Hash generado:', hash);
   console.log('\nSQL para actualizar:');
