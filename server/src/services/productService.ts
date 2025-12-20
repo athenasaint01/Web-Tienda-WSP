@@ -388,7 +388,7 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
       await client.query('DELETE FROM product_materials WHERE product_id = $1', [id]);
 
       if (material_ids.length > 0) {
-        const materialValues = material_ids.map((matId, i) =>
+        const materialValues = material_ids.map((_matId: number, i: number) =>
           `($1, $${i + 2})`
         ).join(', ');
 
@@ -404,7 +404,7 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
       await client.query('DELETE FROM product_tags WHERE product_id = $1', [id]);
 
       if (tag_ids.length > 0) {
-        const tagValues = tag_ids.map((tagId, i) =>
+        const tagValues = tag_ids.map((_tagId: number, i: number) =>
           `($1, $${i + 2})`
         ).join(', ');
 
@@ -460,6 +460,13 @@ export const deleteProductImageByUrl = async (
     'DELETE FROM product_images WHERE product_id = $1 AND image_url = $2',
     [productId, imageUrl]
   );
+};
+
+// =============================================
+// ELIMINAR IMAGEN DE PRODUCTO POR ID
+// =============================================
+export const deleteProductImageById = async (imageId: number): Promise<void> => {
+  await pool.query('DELETE FROM product_images WHERE id = $1', [imageId]);
 };
 
 // =============================================

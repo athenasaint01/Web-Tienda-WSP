@@ -152,6 +152,8 @@ export interface UpdateProductDTO {
   low_stock_threshold?: number;
   wa_template?: string;
   is_active?: boolean;
+  material_ids?: number[];
+  tag_ids?: number[];
 }
 
 export interface CreateCategoryDTO {

@@ -245,16 +245,16 @@ router.post('/:id/images', upload.array('images', 6), async (req: AuthRequest, r
     // Obtener producto para usar su slug
     const product = await productService.getProductById(id);
 
-    if (!product || !product.ok) {
+    if (!product) {
       res.status(404).json({ ok: false, error: 'Producto no encontrado' });
       return;
     }
 
-    const productSlug = product.data.slug;
+    const productSlug = product.slug;
     const imageUrls: Array<{ url: string; is_primary: boolean; alt_text?: string }> = [];
 
     // Contar imágenes existentes
-    const existingImagesCount = product.data.images?.length || 0;
+    const existingImagesCount = product.images?.length || 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -266,7 +266,7 @@ router.post('/:id/images', upload.array('images', 6), async (req: AuthRequest, r
         imageUrls.push({
           url: paths.medium,
           is_primary: existingImagesCount === 0 && i === 0, // Primera imagen si no hay otras
-          alt_text: product.data.name,
+          alt_text: product.name,
         });
       } catch (error) {
         console.error(`Error procesando imagen ${i + 1}:`, error);
@@ -274,7 +274,9 @@ router.post('/:id/images', upload.array('images', 6), async (req: AuthRequest, r
     }
 
     // Agregar imágenes al producto
-    await productService.addProductImages(id, imageUrls);
+    for (const imageUrl of imageUrls) {
+      await productService.addProductImage(id, imageUrl);
+    }
 
     res.status(201).json({ ok: true, message: `${imageUrls.length} imagen(es) agregada(s)` });
   } catch (error: any) {
@@ -300,20 +302,20 @@ router.delete('/:id/images/:imageId', async (req: AuthRequest, res: Response) =>
     // Obtener información de la imagen antes de eliminarla
     const product = await productService.getProductById(id);
 
-    if (!product || !product.ok) {
+    if (!product) {
       res.status(404).json({ ok: false, error: 'Producto no encontrado' });
       return;
     }
 
-    const image = product.data.images?.find((img: any) => img.id === imageId);
+    const image = product.images?.find((img: any) => img.id === imageId);
 
     if (!image) {
       res.status(404).json({ ok: false, error: 'Imagen no encontrada' });
       return;
     }
 
-    // Eliminar imagen de la BD
-    await productService.deleteProductImage(imageId);
+    // Eliminar imagen de la BD por ID
+    await productService.deleteProductImageById(imageId);
 
     // Eliminar archivos físicos
     if (image.image_url.startsWith('/uploads/')) {

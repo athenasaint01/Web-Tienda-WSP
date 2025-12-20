@@ -4,16 +4,27 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Configuración del pool de conexiones PostgreSQL
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'bd_sh0p4l4h45',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  max: 20, // Máximo de conexiones en el pool
-  idleTimeoutMillis: 30000, // Tiempo de espera antes de cerrar conexión inactiva
-  connectionTimeoutMillis: 2000, // Tiempo máximo de espera para obtener conexión
-});
+// Prioriza DATABASE_URL (Railway/producción) sobre variables individuales
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      }
+    : {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432'),
+        database: process.env.DB_NAME || 'bd_sh0p4l4h45',
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || '',
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      }
+);
 
 // Event listeners para debugging
 pool.on('connect', () => {

@@ -30,8 +30,10 @@ export type ApiResponse<T> = {
   errors?: Record<string, string[]>;
 }
 
-// Base URL de la API (Vite proxy en desarrollo)
-const API_BASE_URL = '/api';
+// Base URL de la API
+// En desarrollo usa proxy de Vite (/api → http://localhost:3000)
+// En producción usa la URL del backend de Railway
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // =============================================
 // HELPER: Construir query params
