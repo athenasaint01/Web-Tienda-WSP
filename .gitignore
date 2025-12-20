@@ -122,7 +122,6 @@ backup/
 .claude
 
 #Otros
-/client/public/
 # package.json
 /client/src/data/
 /database
