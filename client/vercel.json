@@ -1,4 +1,10 @@
 {
+  "builds": [
+    {
+      "src": "client/dist/**/*",
+      "use": "@vercel/static"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
