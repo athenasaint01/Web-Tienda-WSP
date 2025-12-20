@@ -1,15 +1,14 @@
 import { Link } from "react-router-dom";
-import type { Product } from "../data/products";
 import type { ProductListItem } from "../types/api";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
-// Tipo flexible que acepta tanto Product como ProductListItem
-type ProductCardProps = Product | ProductListItem;
+// Tipo compatible con productos de la API
+type ProductCardProps = ProductListItem;
 
 export default function ProductCard({ p }: { p: ProductCardProps }) {
-  // Manejar tanto el formato antiguo (images: string[]) como el nuevo (image_url: string)
-  const img = ('images' in p && p.images?.[0]) || ('image_url' in p && p.image_url) || "/assets/demo/placeholder.jpg";
+  // Usar la imagen de la API o placeholder
+  const img = p.image_url || "/assets/demo/placeholder.jpg";
 
   // --- Tilt 3D (solo en dispositivos con puntero fino) ---
   const [enableTilt, setEnableTilt] = useState(true);
