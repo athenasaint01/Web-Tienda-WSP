@@ -96,10 +96,51 @@ export default function Productos() {
     return Array.from(tagsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [products]);
 
+  // Estado para detectar carga inicial vs cambio de filtros
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    // Marcar como NO inicial después del primer render
+    const timer = setTimeout(() => setIsInitialLoad(false), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Helper para crear variantes de animación según el contexto
+  const getItemVariants = (isInitial: boolean) => {
+    if (isInitial) {
+      // Carga inicial: Slide up suave + fade
+      return {
+        hidden: { opacity: 0, y: 16 },
+        visible: { opacity: 1, y: 0 }
+      };
+    } else {
+      // Filtros: Fade simple
+      return {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 }
+      };
+    }
+  };
+
+  const getTransition = (isInitial: boolean, index: number) => {
+    const baseDelay = isInitial ? index * 0.05 : index * 0.04;
+    const duration = isInitial ? 0.5 : 0.3;
+    const easing = isInitial
+      ? ([0.25, 0.1, 0.25, 1] as const)
+      : ([0.4, 0, 0.2, 1] as const);
+
+    return {
+      duration,
+      delay: baseDelay,
+      ease: easing
+    };
+  };
+
   // Helpers URL
   const updateParams = (next: URLSearchParams) => setParams(next, { replace: true });
 
   const toggle = (key: "categoria" | "material" | "tags", value: string) => {
+    setIsInitialLoad(false);
     const map = { categoria: "categoria", material: "material", tags: "tag" } as const;
     const urlKey = map[key];
     const current = new Set(params.getAll(urlKey));
@@ -113,6 +154,7 @@ export default function Productos() {
   };
 
   const setQuery = (q: string) => {
+    setIsInitialLoad(false);
     const next = new URLSearchParams(params);
     q ? next.set("q", q) : next.delete("q");
     next.set("page", "1");
@@ -122,6 +164,7 @@ export default function Productos() {
   const clearAll = () => navigate("/productos", { replace: true });
 
   const setSort = (sort: SortKey) => {
+    setIsInitialLoad(false);
     const next = new URLSearchParams(params);
     next.set("sort", sort);
     updateParams(next);
@@ -129,6 +172,7 @@ export default function Productos() {
 
   // Funciones de paginación
   const goToPage = (page: number) => {
+    setIsInitialLoad(false);
     const next = new URLSearchParams(params);
     next.set("page", page.toString());
     updateParams(next);
@@ -314,19 +358,23 @@ export default function Productos() {
               className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
               transition={{ layout: { duration: 0.25, ease: "easeOut" } }}
             >
-              <AnimatePresence mode="popLayout" initial={false}>
-                {products.map((p) => (
-                  <motion.div
-                    key={p.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.98 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                  >
-                    <ProductCard p={p} />
-                  </motion.div>
-                ))}
+              <AnimatePresence mode="popLayout" initial={true}>
+                {products.map((p, index) => {
+                  const variants = getItemVariants(isInitialLoad);
+                  return (
+                    <motion.div
+                      key={p.id}
+                      layout
+                      variants={variants}
+                      initial="hidden"
+                      animate="visible"
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={getTransition(isInitialLoad, index)}
+                    >
+                      <ProductCard p={p} />
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </motion.div>
           ) : null}

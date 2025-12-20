@@ -34,19 +34,16 @@ export function ImagesSlider({
     setIndex(i);
   };
 
-  const slideVariants = {
-    enter: (direction: number) => ({
+  const fadeVariants = {
+    enter: {
       opacity: 0,
-      x: direction > 0 ? '30%' : '-30%',
-    }),
+    },
     center: {
       opacity: 1,
-      x: 0,
     },
-    exit: (direction: number) => ({
+    exit: {
       opacity: 0,
-      x: direction > 0 ? '-30%' : '30%',
-    }),
+    },
   };
 
   return (
@@ -61,13 +58,12 @@ export function ImagesSlider({
           alt={`Slide ${index + 1}`}
           className="absolute inset-0 h-full w-full object-cover"
           custom={direction}
-          variants={slideVariants}
+          variants={fadeVariants}
           initial="enter"
           animate="center"
           exit="exit"
           transition={{
-            x: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
-            opacity: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+            opacity: { duration: 0.9, ease: [0.4, 0.0, 0.2, 1] as const },
           }}
         />
       </AnimatePresence>

@@ -1,15 +1,14 @@
-import { useAuth } from '../../hooks/useAuth';
 import { Package, Users, Tag, Layers } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { user } = useAuth();
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Welcome */}
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-neutral-900 mb-2">
-          ¡Bienvenido, {user?.name?.split(' ')[0]}!
+          ¡Bienvenido!
         </h2>
         <p className="text-neutral-600">
           Aquí puedes gestionar todo el contenido de tu tienda
@@ -69,7 +68,10 @@ export default function Dashboard() {
           Acciones Rápidas
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left">
+          <Link
+            to="/admin/productos/nuevo"
+            className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left block"
+          >
             <Package className="w-6 h-6 text-neutral-900 mb-2" />
             <h4 className="font-semibold text-neutral-900 mb-1">
               Nuevo Producto
@@ -77,9 +79,12 @@ export default function Dashboard() {
             <p className="text-sm text-neutral-600">
               Agregar un producto al catálogo
             </p>
-          </button>
+          </Link>
 
-          <button className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left">
+          <Link
+            to="/admin/categorias"
+            className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left block"
+          >
             <Layers className="w-6 h-6 text-neutral-900 mb-2" />
             <h4 className="font-semibold text-neutral-900 mb-1">
               Nueva Categoría
@@ -87,9 +92,12 @@ export default function Dashboard() {
             <p className="text-sm text-neutral-600">
               Crear una nueva categoría
             </p>
-          </button>
+          </Link>
 
-          <button className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left">
+          <Link
+            to="/admin/productos"
+            className="p-4 border-2 border-neutral-200 rounded-lg hover:border-neutral-900 hover:bg-neutral-50 transition-all text-left block"
+          >
             <Tag className="w-6 h-6 text-neutral-900 mb-2" />
             <h4 className="font-semibold text-neutral-900 mb-1">
               Ver todos los productos
@@ -97,16 +105,8 @@ export default function Dashboard() {
             <p className="text-sm text-neutral-600">
               Gestionar productos existentes
             </p>
-          </button>
+          </Link>
         </div>
-      </div>
-
-      {/* Info */}
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>🎉 ¡Panel Admin funcionando!</strong> Sistema CRUD implementado.
-          Navega usando el sidebar para gestionar categorías, materiales y tags.
-        </p>
       </div>
     </div>
   );

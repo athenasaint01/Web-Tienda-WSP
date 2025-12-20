@@ -319,7 +319,7 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
                 custom={direction}
                 variants={itemVariants}
                 transition={{
-                  x: { duration: 0.5, ease: [0.32, 0.72, 0, 1] },
+                  x: { duration: 0.5, ease: [0.32, 0.72, 0, 1] as const },
                   opacity: { duration: 0.4, ease: "easeInOut" },
                   scale: { duration: 0.4, ease: "easeOut" },
                 }}
@@ -407,9 +407,9 @@ export default function Home() {
 
   return (
     <>
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <ImagesSlider images={heroImages} className="h-[75vh] md:h-[82vh]">
+      {/* HERO + BENEFICIOS (100vh en desktop) */}
+      <section className="relative overflow-hidden md:h-[calc(100vh-64px)]">
+        <ImagesSlider images={heroImages} className="h-[75vh] md:h-[calc(100vh-184px)]">
           <motion.div
             initial={{ opacity: 0, y: -40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -447,21 +447,21 @@ export default function Home() {
             </div>
           </motion.div>
         </ImagesSlider>
-      </section>
 
-      {/* Beneficios */}
-      <section className="bg-black text-white">
-        <div className="mx-auto max-w-7xl px-4 py-8 grid gap-6 md:grid-cols-3">
-          {[
-            { t: "Hipoalergénicos", d: "Materiales amigables con tu piel." },
-            { t: "Durables", d: "Acabados pensados para uso diario." },
-            { t: "Versátiles", d: "Diseños para cualquier estilo." },
-          ].map((b, i) => (
-            <div key={i} className="md:border-l border-white/15 pl-0 md:pl-6 first:md:border-l-0">
-              <h3 className="font-serif text-lg">{b.t}</h3>
-              <p className="text-neutral-300 mt-1">{b.d}</p>
-            </div>
-          ))}
+        {/* Beneficios */}
+        <div className="bg-black text-white md:h-[120px] flex items-center">
+          <div className="mx-auto max-w-7xl px-4 py-8 md:py-0 grid gap-6 md:grid-cols-3 w-full">
+            {[
+              { t: "Hipoalergénicos", d: "Materiales amigables con tu piel." },
+              { t: "Durables", d: "Acabados pensados para uso diario." },
+              { t: "Versátiles", d: "Diseños para cualquier estilo." },
+            ].map((b, i) => (
+              <div key={i} className="md:border-l border-white/15 pl-0 md:pl-6 first:md:border-l-0">
+                <h3 className="font-serif text-lg">{b.t}</h3>
+                <p className="text-neutral-300 mt-1">{b.d}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

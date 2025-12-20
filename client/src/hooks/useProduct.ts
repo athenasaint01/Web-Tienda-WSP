@@ -37,6 +37,8 @@ type ProductDetail = {
   name: string;
   description?: string;
   featured: boolean;
+  stock: number;
+  low_stock_threshold: number;
   wa_template?: string;
   is_active: boolean;
   category: Category;
