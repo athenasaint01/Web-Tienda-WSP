@@ -1,34 +1,46 @@
-# Web Joyería Artesanal
+# Web Alahas - Joyería Artesanal
 
-Sitio web de comercio electrónico para joyería artesanal de alta gama, con catálogo de productos, filtros avanzados, animaciones 3D y integración con WhatsApp.
+E-commerce full-stack para joyería artesanal de alta gama con catálogo dinámico, panel administrativo, sistema de inventario y integración con WhatsApp.
 
 ## 🚀 Características
 
-### Funcionalidades Actuales
+### ✨ Funcionalidades del Cliente
 
-- **Catálogo de Productos**: Visualización de collares, pulseras, anillos y otros productos
-- **Filtrado Avanzado**: Búsqueda por texto, categoría y ordenamiento múltiple
-- **Galería Interactiva**: Carruseles automáticos con efectos de transición suaves
-- **Tarjetas 3D**: Efecto de rotación 3D en las tarjetas de productos basado en la posición del mouse
-- **Detalle de Producto**: Galería de imágenes con zoom al pasar el cursor
-- **Integración WhatsApp**: Botones de contacto directo con mensajes pre-configurados
-- **Formulario de Contacto**: Envío de consultas vía email con validación y rate limiting
-- **Diseño Responsivo**: Optimizado para dispositivos móviles, tablets y desktop
-- **Animaciones Fluidas**: Implementadas con Framer Motion para una experiencia premium
-- **SEO-Friendly**: URLs limpias con slugs descriptivos
+- **Catálogo Dinámico**: Productos cargados desde base de datos PostgreSQL
+- **Filtrado Avanzado**: Búsqueda por texto, categoría, materiales y tags
+- **Animaciones Premium**: Efectos de entrada suaves con Framer Motion
+- **Tarjetas 3D Interactivas**: Rotación basada en posición del mouse
+- **Galería de Productos**: Múltiples imágenes con zoom hover
+- **Sistema de Colecciones**: Secciones destacadas en home page
+- **Integración WhatsApp**: Contacto directo con mensajes personalizados
+- **Control de Stock**: Badges "AGOTADO" para productos sin inventario
+- **Diseño Responsivo**: Optimizado para móvil, tablet y desktop
+- **SEO Optimizado**: URLs limpias, meta tags dinámicos
 
-### 🚧 En Desarrollo
+### 🔐 Panel Administrativo
 
-- **Panel Administrativo**: Gestión de productos, categorías y configuración (próximamente)
-- **Sistema de Autenticación**: Control de acceso para administradores
-- **Gestión de Inventario**: CRUD completo de productos con upload de imágenes
-- **Analytics Dashboard**: Métricas de visitas, productos más vistos, conversiones
+- **Autenticación JWT**: Login seguro con tokens de 7 días
+- **CRUD Completo de Productos**:
+  - Upload múltiple de imágenes (hasta 6 por producto)
+  - Procesamiento automático a 3 tamaños (thumbnail, medium, large)
+  - Gestión de stock y umbral de bajo inventario
+  - Asignación de materiales y tags
+  - Templates personalizados para WhatsApp
+- **Gestión de Taxonomía**:
+  - Categorías con slug automático
+  - Materiales reutilizables
+  - Tags para filtrado avanzado
+- **Gestión de Colecciones**:
+  - Asociación categoría + imagen
+  - Orden personalizado para home page
+  - Activación/desactivación dinámica
 
 ## 📋 Requisitos Previos
 
-- Node.js 18+ y npm
-- Cuenta de Gmail con contraseña de aplicación (para envío de emails)
-- Número de WhatsApp Business (opcional, para integración de contacto)
+- **Node.js** 18+ y npm
+- **PostgreSQL** 14+ (local o Railway/Neon/Supabase)
+- **Gmail** con contraseña de aplicación (para emails)
+- **WhatsApp Business** (opcional, para integración)
 
 ## 🛠️ Instalación
 
@@ -36,327 +48,610 @@ Sitio web de comercio electrónico para joyería artesanal de alta gama, con cat
 
 ```bash
 git clone <repository-url>
-cd "Web Joyeria"
+cd Web-Tienda-WSP
 ```
 
-### 2. Instalar dependencias del cliente
+### 2. Instalar dependencias
 
 ```bash
+# Cliente
 cd client
 npm install
-```
 
-### 3. Instalar dependencias del servidor
-
-```bash
+# Servidor
 cd ../server
 npm install
 ```
 
-## 🏃‍♂️ Ejecución en Desarrollo
+### 3. Configurar variables de entorno
 
-### Opción 1: Ejecutar ambos servidores manualmente
-
-**Terminal 1 - Cliente:**
-```bash
-cd client
-npm run dev
+**Cliente (`client/.env`):**
+```env
+VITE_WHATSAPP_PHONE=51980656823
+# En desarrollo: déjalo vacío para usar proxy de Vite
+# En producción: URL del backend
+# VITE_API_URL=https://tu-backend.railway.app
 ```
-El cliente estará disponible en: http://localhost:5174
 
-**Terminal 2 - Servidor:**
+**Servidor (`server/.env`):**
+```env
+# Puerto
+PORT=3000
+
+# Base de datos (elige una opción)
+# Opción 1: URL completa (Railway/Render)
+DATABASE_URL=postgresql://usuario:password@host:puerto/database
+
+# Opción 2: Variables individuales (desarrollo local)
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=nombre_bd
+# DB_USER=postgres
+# DB_PASSWORD=tu_password
+
+# JWT
+JWT_SECRET=tu-secreto-super-seguro-cambiar-en-produccion
+JWT_EXPIRES_IN=7d
+
+# SMTP / Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=tu-app-password-de-16-digitos
+MAIL_FROM="Tu Negocio <tu-email@gmail.com>"
+MAIL_TO=destinatario@example.com
+
+# CORS (solo en producción)
+# CORS_ORIGIN=https://tu-app.vercel.app,https://www.tu-dominio.com
+
+# Entorno
+NODE_ENV=development
+```
+
+### 4. Configurar base de datos
+
+```bash
+cd server
+
+# Ejecutar migraciones
+node scripts/runMigration.js
+```
+
+Esto creará:
+- Tablas: `products`, `categories`, `materials`, `tags`, `collections`, `users`, etc.
+- Datos de ejemplo (2 productos por categoría)
+- Usuario admin por defecto
+
+### 5. Crear usuario administrador
+
 ```bash
 cd server
 npm run dev
 ```
-El servidor estará disponible en: http://localhost:3000
 
-### Opción 2: Script de desarrollo (recomendado)
+Luego hacer POST a `/api/dev/fix-admin` (solo en desarrollo) o ejecutar SQL:
 
-```bash
-# Desde la raíz del proyecto
-npm run dev
+```sql
+-- Genera hash con bcryptjs para password "admin123"
+INSERT INTO users (email, password_hash, full_name, role)
+VALUES (
+  'admin@tuempresa.com',
+  '$2a$10$tu_hash_bcrypt_aqui',
+  'Administrador',
+  'admin'
+);
 ```
 
-> El cliente automáticamente redirige las peticiones `/api/*` al servidor gracias al proxy de Vite.
+## 🏃 Ejecución en Desarrollo
+
+### Opción 1: Servidores separados (recomendado)
+
+**Terminal 1 - Backend:**
+```bash
+cd server
+npm run dev
+# Servidor en http://localhost:3000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd client
+npm run dev
+# Cliente en http://localhost:5173
+```
+
+El proxy de Vite redirige `/api/*` → `http://localhost:3000`
+
+### Opción 2: Script concurrente (requiere package.json raíz)
+
+```bash
+npm run dev
+```
 
 ## 📦 Build para Producción
 
-### Cliente
+### Compilar Cliente
 
 ```bash
 cd client
 npm run build
+# Genera archivos estáticos en client/dist/
 ```
 
-Genera los archivos estáticos en `client/dist/`
-
-### Servidor
+### Compilar Servidor
 
 ```bash
 cd server
 npm run build
+# Compila TypeScript a JavaScript en server/dist/
 ```
 
-Compila TypeScript a JavaScript en `server/dist/`
-
-### Iniciar en producción
+### Ejecutar en Producción
 
 ```bash
 cd server
 npm start
+# Ejecuta desde dist/ con NODE_ENV=production
 ```
 
 ## 🗂️ Estructura del Proyecto
 
 ```
-Web Joyeria/
-├── client/                    # Aplicación React
+Web-Tienda-WSP/
+├── client/                           # Frontend React
 │   ├── src/
-│   │   ├── pages/            # Páginas de rutas
-│   │   │   ├── Home.tsx      # Página principal
-│   │   │   ├── Productos.tsx # Listado con filtros
-│   │   │   ├── ProductoDetalle.tsx
-│   │   │   └── Nosotros.tsx  # Acerca de nosotros
-│   │   ├── components/       # Componentes reutilizables
-│   │   │   ├── Layout.tsx    # Layout principal
-│   │   │   ├── Header.tsx    # Navegación
-│   │   │   ├── Footer.tsx
-│   │   │   ├── ProductCard.tsx  # Tarjeta de producto con 3D
-│   │   │   ├── FiltersSidebar.tsx
-│   │   │   └── ui/           # Componentes UI base
-│   │   ├── data/
-│   │   │   └── products.ts   # Catálogo de productos
+│   │   ├── pages/
+│   │   │   ├── Home.tsx              # Página principal con colecciones
+│   │   │   ├── Productos.tsx         # Catálogo con filtros y paginación
+│   │   │   ├── ProductoDetalle.tsx   # Detalle del producto
+│   │   │   ├── Nosotros.tsx          # Sobre la empresa
+│   │   │   └── admin/                # Panel administrativo
+│   │   │       ├── Dashboard.tsx     # Vista principal admin
+│   │   │       ├── Login.tsx         # Autenticación
+│   │   │       ├── productos/        # CRUD productos
+│   │   │       ├── categorias/       # Gestión categorías
+│   │   │       ├── materiales/       # Gestión materiales
+│   │   │       ├── tags/             # Gestión tags
+│   │   │       └── colecciones/      # Gestión colecciones
+│   │   ├── components/
+│   │   │   ├── Layout.tsx            # Layout público
+│   │   │   ├── Header.tsx            # Navegación con scroll-to-top
+│   │   │   ├── ProductCard.tsx       # Tarjeta 3D con animaciones
+│   │   │   ├── FiltersSidebar.tsx    # Filtros memoizados
+│   │   │   └── admin/                # Componentes admin
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx       # Gestión de autenticación
+│   │   ├── hooks/
+│   │   │   ├── useProduct.ts         # Hook para productos
+│   │   │   └── useFilters.ts         # Hook para filtros
+│   │   ├── services/
+│   │   │   └── api.ts                # Cliente API con tipos
 │   │   ├── lib/
-│   │   │   └── wa.ts         # Utilidad WhatsApp
-│   │   ├── assets/           # Imágenes y recursos
-│   │   └── App.tsx           # Configuración de rutas
-│   ├── public/               # Archivos estáticos
-│   ├── index.html
-│   ├── vite.config.ts        # Configuración Vite
-│   └── tailwind.config.js    # Configuración Tailwind
+│   │   │   └── wa.ts                 # Generador links WhatsApp
+│   │   └── types/
+│   │       └── api.ts                # Tipos TypeScript compartidos
+│   ├── public/                       # Assets estáticos
+│   ├── vercel.json                   # Config SPA routing Vercel
+│   └── .env.example                  # Template variables entorno
 │
-├── server/                   # API Express
+├── server/                           # Backend Express
 │   ├── src/
-│   │   ├── index.ts         # Punto de entrada
+│   │   ├── index.ts                  # Entry point con middleware
+│   │   ├── config/
+│   │   │   └── database.ts           # Pool PostgreSQL + SSL
 │   │   ├── routes/
-│   │   │   └── contact.ts   # Endpoint de contacto
-│   │   └── email.ts         # Configuración Nodemailer
-│   └── dist/                # Build compilado
+│   │   │   ├── contact.ts            # Formulario contacto
+│   │   │   ├── auth.ts               # Login/registro
+│   │   │   ├── products.ts           # Productos públicos
+│   │   │   ├── categories.ts         # Categorías públicas
+│   │   │   ├── materials.ts          # Materiales públicos
+│   │   │   ├── tags.ts               # Tags públicos
+│   │   │   ├── collections.ts        # Colecciones públicas
+│   │   │   └── admin/                # Rutas protegidas
+│   │   │       ├── products.ts       # CRUD productos
+│   │   │       ├── categories.ts     # CRUD categorías
+│   │   │       ├── materials.ts      # CRUD materiales
+│   │   │       ├── tags.ts           # CRUD tags
+│   │   │       └── collections.ts    # CRUD colecciones
+│   │   ├── services/
+│   │   │   ├── productService.ts     # Lógica de negocio productos
+│   │   │   └── uploadService.ts      # Procesamiento imágenes (Sharp)
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.ts     # JWT verification
+│   │   ├── types/
+│   │   │   └── models.ts             # Tipos TypeScript
+│   │   ├── email.ts                  # Nodemailer config
+│   │   └── scripts/
+│   │       └── generateHash.ts       # Generar passwords bcrypt
+│   ├── scripts/
+│   │   └── runMigration.js           # Script migraciones DB
+│   ├── database/
+│   │   ├── schema.sql                # Esquema principal
+│   │   ├── seed.sql                  # Datos iniciales
+│   │   ├── EJECUTAR_EN_PGADMIN.sql   # Collections + ejemplos
+│   │   └── migrations/               # Migraciones incrementales
+│   ├── uploads/                      # Imágenes subidas (gitignored)
+│   │   └── products/
+│   │       ├── thumbnails/           # 200x200px
+│   │       ├── medium/               # 600x600px
+│   │       └── large/                # 1200x1200px
+│   ├── dist/                         # Build compilado
+│   └── .env.example                  # Template variables entorno
 │
+├── database/                         # SQL compartidos
 └── README.md
 ```
 
 ## 🎨 Stack Tecnológico
 
 ### Frontend
-
-- **React 19** - Biblioteca de interfaz de usuario
-- **TypeScript 5.8** - Tipado estático
-- **Vite 7** - Build tool y dev server
-- **React Router DOM 7** - Enrutamiento del lado del cliente
-- **TailwindCSS 3** - Framework CSS utility-first
-- **Framer Motion 12** - Animaciones avanzadas
-- **Lucide React** - Iconos modernos
-- **React Day Picker** - Selector de fechas
-- **date-fns** - Manipulación de fechas
+- **React 19.2.2** - UI library
+- **TypeScript 5.8** - Type safety
+- **Vite 7** - Build tool + HMR
+- **React Router DOM 7** - Client-side routing
+- **TailwindCSS 3** - Utility-first CSS
+- **Framer Motion 12** - Advanced animations
+- **Lucide React** - Modern icons
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
 
 ### Backend
+- **Express 5** - Web framework
+- **TypeScript 5.9** - Type safety
+- **PostgreSQL** - Relational database
+- **pg** - PostgreSQL client with connection pooling
+- **Nodemailer 7** - Email sending
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **Multer** - Multipart/form-data handling
+- **Sharp** - Image processing (resize, optimize)
+- **Helmet** - Security headers
+- **CORS** - Cross-origin control
+- **express-rate-limit** - Rate limiting
 
-- **Express 5** - Framework web para Node.js
-- **TypeScript 5.9** - Tipado estático
-- **Nodemailer 7** - Envío de emails
-- **Zod 4** - Validación de esquemas
-- **Helmet** - Seguridad HTTP
-- **CORS** - Control de origen cruzado
-- **express-rate-limit** - Limitación de peticiones
+## 🔧 Guías de Uso
 
-## 🔧 Configuración Adicional
+### Añadir Productos desde el Admin
 
-### Añadir Nuevos Productos
+1. Inicia sesión en `/admin`
+2. Ve a "Productos" → "Nuevo Producto"
+3. Completa:
+   - **Slug**: URL amigable (auto-normalizado a lowercase-kebab-case)
+   - **Nombre**: Título del producto
+   - **Categoría**: Selecciona de la lista
+   - **Stock**: Cantidad disponible
+   - **Umbral bajo stock**: Cuándo mostrar advertencia
+   - **Destacado**: Aparecerá en home
+   - **Template WhatsApp**: Usa `{nombre}` como placeholder
+4. Sube hasta 6 imágenes (se procesan automáticamente)
+5. Asigna materiales y tags
 
-Edita el archivo `client/src/data/products.ts`:
+### Gestionar Colecciones (Home Page)
 
-```typescript
-{
-  id: "unique-id",
-  slug: "url-friendly-name",
-  name: "Nombre del Producto",
-  category: "collares", // 'collares' | 'pulseras' | 'anillos' | 'otros'
-  images: ["/ruta/imagen1.jpg", "/ruta/imagen2.jpg"],
-  featured: true, // Aparece en página principal
-  waTemplate: "Hola, me interesa el {nombre}",
-  description: "Descripción detallada del producto...",
-  materials: ["Oro 18k", "Diamantes"],
-  tags: ["elegante", "moderno"]
+Las colecciones son secciones visuales en el home:
+
+1. Ve a "Colecciones" en el admin
+2. Cada categoría puede tener UNA colección activa
+3. Sube una imagen representativa (1200x800px recomendado)
+4. Ajusta el orden de visualización
+5. Activa/desactiva para mostrar/ocultar
+
+### Personalizar Estilos
+
+**Colores (`client/src/index.css`):**
+```css
+:root {
+  --color-primary: #tu-color;
+  --color-secondary: #tu-color;
 }
 ```
 
-### Personalizar Colores y Estilos
-
-Modifica `client/tailwind.config.js`:
-
+**Fuentes (`client/tailwind.config.js`):**
 ```javascript
-export default {
-  theme: {
-    extend: {
-      colors: {
-        primary: '#tu-color-primario',
-        secondary: '#tu-color-secundario',
-      },
-      fontFamily: {
-        'heading': ['Tu-Fuente-Personalizada', 'serif'],
-      }
-    }
-  }
+fontFamily: {
+  'heading': ['Tu-Fuente', 'serif'],
+  'body': ['Tu-Fuente', 'sans-serif'],
 }
 ```
 
-### Configurar Rate Limiting
+### Rate Limiting del Formulario
 
 Ajusta en `server/src/routes/contact.ts`:
 
 ```typescript
 const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutos
-  max: 5, // 5 peticiones por ventana
-  message: "Demasiadas solicitudes..."
+  windowMs: 10 * 60 * 1000,  // Ventana de tiempo
+  max: 5,                     // Máximo de requests
+  message: "Mensaje personalizado..."
 })
 ```
 
-## 🔐 Seguridad
-
-- ✅ Headers de seguridad con Helmet
-- ✅ Validación de entrada con Zod
-- ✅ Rate limiting en formulario de contacto
-- ✅ CORS configurado
-- ✅ Variables de entorno para secretos
-- ⚠️ HTTPS requerido en producción
-- ⚠️ Actualizar CORS origins antes de deployment
-
-## 📱 Integración WhatsApp
-
-El botón de WhatsApp genera links con mensajes pre-configurados:
-
-```typescript
-import { waLink } from '@/lib/wa'
-
-// Mensaje genérico
-<a href={waLink("Hola, tengo una consulta")}>Contactar</a>
-
-// Mensaje específico de producto
-<a href={waLink(product.waTemplate?.replace('{nombre}', product.name))}>
-  Consultar
-</a>
-```
-
-El número se configura en `client/.env` como `VITE_WHATSAPP_PHONE`.
-
 ## 🚀 Deployment
 
-### Opción 1: Vercel (Cliente) + Railway (Servidor)
+### Arquitectura Recomendada
 
-**Cliente en Vercel:**
-```bash
-cd client
-vercel --prod
+- **Frontend**: Vercel (SPA estático)
+- **Backend**: Railway (Node.js + PostgreSQL)
+- **Base de Datos**: Railway PostgreSQL (incluido)
+- **Imágenes**: Almacenamiento persistente en Railway
+
+### Paso 1: Deploy Backend en Railway
+
+1. **Crear cuenta en Railway** (railway.app)
+2. **Nuevo Proyecto** → "Deploy from GitHub repo"
+3. **Seleccionar repositorio** y rama `main`
+4. Railway detectará automáticamente el monorepo
+5. **Configurar Root Directory**: `server`
+6. **Agregar PostgreSQL** desde "New" → "Database" → "PostgreSQL"
+7. **Configurar Variables de Entorno**:
+
+```env
+DATABASE_URL=${{Postgres.DATABASE_URL}}  # Auto-inyectada por Railway
+NODE_ENV=production
+PORT=3000
+JWT_SECRET=genera-un-secreto-aleatorio-seguro-de-64-caracteres
+JWT_EXPIRES_IN=7d
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu-email@gmail.com
+SMTP_PASS=xxxx xxxx xxxx xxxx
+MAIL_FROM="Tu Negocio <tu-email@gmail.com>"
+MAIL_TO=destinatario@example.com
+CORS_ORIGIN=https://tu-app.vercel.app
 ```
 
-**Servidor en Railway:**
-- Conectar repositorio
-- Configurar variables de entorno
-- Railway detectará automáticamente el `package.json`
+8. **Deploy automático** - Railway ejecutará:
+   - `npm install`
+   - `npm run build`
+   - `npm start`
 
-### Opción 2: Render (Full-stack)
+9. **Ejecutar migraciones** (solo primera vez):
+   - Ve a "Settings" → "Deploy Triggers"
+   - Agrega comando: `node scripts/runMigration.js`
+   - O ejecuta manualmente desde Railway CLI
 
-**Cliente:**
-- Static Site
-- Build command: `cd client && npm install && npm run build`
-- Publish directory: `client/dist`
+10. **Copiar URL del backend**: `https://tu-proyecto.up.railway.app`
 
-**Servidor:**
-- Web Service
-- Build command: `cd server && npm install && npm run build`
-- Start command: `cd server && npm start`
+### Paso 2: Deploy Frontend en Vercel
 
-### Opción 3: VPS/Servidor Propio
+1. **Crear cuenta en Vercel** (vercel.com)
+2. **Import Git Repository**
+3. **Configurar proyecto**:
+   - **Framework Preset**: Vite
+   - **Root Directory**: `client`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. **Environment Variables**:
+
+```env
+VITE_API_URL=https://tu-proyecto.up.railway.app
+VITE_WHATSAPP_PHONE=51980656823
+```
+
+5. **Deploy** - Vercel construirá automáticamente
+
+### Paso 3: Actualizar CORS en Railway
+
+Una vez que Vercel te dé tu URL (`https://tu-app.vercel.app`):
+
+1. Ve a Railway → Variables de Entorno
+2. Actualiza `CORS_ORIGIN`:
+```env
+CORS_ORIGIN=https://tu-app.vercel.app,https://www.tu-dominio.com
+```
+3. Railway redeplegará automáticamente
+
+### Alternativa: VPS/Servidor Propio
 
 ```bash
-# Instalar PM2 para gestión de procesos
+# Instalar PM2
 npm install -g pm2
 
-# Build de ambos proyectos
+# Build
 cd client && npm run build
 cd ../server && npm run build
 
-# Servir cliente con servidor web (nginx/Apache)
-# Ejecutar servidor con PM2
+# Servir cliente con Nginx/Apache
+# Copiar client/dist/ a /var/www/html
+
+# Ejecutar backend con PM2
 cd server
-pm2 start dist/index.js --name web-Joyeria-api
+pm2 start dist/index.js --name api-alahas
 pm2 save
 pm2 startup
 ```
 
+**Nginx config:**
+```nginx
+server {
+    listen 80;
+    server_name tu-dominio.com;
+
+    # Frontend
+    location / {
+        root /var/www/html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API
+    location /api {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Upload de imágenes
+    location /uploads {
+        proxy_pass http://localhost:3000;
+    }
+}
+```
+
+## 🔐 Seguridad
+
+### Implementaciones Actuales
+
+- ✅ **Helmet** - Headers HTTP seguros
+- ✅ **CORS** - Control de orígenes permitidos
+- ✅ **JWT** - Autenticación stateless con expiración
+- ✅ **bcryptjs** - Hashing seguro de passwords (salt rounds: 10)
+- ✅ **Zod** - Validación estricta de entrada
+- ✅ **Rate Limiting** - Protección contra spam (5 req/10min)
+- ✅ **SQL Parameterizado** - Prevención de SQL injection
+- ✅ **SSL/TLS** - Conexión cifrada a PostgreSQL en producción
+- ✅ **Variables de entorno** - Secretos fuera del código
+
+### Checklist Pre-Producción
+
+- [ ] Cambiar `JWT_SECRET` a valor aleatorio de 64+ caracteres
+- [ ] Usar contraseña de aplicación Gmail (no password principal)
+- [ ] Configurar `CORS_ORIGIN` con dominio real
+- [ ] Establecer `NODE_ENV=production`
+- [ ] Activar HTTPS/SSL en servidor
+- [ ] Revisar permisos de usuario PostgreSQL
+- [ ] Configurar backups automáticos de BD
+- [ ] Implementar rotación de logs
+
 ## 🐛 Troubleshooting
 
-### El formulario de contacto no envía emails
+### Error: "Cannot connect to PostgreSQL"
 
-1. Verifica que `SMTP_USER` y `SMTP_PASS` sean correctos
-2. Para Gmail, asegúrate de usar una "contraseña de aplicación"
-3. Revisa que `SMTP_PORT` sea 587 (TLS) o 465 (SSL)
-4. Comprueba los logs del servidor para errores específicos
+**Causa**: Configuración incorrecta de `DATABASE_URL`
 
-### Las imágenes no cargan
+**Solución**:
+```bash
+# Verificar formato
+postgresql://usuario:password@host:puerto/database
 
-1. Verifica que las rutas en `products.ts` sean correctas
-2. Si usan rutas absolutas (`/images/...`), deben estar en `client/public/`
-3. Si usan rutas relativas, deben estar en `client/src/assets/`
+# Probar conexión
+psql "postgresql://..."
+
+# En Railway, usar la URL auto-generada
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+```
+
+### Error: "SASL: client password must be a string"
+
+**Causa**: `DATABASE_URL` no se está leyendo correctamente
+
+**Solución**:
+```bash
+# Recompilar servidor
+cd server
+npm run build
+
+# Verificar .env existe y tiene DATABASE_URL
+cat .env | grep DATABASE_URL
+```
+
+### Formulario de contacto no envía emails
+
+**Gmail con 2FA**:
+1. Ve a cuenta.google.com → Seguridad
+2. Habilita "Verificación en 2 pasos"
+3. Genera "Contraseña de aplicación" (16 dígitos sin espacios)
+4. Usa esa password en `SMTP_PASS`
+
+### Imágenes no se suben en producción
+
+**Railway/Render**: El sistema de archivos es efímero
+
+**Soluciones**:
+1. Usar servicio de almacenamiento (AWS S3, Cloudinary, etc.)
+2. Modificar `uploadService.ts` para subir a CDN
+3. Usar Railway Volumes (persistente pero limitado)
 
 ### Error de CORS en producción
 
-Actualiza `server/src/index.ts`:
+**Síntoma**: `Access-Control-Allow-Origin` error
 
+**Solución**:
 ```typescript
+// server/src/index.ts
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:5173'];
+
 app.use(cors({
-  origin: ["https://tu-dominio-frontend.com"]
-}))
+  origin: allowedOrigins,
+  credentials: true
+}));
 ```
 
-### Vite proxy no funciona
+Verifica que `CORS_ORIGIN` en Railway incluya tu dominio Vercel.
 
-Asegúrate de que:
-1. El servidor esté corriendo en puerto 3000
-2. `vite.config.ts` tenga configurado el proxy correcto
-3. Ambos servidores estén ejecutándose simultáneamente
+### Build falla con errores TypeScript
+
+**Síntoma**: `npm run build` muestra errores de tipos
+
+**Solución**:
+```bash
+# Limpiar y reinstalar
+rm -rf node_modules package-lock.json dist
+npm install
+npm run build
+
+# Si persiste, revisar tipos importados
+# Usar 'import type' para tipos
+import type { User } from './types'
+```
 
 ## 📈 Roadmap
 
-- [ ] **v2.0**: Panel administrativo completo
-  - [ ] Autenticación de administradores (JWT)
-  - [ ] CRUD de productos con upload de imágenes
-  - [ ] Gestión de categorías y etiquetas
-  - [ ] Dashboard con métricas básicas
-- [ ] **v2.1**: Base de datos
-  - [ ] Migrar productos a PostgreSQL/MongoDB
-  - [ ] Persistir consultas del formulario
-  - [ ] Sistema de caché para mejor performance
-- [ ] **v2.2**: Features avanzadas
-  - [ ] Carrito de compras
-  - [ ] Wishlist / Favoritos
-  - [ ] Comparador de productos
-  - [ ] Newsletter con Mailchimp/SendGrid
-- [ ] **v2.3**: Optimizaciones
-  - [ ] CDN para imágenes
-  - [ ] Lazy loading mejorado
-  - [ ] PWA (Progressive Web App)
-  - [ ] Tests unitarios y E2E
+### ✅ Completado (v1.0)
+- [x] Catálogo dinámico con PostgreSQL
+- [x] Panel administrativo completo
+- [x] Sistema de autenticación JWT
+- [x] Upload y procesamiento de imágenes
+- [x] Control de inventario y stock
+- [x] Gestión de colecciones
+- [x] Animaciones y UX premium
+- [x] Deployment en Railway + Vercel
+
+### 🚧 En Progreso (v1.1)
+- [ ] Dashboard con métricas (productos más vistos, stock bajo)
+- [ ] Búsqueda con Algolia/ElasticSearch
+- [ ] Integración WhatsApp Business API
+- [ ] Newsletter con Mailchimp
+
+### 📅 Planificado (v2.0)
+- [ ] Carrito de compras persistente
+- [ ] Wishlist/Favoritos
+- [ ] Sistema de reviews y ratings
+- [ ] Pasarela de pagos (Stripe/MercadoPago)
+- [ ] Multi-idioma (i18n)
+- [ ] PWA con notificaciones push
+- [ ] Tests E2E con Playwright
 
 ## 📄 Licencia
 
 Este proyecto es privado y propietario.
 
+## 👥 Contribuciones
+
+Para contribuir:
+1. Fork el repositorio
+2. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -m 'feat: descripción'`
+4. Push: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
+
+## 📞 Soporte
+
+Para reportar bugs o solicitar features:
+- **Issues**: Abre un issue en GitHub
+- **Email**: soporte@tuempresa.com
+- **WhatsApp**: +51 980 656 823
+
 ## 👤 Autor
 
 **Diego Nancay**
 - GitHub: [@athenasaint01](https://github.com/athenasaint01)
+- LinkedIn: [Diego Nancay](https://linkedin.com/in/diego-nancay)
 
+---
+
+Desarrollado con ❤️ usando React, TypeScript y PostgreSQL
