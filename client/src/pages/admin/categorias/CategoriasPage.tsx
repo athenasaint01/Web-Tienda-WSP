@@ -20,7 +20,8 @@ export default function CategoriasPage() {
   const loadCategories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/categories');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/categories`);
       const data = await response.json();
       if (data.ok) {
         setCategories(data.data);

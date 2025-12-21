@@ -20,7 +20,8 @@ export default function MaterialesPage() {
   const loadMaterials = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/materials');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/materials`);
       const data = await response.json();
       if (data.ok) {
         setMaterials(data.data);

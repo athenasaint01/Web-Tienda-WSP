@@ -19,7 +19,8 @@ export default function TagsPage() {
   const loadTags = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/tags');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${API_BASE_URL}/tags`);
       const data = await response.json();
       if (data.ok) {
         setTags(data.data);

@@ -55,7 +55,8 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await fetch('/api/categories');
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+        const response = await fetch(`${API_BASE_URL}/categories`);
         const data = await response.json();
         if (data.ok) {
           setCategories(data.data);
@@ -103,8 +104,9 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
         }
 
         // Send FormData
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
         const token = localStorage.getItem('auth_token');
-        const response = await fetch('/api/admin/collections', {
+        const response = await fetch(`${API_BASE_URL}/admin/collections`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

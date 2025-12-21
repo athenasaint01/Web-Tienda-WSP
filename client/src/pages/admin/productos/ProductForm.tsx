@@ -69,11 +69,12 @@ export default function ProductForm() {
 
   const loadFormData = async () => {
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       // Load categories, materials, tags
       const [categoriesRes, materialsRes, tagsRes] = await Promise.all([
-        fetch('/api/categories'),
-        fetch('/api/materials'),
-        fetch('/api/tags'),
+        fetch(`${API_BASE_URL}/categories`),
+        fetch(`${API_BASE_URL}/materials`),
+        fetch(`${API_BASE_URL}/tags`),
       ]);
 
       const [categoriesData, materialsData, tagsData] = await Promise.all([
@@ -252,8 +253,9 @@ export default function ProductForm() {
         });
 
         // Send FormData instead of JSON
+        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
         const token = localStorage.getItem('auth_token');
-        const response = await fetch('/api/admin/products', {
+        const response = await fetch(`${API_BASE_URL}/admin/products`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
