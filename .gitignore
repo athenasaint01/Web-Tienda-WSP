@@ -19,6 +19,9 @@ public/dist/
 config/production.json
 config/local.json
 
+# Permitir archivos de producción (solo URLs públicas)
+!client/.env.production
+
 # Archivos de sistema operativo
 .DS_Store
 .DS_Store?
