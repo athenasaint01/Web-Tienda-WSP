@@ -21,7 +21,7 @@ export const uploadImage = async (
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: `alahas/${folder}`, // Organizar en carpetas
+        folder: `${process.env.CLOUDINARY_FOLDER || 'alahas'}/${folder}`,
         resource_type: 'image',
         transformation: [
           { width: 1200, height: 1200, crop: 'limit' }, // Limitar tamaño máximo
