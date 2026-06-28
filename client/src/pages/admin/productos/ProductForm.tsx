@@ -200,8 +200,9 @@ export default function ProductForm() {
           }
 
           // Use PUT with FormData
+          const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
           const token = localStorage.getItem('auth_token');
-          const response = await fetch(`/api/admin/products/${id}`, {
+          const response = await fetch(`${API_BASE_URL}/admin/products/${id}`, {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
