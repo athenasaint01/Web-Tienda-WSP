@@ -14,7 +14,11 @@ import adminCategoriesRouter from "./routes/admin/categories";
 import adminMaterialsRouter from "./routes/admin/materials";
 import adminTagsRouter from "./routes/admin/tags";
 import adminCollectionsRouter from "./routes/admin/collections";
+import adminPopupsRouter from "./routes/admin/popups";
+import adminSettingsRouter from "./routes/admin/settings";
 import collectionsRouter from "./routes/collections";
+import popupRouter from "./routes/popup";
+import settingsRouter from "./routes/settings";
 import fixAdminRouter from "./routes/fix-admin";
 import { verifyTransporter } from "./email";
 import { testConnection } from "./config/database";
@@ -49,6 +53,8 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/materials", materialsRouter);
 app.use("/api/tags", tagsRouter);
 app.use("/api/collections", collectionsRouter);
+app.use("/api/popup", popupRouter);
+app.use("/api/settings", settingsRouter);
 
 // TEMPORAL: Fix admin password (DELETE AFTER USE)
 app.use("/api/dev", fixAdminRouter);
@@ -59,6 +65,8 @@ app.use("/api/admin/categories", adminCategoriesRouter);
 app.use("/api/admin/materials", adminMaterialsRouter);
 app.use("/api/admin/tags", adminTagsRouter);
 app.use("/api/admin/collections", adminCollectionsRouter);
+app.use("/api/admin/popups", adminPopupsRouter);
+app.use("/api/admin/settings", adminSettingsRouter);
 
 // Health check
 app.get("/api/health", (req, res) => {

@@ -1,9 +1,10 @@
 import { BsWhatsapp } from "react-icons/bs";
 import { motion } from "framer-motion";
 import { waLink } from "../lib/wa";
+import { useWhatsAppPhone } from "../hooks/useSettings";
 
 export default function WhatsAppFloat() {
-  const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
+  const phone = useWhatsAppPhone();
   if (!phone) return null;
 
   const msg = "Hola, quiero más info sobre sus accesorios ✨";

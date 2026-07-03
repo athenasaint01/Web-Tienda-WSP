@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
 import Nosotros from "./pages/Nosotros";
+import Marca from "./pages/Marca";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Login from "./pages/admin/Login";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -16,6 +17,8 @@ import MaterialesPage from "./pages/admin/materiales/MaterialesPage";
 import TagsPage from "./pages/admin/tags/TagsPage";
 import ProductosPage from "./pages/admin/productos/ProductosPage";
 import ProductForm from "./pages/admin/productos/ProductForm";
+import PopupsPage from "./pages/admin/popups/PopupsPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 
 export default function App() {
   return (
@@ -28,6 +31,7 @@ export default function App() {
           <Route path="productos" element={<Productos />} />
           <Route path="producto/:slug" element={<ProductoDetalle />} />
           <Route path="nosotros" element={<Nosotros />} />
+          <Route path="marca" element={<Marca />} />
         </Route>
 
         {/* Rutas admin */}
@@ -48,6 +52,8 @@ export default function App() {
           <Route path="colecciones" element={<ColeccionesPage />} />
           <Route path="materiales" element={<MaterialesPage />} />
           <Route path="tags" element={<TagsPage />} />
+          <Route path="popups" element={<PopupsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </AuthProvider>

@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 const navItems = [
   { to: "/", label: "Home" },
   { to: "/productos", label: "Productos" },
+  { to: "/marca", label: "Marca" },
   { to: "/nosotros", label: "Nosotros" },
 ];
 
@@ -76,13 +77,20 @@ export default function Header() {
                 to={i.to}
                 onClick={scrollToTop}
                 className={({ isActive }) =>
-                  `tracking-wide hover:opacity-70 transition-opacity ${
-                    isActive ? "font-medium" : "opacity-90"
+                  `relative tracking-wide transition-colors duration-200 pb-0.5 group ${
+                    isActive ? "font-medium text-neutral-900" : "text-neutral-800"
                   }`
                 }
                 end={i.to === "/"}
               >
-                {i.label}
+                {({ isActive }) => (
+                  <>
+                    <span className={`group-hover:text-neutral-900 transition-colors duration-200 ${isActive ? "text-neutral-900" : ""}`}>
+                      {i.label}
+                    </span>
+                    <span className={`absolute -bottom-0.5 left-0 h-px bg-amber-400 transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -144,8 +152,8 @@ export default function Header() {
                         className={({ isActive }) =>
                           `block px-4 py-3 rounded-lg text-lg font-medium transition-all ${
                             isActive
-                              ? "bg-black text-white"
-                              : "hover:bg-black/5 text-black/80"
+                              ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400"
+                              : "hover:bg-amber-50 hover:text-amber-700 text-black/80"
                           }`
                         }
                       >

@@ -8,6 +8,8 @@ import {
   Tag,
   Boxes,
   Images,
+  Megaphone,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -55,6 +57,16 @@ export default function AdminLayout() {
       label: 'Tags',
       path: '/admin/tags',
     },
+    {
+      icon: Megaphone,
+      label: 'Popups',
+      path: '/admin/popups',
+    },
+    {
+      icon: Settings,
+      label: 'Configuración',
+      path: '/admin/settings',
+    },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -65,7 +77,7 @@ export default function AdminLayout() {
       <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:h-screen lg:sticky lg:top-0 bg-white border-r border-neutral-200">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-neutral-200">
-          <h1 className="font-display text-xl font-bold text-neutral-900">
+          <h1 className="text-xl font-bold text-neutral-900">
             Alahas Admin
           </h1>
         </div>
@@ -128,7 +140,7 @@ export default function AdminLayout() {
           >
             {/* Logo */}
             <div className="h-16 flex items-center justify-between px-6 border-b border-neutral-200">
-              <h1 className="font-display text-xl font-bold text-neutral-900">
+              <h1 className="text-xl font-bold text-neutral-900">
                 Alahas Admin
               </h1>
               <button
@@ -185,7 +197,7 @@ export default function AdminLayout() {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <h1 className="font-display text-lg font-bold">Alahas Admin</h1>
+          <h1 className="text-lg font-bold">Alahas Admin</h1>
           <div className="w-10" />
         </header>
 

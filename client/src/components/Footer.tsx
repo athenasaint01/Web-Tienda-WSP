@@ -1,27 +1,56 @@
+import { FacebookIcon } from "lucide-react";
+import { FaInstagram, FaTiktok } from "react-icons/fa";
+import { useSettings } from "../hooks/useSettings";
+
 export default function Footer() {
+  const { settings } = useSettings();
+
+  const socials = [
+    { url: settings['facebook_url'], icon: <FacebookIcon className="h-4 w-4" />, label: 'Facebook', hover: 'hover:text-[#1877F2]' },
+    { url: settings['instagram_url'], icon: <FaInstagram className="h-4 w-4" />, label: 'Instagram', hover: 'hover:text-[#E1306C]' },
+    { url: settings['tiktok_url'], icon: <FaTiktok className="h-4 w-4" />, label: 'TikTok', hover: 'hover:text-black' },
+  ].filter(s => s.url);
+
   return (
     <footer className="border-t mt-16">
-      <div className="mx-auto max-w-7xl px-4 py-10 grid gap-6 sm:grid-cols-3 text-sm">
+      <div className="mx-auto max-w-7xl px-4 py-10 grid gap-8 sm:grid-cols-3 text-sm">
         <div>
-          <h3 className="font-semibold">Luxury Living</h3>
-          <p className="text-neutral-600 mt-2">
-            Accesorios que elevan tu estilo: collares, pulseras y anillos.
-          </p>
+          <img src="/brand/logo-wordmark.png.png" alt="Alahas" className="h-10 w-auto mb-3" />
+          <p className="text-neutral-500">Accesorios que elevan tu estilo</p>
         </div>
+
+        {socials.length > 0 && (
+          <div>
+            <h4 className="font-semibold mb-2">Redes sociales</h4>
+            <ul className="space-y-2 text-neutral-500">
+              {socials.map(({ url, icon, label, hover }) => (
+                <li key={label}>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`inline-flex items-center gap-2 transition ${hover}`}
+                  >
+                    {icon} {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div>
-          <h4 className="font-semibold">Enlaces</h4>
-          <ul className="mt-2 space-y-1">
-            <li><a className="hover:underline" href="/productos">Productos</a></li>
-            <li><a className="hover:underline" href="/nosotros">Nosotros</a></li>
+          <h4 className="font-semibold mb-2">Enlaces</h4>
+          <ul className="space-y-1 text-neutral-500">
+            <li><a className="hover:text-neutral-900 transition" href="/productos">Productos</a></li>
+            <li><a className="hover:text-neutral-900 transition" href="/nosotros">Nosotros</a></li>
+            <li><a className="hover:text-neutral-900 transition" href="/marca">Marca</a></li>
           </ul>
         </div>
-        <div id="contacto">
-          <h4 className="font-semibold">Contacto</h4>
-          <p className="text-neutral-600 mt-2">Atención por WhatsApp</p>
-        </div>
       </div>
-      <div className="text-center text-xs text-neutral-500 py-4">
-        © {new Date().getFullYear()} Luxury Living. Todos los derechos reservados.
+
+      <div className="border-t text-center text-xs text-neutral-400 py-4">
+        © {new Date().getFullYear()} Alahas. Todos los derechos reservados.
       </div>
     </footer>
   );

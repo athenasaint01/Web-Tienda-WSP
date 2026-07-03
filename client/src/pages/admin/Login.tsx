@@ -55,7 +55,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="font-display text-3xl font-bold text-neutral-900 mb-2">
+            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
               Panel Admin
             </h1>
             <p className="text-neutral-600">

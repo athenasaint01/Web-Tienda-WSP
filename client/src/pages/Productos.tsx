@@ -198,23 +198,29 @@ export default function Productos() {
 
       {/* Barra de herramientas: Filtros y Ordenar */}
       <div className="flex items-center justify-between gap-3 mb-6">
-        {/* Botón Filtros (visible en móvil, oculto en desktop) */}
-        <button
-          onClick={() => setIsFilterOpen(true)}
-          className="md:hidden flex items-center gap-2 rounded-full border border-black/20 px-4 py-2 text-sm font-medium hover:bg-black/5 transition-colors"
-        >
-          <SlidersHorizontal size={18} />
-          Filtrar
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Botón Filtros (visible en móvil) */}
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            className="md:hidden flex items-center gap-2 border border-neutral-200 px-4 py-1.5 text-sm font-medium hover:border-neutral-400 transition-colors"
+          >
+            <SlidersHorizontal size={16} />
+            Filtrar
+          </button>
 
-        {/* Espacio vacío en desktop */}
-        <div className="hidden md:block" />
+          {/* Cantidad de productos */}
+          {!loading && pagination && (
+            <span className="text-sm text-neutral-400">
+              {pagination.total} artículos
+            </span>
+          )}
+        </div>
 
         {/* Ordenar */}
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium hidden sm:inline">Ordenar:</label>
+          <label className="text-sm text-neutral-400 hidden sm:inline">Ordenar:</label>
           <select
-            className="rounded-full border border-black/20 px-3 py-2 text-sm bg-white hover:bg-black/5 transition-colors"
+            className="border border-neutral-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
             value={selected.sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
           >
@@ -355,7 +361,7 @@ export default function Productos() {
           {!loading && products.length > 0 ? (
             <motion.div
               layout
-              className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
               transition={{ layout: { duration: 0.25, ease: "easeOut" } }}
             >
               <AnimatePresence mode="popLayout" initial={true}>
