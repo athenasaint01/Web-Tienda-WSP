@@ -48,7 +48,8 @@ function InfiniteGalleryCarousel({
     let raf = 0;
 
     const loop = (now: number) => {
-      const dt = (now - prev) / 1000;
+      // Capear dt a 100ms para evitar saltos cuando el tab vuelve del fondo
+      const dt = Math.min((now - prev) / 1000, 0.1);
       prev = now;
       const half = track.scrollWidth / 2;
       const speedPx = half / speedSec;
@@ -56,14 +57,20 @@ function InfiniteGalleryCarousel({
       if (!pausedRef.current) {
         pos -= speedPx * dt;
         if (pos <= -half) pos += half;
-        track.style.transform = `translate3d(${pos}px,0,0)`;
+        track.style.transform = `translate3d(${Math.round(pos * 100) / 100}px,0,0)`;
       }
 
       raf = requestAnimationFrame(loop);
     };
 
+    const onVisible = () => { prev = performance.now(); };
+    document.addEventListener('visibilitychange', onVisible);
+
     raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [images.length, speedSec]);
 
   return (
@@ -133,14 +140,17 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
           <img
             src={c.img}
             alt={c.title}
-            className="w-full aspect-[4/3] md:aspect-[16/9] object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            className="w-full aspect-[4/3] md:aspect-[16/9] object-cover"
             loading={i === 0 ? "eager" : "lazy"}
             decoding="async"
           />
-          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors duration-300" />
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
-            <h3 className="font-serif text-2xl md:text-3xl mb-4 text-amber-100 drop-shadow-sm">{c.title}</h3>
-            <span className="inline-block border border-amber-300/80 text-amber-200 text-xs tracking-widest px-5 py-2 hover:bg-amber-200/20 transition-colors duration-300">
+          {/* Brillo que barre de izquierda a derecha solo en hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          </div>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
+            <h3 className="font-serif text-2xl md:text-3xl mb-4 drop-shadow" style={{ color: '#fff8f0' }}>{c.title}</h3>
+            <span className="inline-block bg-amber-800 text-white text-xs tracking-widest px-6 py-2.5 group-hover:bg-amber-700 transition-colors duration-300">
               SHOP NOW
             </span>
           </div>
@@ -230,6 +240,28 @@ function FeaturedCarousel({ products }: { products: ProductListItem[] }) {
 }
 
 /* =========================
+   FEATURED SECTION — lógica desktop/mobile
+========================= */
+function FeaturedSection({ products }: { products: ProductListItem[] }) {
+  const perView = usePerView(); // >= 3 = desktop, < 3 = mobile
+  const isDesktop = perView >= 3;
+
+  // Desktop: grid 5, carrusel si > 5
+  // Mobile:  grid 2, carrusel si >= 3
+  const useCarousel = isDesktop ? products.length > 5 : products.length >= 3;
+
+  if (useCarousel) return <FeaturedCarousel products={products} />;
+
+  return (
+    <div className={`mt-6 grid gap-4 grid-cols-2 md:grid-cols-5`}>
+      {products.slice(0, isDesktop ? 5 : 2).map((p) => (
+        <FeaturedCard key={p.id} p={p} />
+      ))}
+    </div>
+  );
+}
+
+/* =========================
    HOME
 ========================= */
 export default function Home() {
@@ -258,7 +290,7 @@ export default function Home() {
   return (
     <>
       {/* HERO — split layout */}
-      <section className="h-[100dvh] flex flex-col lg:flex-row">
+      <section className="h-[70dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
         {/* Lado izquierdo: texto (solo desktop) */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#f5efe6] flex-col justify-center items-center px-16 xl:px-24 text-center">
           <motion.div
@@ -290,7 +322,7 @@ export default function Home() {
         </div>
 
         {/* Lado derecho: imagen (full en mobile, mitad en desktop) */}
-        <div className="relative w-full h-[100dvh] lg:h-full lg:w-1/2">
+        <div className="relative w-full h-full lg:w-1/2">
           <img
             src="/assets/home/main-1.jpg"
             alt="Alahas — joyas esenciales"
@@ -329,7 +361,7 @@ export default function Home() {
       </section>
 
       {/* Destacados */}
-      <section id="destacados" className="mx-auto max-w-7xl px-4 py-14">
+      <section id="destacados" className="mx-auto max-w-7xl px-4 py-14 scroll-mt-12">
         <h2 className="font-serif text-2xl">Destacados</h2>
 
         {loading && (
@@ -359,16 +391,7 @@ export default function Home() {
                 TODOS
               </Link>
             </div>
-            {featuredProducts.length > 5
-              ? <FeaturedCarousel products={featuredProducts} />
-              : (
-                <div className="mt-6 grid gap-4 grid-cols-2 md:grid-cols-5">
-                  {featuredProducts.map((p) => (
-                    <FeaturedCard key={p.id} p={p} />
-                  ))}
-                </div>
-              )
-            }
+            <FeaturedSection products={featuredProducts} />
           </>
         )}
 
