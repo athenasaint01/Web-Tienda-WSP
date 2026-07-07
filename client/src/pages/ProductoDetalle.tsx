@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import { useProducts } from "../hooks/useProducts";
 import WhatsAppButton from "../components/WhatsAppButton";
+import BadgeChips from "../components/BadgeChips";
+import { useWhatsAppEnabled } from "../hooks/useSettings";
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import type { ProductListItem } from "../types/api";
@@ -75,6 +77,7 @@ export default function ProductoDetalle() {
   const { product, loading, error } = useProduct(slug || "");
   const [i, setI] = useState(0);
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
+  const waEnabled = useWhatsAppEnabled();
 
   // zoom on hover
   const [origin, setOrigin] = useState<string>("50% 50%");
@@ -257,6 +260,11 @@ export default function ProductoDetalle() {
               {typeof product.category === 'string' ? product.category : product.category.name}
             </p>
             <h1 className="font-serif text-3xl mt-1">{product.name}</h1>
+            {product.badge_labels && product.badge_labels.length > 0 && (
+              <div className="mt-2">
+                <BadgeChips badges={product.badge_labels} size="md" showTooltip />
+              </div>
+            )}
           </div>
 
           {product.description && (
@@ -266,19 +274,19 @@ export default function ProductoDetalle() {
           {/* Indicador de stock */}
           <div className="text-sm">
             {product.stock <= 0 ? (
-              <div className="inline-flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium">
-                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                Producto agotado
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-red-200 text-red-600 tracking-wide text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                Agotado
               </div>
             ) : product.stock <= product.low_stock_threshold ? (
-              <div className="inline-flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 font-medium">
-                <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                ¡Solo quedan {product.stock} unidades!
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-amber-300 text-amber-700 tracking-wide text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                Últimas {product.stock} unidades
               </div>
             ) : (
-              <div className="inline-flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Disponible en stock
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-amber-800/25 text-amber-800 tracking-wide text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-700 shrink-0" />
+                Disponible
               </div>
             )}
           </div>
@@ -306,24 +314,20 @@ export default function ProductoDetalle() {
           ) : null}
 
           <div className="flex flex-wrap gap-3 pt-2">
-            {phone ? (
+            {waEnabled && phone && (
               <WhatsAppButton phone={phone} message={msg} className="mt-1" />
-            ) : (
-              <div className="rounded-2xl border px-4 py-2 text-xs text-neutral-600">
-                Configura <code>VITE_WHATSAPP_PHONE</code> en <code>client/.env</code> para mostrar el botón.
-              </div>
             )}
 
             <Link
               to="/productos"
-              className="inline-flex items-center gap-2 rounded-full px-6 py-3
-                        bg-black text-white text-sm font-medium
-                        transition hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-black/30"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium tracking-wide
+                        border border-amber-800/40 text-amber-800
+                        hover:bg-amber-50 hover:border-amber-700
+                        transition-colors duration-200 focus:outline-none"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={15} />
               Volver a productos
             </Link>
-
           </div>
         </div>
       </div>

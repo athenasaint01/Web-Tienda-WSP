@@ -70,6 +70,11 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
     const data = await response.json();
 
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth:expired'));
+      throw new Error('Sesión expirada');
+    }
+
     if (!response.ok) {
       throw new Error(data.error || `HTTP error! status: ${response.status}`);
     }

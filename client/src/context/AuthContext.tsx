@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 // Tipos inline para evitar problemas de importación
@@ -74,12 +74,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
-  };
+  }, []);
+
+  // Redirigir al login cuando el token expira
+  useEffect(() => {
+    const handleExpired = () => {
+      logout();
+      window.location.href = '/admin/login';
+    };
+    window.addEventListener('auth:expired', handleExpired);
+    return () => window.removeEventListener('auth:expired', handleExpired);
+  }, [logout]);
 
   const value: AuthContextType = {
     user,

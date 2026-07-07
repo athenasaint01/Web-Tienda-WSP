@@ -23,7 +23,7 @@ import SettingsPage from "./pages/admin/SettingsPage";
 export default function App() {
   return (
     <AuthProvider>
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors />
       <Routes>
         {/* Rutas públicas */}
         <Route element={<Layout />}>

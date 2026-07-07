@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { CollectionWithCategory, ProductListItem } from "../types/api";
 import * as api from "../services/api";
+import BadgeChips from "../components/BadgeChips";
 
 
 const carouselImages = [
@@ -164,18 +165,37 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
    CARD DESTACADO (sin bordes, texto limpio)
 ========================= */
 function FeaturedCard({ p }: { p: ProductListItem }) {
-  const img = p.image_url || "/assets/demo/placeholder.jpg";
+  const img1 = p.image_url ?? "/assets/demo/placeholder.jpg";
+  const img2 = p.image_url_2;
+  const hasSecondImage = Boolean(img2);
   return (
     <Link to={`/producto/${p.slug}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
       <div className="group overflow-hidden">
         <div className="relative aspect-square overflow-hidden bg-neutral-100">
           <img
-            src={img}
+            src={img1}
             alt={p.name}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className={hasSecondImage
+              ? "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
+              : "absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            }
             loading="lazy"
             decoding="async"
           />
+          {img2 && (
+            <img
+              src={img2}
+              alt=""
+              aria-hidden="true"
+              fetchPriority="low"
+              className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+            />
+          )}
+          {p.badge_labels && p.badge_labels.length > 0 && (
+            <div className="absolute bottom-2 left-2 z-10">
+              <BadgeChips badges={p.badge_labels} size="lg-card" />
+            </div>
+          )}
         </div>
         <div className="pt-3 pb-1">
           <h3 className="font-serif text-sm leading-snug line-clamp-2">{p.name}</h3>

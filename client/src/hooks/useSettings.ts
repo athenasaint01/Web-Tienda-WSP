@@ -7,6 +7,11 @@ type Settings = Record<string, string>;
 let cache: Settings | null = null;
 let promise: Promise<Settings> | null = null;
 
+export function invalidateSettingsCache() {
+  cache = null;
+  promise = null;
+}
+
 const fetchSettings = (): Promise<Settings> => {
   if (cache) return Promise.resolve(cache);
   if (promise) return promise;
@@ -42,4 +47,13 @@ export function useSettings() {
 export function useWhatsAppPhone(): string {
   const { settings } = useSettings();
   return settings['whatsapp_phone'] || import.meta.env.VITE_WHATSAPP_PHONE || '';
+}
+
+// Retorna true si WhatsApp está habilitado globalmente (default: true si el setting no existe)
+export function useWhatsAppEnabled(): boolean {
+  const { settings, loading } = useSettings();
+  if (loading) return false;
+  const val = settings['whatsapp_enabled'];
+  if (val === undefined) return true;
+  return val === 'true';
 }

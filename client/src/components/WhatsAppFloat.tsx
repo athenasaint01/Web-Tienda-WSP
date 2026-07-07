@@ -1,11 +1,12 @@
 import { BsWhatsapp } from "react-icons/bs";
 import { motion } from "framer-motion";
 import { waLink } from "../lib/wa";
-import { useWhatsAppPhone } from "../hooks/useSettings";
+import { useWhatsAppPhone, useWhatsAppEnabled } from "../hooks/useSettings";
 
 export default function WhatsAppFloat() {
   const phone = useWhatsAppPhone();
-  if (!phone) return null;
+  const enabled = useWhatsAppEnabled();
+  if (!phone || !enabled) return null;
 
   const msg = "Hola, quiero más info sobre sus accesorios ✨";
 

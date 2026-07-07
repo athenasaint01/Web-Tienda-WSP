@@ -120,6 +120,7 @@ export const getAllProducts = async (
       p.stock,
       CASE WHEN p.stock <= 0 THEN TRUE ELSE FALSE END as is_out_of_stock,
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) as image_url,
+      (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = FALSE ORDER BY display_order ASC LIMIT 1) as image_url_2,
       COALESCE(
         (SELECT json_agg(json_build_object('name', m.name, 'slug', m.slug) ORDER BY m.name)
          FROM product_materials pm
@@ -133,7 +134,8 @@ export const getAllProducts = async (
          JOIN tags t ON pt.tag_id = t.id
          WHERE pt.product_id = p.id),
         '[]'
-      ) as tags
+      ) as tags,
+      COALESCE(p.badge_labels, '{}') as badge_labels
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ${whereClause}
@@ -284,8 +286,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (slug, name, category_id, description, featured, stock, low_stock_threshold, wa_template)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO products (slug, name, category_id, description, featured, stock, low_stock_threshold, wa_template, badge_labels)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         normalizedSlug,
@@ -295,7 +297,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.featured || false,
         data.stock !== undefined ? data.stock : 0,
         data.low_stock_threshold !== undefined ? data.low_stock_threshold : 5,
-        data.wa_template
+        data.wa_template,
+        data.badge_labels || [],
       ]
     );
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useRef, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,6 +10,22 @@ import FormInput from '../../../components/admin/ui/FormInput';
 import FormTextarea from '../../../components/admin/ui/FormTextarea';
 import FormSelect from '../../../components/admin/ui/FormSelect';
 import ImageUpload from '../../../components/admin/ui/ImageUpload';
+import { BADGE_MAP } from '../../../components/BadgeChips';
+
+const toSlug = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
+const BADGE_OPTIONS = Object.entries(BADGE_MAP).map(([key, val]) => ({
+  key,
+  label: [val.line1, val.line2].filter(Boolean).join(' '),
+}));
 
 const productSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(200),
@@ -39,15 +55,19 @@ export default function ProductForm() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [images, setImages] = useState<(File | string)[]>([]);
-  const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]); // Rastrear imágenes eliminadas
+  const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
+  const [badgeLabels, setBadgeLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(isEditing);
   const [copied, setCopied] = useState(false);
+
+  const slugTouched = useRef(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -62,6 +82,14 @@ export default function ProductForm() {
 
   const selectedMaterials = watch('material_ids') || [];
   const selectedTags = watch('tag_ids') || [];
+  const nameValue = useWatch({ control, name: 'name' });
+
+  // Auto-generar slug desde nombre solo al crear
+  useEffect(() => {
+    if (isEditing) return;
+    if (slugTouched.current) return;
+    setValue('slug', toSlug(nameValue || ''), { shouldValidate: false });
+  }, [nameValue, isEditing, setValue]);
 
   useEffect(() => {
     loadFormData();
@@ -102,6 +130,7 @@ export default function ProductForm() {
           setValue('wa_template', product.wa_template || '');
           setValue('material_ids', product.materials?.map((m: any) => m.id) || []);
           setValue('tag_ids', product.tags?.map((t: any) => t.id) || []);
+          setBadgeLabels(product.badge_labels || []);
           // Cargar imágenes existentes como URLs
           if (product.images && product.images.length > 0) {
             setImages(product.images.map((img: any) => img.image_url));
@@ -136,14 +165,8 @@ export default function ProductForm() {
   };
 
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    // Convertir a minúsculas y reemplazar espacios por guiones
-    value = value.toLowerCase().replace(/\s+/g, '-');
-    // Remover caracteres no válidos (solo permitir letras, números y guiones)
-    value = value.replace(/[^a-z0-9-]/g, '');
-    // Evitar guiones múltiples consecutivos
-    value = value.replace(/-+/g, '-');
-    setValue('slug', value);
+    slugTouched.current = true;
+    setValue('slug', toSlug(e.target.value), { shouldValidate: true });
   };
 
   const handleImagesChange = (newImages: (File | string)[]) => {
@@ -189,6 +212,8 @@ export default function ProductForm() {
             formData.append('tag_ids', JSON.stringify(data.tag_ids));
           }
 
+          formData.append('badge_labels', JSON.stringify(badgeLabels));
+
           // Append new image files
           newImages.forEach((file) => {
             formData.append('images', file);
@@ -221,7 +246,7 @@ export default function ProductForm() {
           toast.success('Producto actualizado');
         } else {
           // No new images or deletions, use regular JSON update
-          await api.updateProduct(Number(id), data);
+          await api.updateProduct(Number(id), { ...data, badge_labels: badgeLabels } as any);
           toast.success('Producto actualizado');
         }
       } else {
@@ -245,6 +270,8 @@ export default function ProductForm() {
         if (data.tag_ids && data.tag_ids.length > 0) {
           formData.append('tag_ids', JSON.stringify(data.tag_ids));
         }
+
+        formData.append('badge_labels', JSON.stringify(badgeLabels));
 
         // Append only new image files (File objects, not URLs)
         images.forEach((image) => {
@@ -493,6 +520,35 @@ export default function ProductForm() {
               No hay tags disponibles. Créalos primero en la sección de Tags.
             </p>
           )}
+        </div>
+
+        {/* Badges de calidad */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-neutral-900">Badges de calidad</h2>
+          <p className="text-xs text-neutral-500">Se muestran sobre la imagen del producto en el catálogo y detalle.</p>
+          <div className="flex flex-wrap gap-2">
+            {BADGE_OPTIONS.map(({ key, label }) => {
+              const active = badgeLabels.includes(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() =>
+                    setBadgeLabels(prev =>
+                      active ? prev.filter(b => b !== key) : [...prev, key]
+                    )
+                  }
+                  className={`px-3 py-1.5 text-sm font-medium border transition-colors ${
+                    active
+                      ? 'border-amber-500 bg-amber-50 text-amber-800'
+                      : 'border-neutral-300 bg-white text-neutral-600 hover:border-amber-400 hover:text-amber-700'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* WhatsApp Template */}

@@ -34,6 +34,13 @@ const productDataSchema = z.object({
       return [];
     }
   }).optional(),
+  badge_labels: z.string().transform(val => {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return [];
+    }
+  }).optional(),
 });
 
 /**
@@ -135,6 +142,13 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
           return undefined;
         }
       }).optional(),
+      badge_labels: z.string().transform(val => {
+        try {
+          return val ? JSON.parse(val) : undefined;
+        } catch {
+          return undefined;
+        }
+      }).optional(),
       deleted_images: z.string().transform(val => {
         try {
           return val ? JSON.parse(val) : [];
@@ -157,6 +171,7 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       is_active: z.boolean().optional(),
       material_ids: z.array(z.number().int().positive()).optional(),
       tag_ids: z.array(z.number().int().positive()).optional(),
+      badge_labels: z.array(z.string()).optional(),
     });
 
     // Determine if this is FormData or JSON

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
@@ -15,6 +15,7 @@ type PopupData = {
 };
 
 export default function PopupBanner() {
+  const { pathname } = useLocation();
   const [popup, setPopup] = useState<PopupData | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -41,6 +42,8 @@ export default function PopupBanner() {
   };
 
   const isExternal = popup?.button_url?.startsWith('http');
+
+  if (pathname !== '/') return null;
 
   return (
     <AnimatePresence>

@@ -1,10 +1,21 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { useEffect, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import * as api from '../../../services/api';
 import FormInput from '../../../components/admin/ui/FormInput';
+
+const toSlug = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
 
 const tagSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(50),
@@ -24,11 +35,23 @@ export default function TagModal({ tag, onClose }: TagModalProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<TagFormData>({
     resolver: zodResolver(tagSchema),
     defaultValues: tag || {},
   });
+
+  // Auto-generar slug desde nombre solo al crear (no al editar)
+  const nameValue = useWatch({ control, name: 'name' });
+  const slugTouched = useRef(false);
+
+  useEffect(() => {
+    if (isEditing) return;
+    if (slugTouched.current) return;
+    setValue('slug', toSlug(nameValue || ''), { shouldValidate: false });
+  }, [nameValue, isEditing, setValue]);
 
   const onSubmit = async (data: TagFormData) => {
     try {
@@ -73,7 +96,13 @@ export default function TagModal({ tag, onClose }: TagModalProps) {
 
           <FormInput
             label="Slug"
-            {...register('slug')}
+            {...register('slug', {
+              onChange: (e) => {
+                slugTouched.current = true;
+                const normalized = toSlug(e.target.value);
+                setValue('slug', normalized, { shouldValidate: true });
+              },
+            })}
             error={errors.slug?.message}
             helperText="Solo minúsculas, números y guiones. Ej: minimal"
             placeholder="minimal"

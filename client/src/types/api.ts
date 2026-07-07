@@ -76,8 +76,10 @@ export type ProductListItem = {
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
+  image_url_2?: string;
   materials: Array<{ name: string; slug: string }>;
   tags: Array<{ name: string; slug: string }>;
+  badge_labels?: string[];
 }
 
 // Producto completo (vista detalle)
@@ -95,6 +97,7 @@ export type ProductDetail = {
   images: ProductImage[];
   materials: Material[];
   tags: Tag[];
+  badge_labels?: string[];
   created_at: string;
   updated_at: string;
 }

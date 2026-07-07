@@ -53,6 +53,7 @@ export interface Product {
   low_stock_threshold: number;
   wa_template?: string;
   is_active: boolean;
+  badge_labels: string[];
   created_at: Date;
   updated_at: Date;
 }
@@ -116,6 +117,7 @@ export interface ProductListItem {
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
+  image_url_2?: string;
   materials: string[];
   tags: string[];
 }
@@ -133,6 +135,7 @@ export interface CreateProductDTO {
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;
+  badge_labels?: string[];
   images: {
     url: string;
     is_primary?: boolean;
@@ -152,6 +155,7 @@ export interface UpdateProductDTO {
   low_stock_threshold?: number;
   wa_template?: string;
   is_active?: boolean;
+  badge_labels?: string[];
   material_ids?: number[];
   tag_ids?: number[];
 }

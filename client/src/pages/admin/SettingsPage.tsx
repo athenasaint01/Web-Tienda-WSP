@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { FacebookIcon } from 'lucide-react';
 import { FaInstagram, FaTiktok } from 'react-icons/fa';
+import { BsWhatsapp } from 'react-icons/bs';
+import { invalidateSettingsCache } from '../../hooks/useSettings';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
 type Form = {
   whatsapp_phone: string;
+  whatsapp_enabled: boolean;
   facebook_url: string;
   instagram_url: string;
   tiktok_url: string;
@@ -14,6 +17,7 @@ type Form = {
 
 const empty: Form = {
   whatsapp_phone: '',
+  whatsapp_enabled: true,
   facebook_url: '',
   instagram_url: '',
   tiktok_url: '',
@@ -31,7 +35,14 @@ export default function SettingsPage() {
     fetch(`${API}/admin/settings`, { headers })
       .then(r => r.json())
       .then(data => {
-        if (data.ok) setForm({ ...empty, ...data.data });
+        if (data.ok) {
+          const raw = data.data as Record<string, string>;
+          setForm({
+            ...empty,
+            ...raw,
+            whatsapp_enabled: raw.whatsapp_enabled !== 'false',
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -39,13 +50,18 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        whatsapp_enabled: String(form.whatsapp_enabled),
+      };
       const res = await fetch(`${API}/admin/settings`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
+      invalidateSettingsCache();
       toast.success('Configuración guardada');
     } catch (e: any) {
       toast.error(e.message || 'Error al guardar');
@@ -63,7 +79,39 @@ export default function SettingsPage() {
 
       {/* WhatsApp */}
       <div className="border border-neutral-200 p-6 mb-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-4">WhatsApp</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-4 flex items-center gap-2">
+          <BsWhatsapp className="h-4 w-4 text-emerald-500" /> WhatsApp
+        </h2>
+
+        {/* Toggle habilitar/deshabilitar */}
+        <div className="flex items-center justify-between mb-5 pb-5 border-b border-neutral-100">
+          <div>
+            <p className="text-sm font-medium text-neutral-800">Mostrar botones de WhatsApp</p>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Al desactivar, se ocultan el botón flotante y todos los enlaces de WhatsApp en la web pública.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={form.whatsapp_enabled}
+            onClick={() => setForm(f => ({ ...f, whatsapp_enabled: !f.whatsapp_enabled }))}
+            className={[
+              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent',
+              'transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2',
+              form.whatsapp_enabled ? 'bg-emerald-500' : 'bg-neutral-300',
+            ].join(' ')}
+          >
+            <span
+              className={[
+                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200',
+                form.whatsapp_enabled ? 'translate-x-5' : 'translate-x-0',
+              ].join(' ')}
+            />
+          </button>
+        </div>
+
+        {/* Número */}
         <div>
           <label className="text-sm text-neutral-700 mb-1 block">Número de teléfono</label>
           <div className="flex items-center gap-2">
