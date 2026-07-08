@@ -298,8 +298,8 @@ export default function ProductForm() {
         }
 
         toast.success('Producto creado');
+        navigate('/admin/productos');
       }
-      navigate('/admin/productos');
     } catch (error: any) {
       toast.error(error.message || 'Error al guardar');
     }
