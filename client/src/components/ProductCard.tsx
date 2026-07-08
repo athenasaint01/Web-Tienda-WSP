@@ -37,7 +37,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             </div>
           )}
           {p.badge_labels && p.badge_labels.length > 0 && (
-            <div className="absolute bottom-2 left-2 z-10">
+            <div className="absolute bottom-2 left-2 z-10 scale-75 sm:scale-100 origin-bottom-left">
               <BadgeChips badges={p.badge_labels} size="sm" />
             </div>
           )}

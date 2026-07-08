@@ -192,7 +192,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
             />
           )}
           {p.badge_labels && p.badge_labels.length > 0 && (
-            <div className="absolute bottom-2 left-2 z-10">
+            <div className="absolute bottom-2 left-2 z-10 scale-75 sm:scale-100 origin-bottom-left">
               <BadgeChips badges={p.badge_labels} size="lg-card" />
             </div>
           )}
@@ -310,7 +310,7 @@ export default function Home() {
   return (
     <>
       {/* HERO — split layout */}
-      <section className="h-[70dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
+      <section className="h-[50dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
         {/* Lado izquierdo: texto (solo desktop) */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#f5efe6] flex-col justify-center items-center px-16 xl:px-24 text-center">
           <motion.div
@@ -318,26 +318,12 @@ export default function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="font-serif text-5xl xl:text-6xl font-semibold text-neutral-900 leading-tight">
+            <h1 className="font-serif text-5xl xl:text-6xl font-semibold text-neutral-900 leading-[1.25]">
               Joyas esenciales,<br />elegancia cotidiana
             </h1>
             <p className="mt-5 text-neutral-500 text-base leading-relaxed max-w-sm mx-auto">
               Collares, pulseras y anillos con acabados de alta calidad e hipoalergénicos.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3 justify-center">
-              <Link
-                to="/productos"
-                className="px-7 py-3 bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-700 transition"
-              >
-                Ver colección
-              </Link>
-              <button
-                onClick={() => document.getElementById('destacados')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-7 py-3 border border-neutral-400 text-neutral-700 text-sm font-medium hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition"
-              >
-                Destacados
-              </button>
-            </div>
           </motion.div>
         </div>
 
@@ -356,33 +342,24 @@ export default function Home() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 lg:hidden"
           >
-            <h1 className="font-serif text-4xl font-semibold text-white leading-tight">
+            <h1 className="font-serif text-4xl font-semibold text-white leading-[1.25]">
               Joyas esenciales,<br />elegancia cotidiana
             </h1>
             <p className="mt-3 text-white/70 text-lg leading-relaxed">
               Collares, pulseras y anillos hipoalergénicos.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3 justify-center">
-              <Link
-                to="/productos"
-                className="px-6 py-2.5 bg-white text-black text-sm font-medium hover:opacity-90 transition"
-              >
-                Ver colección
-              </Link>
-              <button
-                onClick={() => document.getElementById('destacados')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-6 py-2.5 border border-white/50 text-white text-sm font-medium hover:bg-white/10 transition"
-              >
-                Destacados
-              </button>
-            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Destacados */}
       <section id="destacados" className="mx-auto max-w-7xl px-4 py-14 scroll-mt-12">
-        <h2 className="font-serif text-2xl">Destacados</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-serif text-2xl">Destacados</h2>
+          <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
+            TODOS
+          </Link>
+        </div>
 
         {loading && (
           <div className="mt-6 grid gap-6 grid-cols-2 md:grid-cols-5">
@@ -404,15 +381,7 @@ export default function Home() {
         )}
 
         {!loading && !error && featuredProducts.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mb-0">
-              <span />
-              <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
-                TODOS
-              </Link>
-            </div>
-            <FeaturedSection products={featuredProducts} />
-          </>
+          <FeaturedSection products={featuredProducts} />
         )}
 
         {!loading && !error && featuredProducts.length === 0 && (
