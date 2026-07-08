@@ -20,7 +20,6 @@ import collectionsRouter from "./routes/collections";
 import popupRouter from "./routes/popup";
 import settingsRouter from "./routes/settings";
 import fixAdminRouter from "./routes/fix-admin";
-import { verifyTransporter } from "./email";
 import { testConnection } from "./config/database";
 
 const app = express();
@@ -85,9 +84,6 @@ const startServer = async () => {
       console.error('❌ No se pudo conectar a PostgreSQL. Verifica la configuración en .env');
       process.exit(1);
     }
-
-    // Verificar configuración de email
-    verifyTransporter();
 
     // Iniciar servidor
     app.listen(port, () => {
