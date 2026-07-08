@@ -45,6 +45,7 @@ type ProductDetail = {
   images: ProductImage[];
   materials: Material[];
   tags: Tag[];
+  badge_labels?: string[];
   created_at: string;
   updated_at: string;
 }
