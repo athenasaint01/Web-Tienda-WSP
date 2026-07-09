@@ -39,14 +39,6 @@ export default function Footer() {
           </div>
         )}
 
-        <div>
-          <h4 className="font-semibold mb-2">Enlaces</h4>
-          <ul className="space-y-1 text-neutral-500">
-            <li><a className="hover:text-neutral-900 transition" href="/productos">Productos</a></li>
-            <li><a className="hover:text-neutral-900 transition" href="/nosotros">Nosotros</a></li>
-            <li><a className="hover:text-neutral-900 transition" href="/marca">Marca</a></li>
-          </ul>
-        </div>
       </div>
 
       <div className="border-t text-center text-xs text-neutral-400 py-4">

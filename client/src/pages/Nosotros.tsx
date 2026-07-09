@@ -69,7 +69,7 @@ export default function Nosotros() {
         <div className="rounded-3xl bg-black text-white p-8 md:p-12 flex items-center">
           <div>
             <p className="text-emerald-400 tracking-widest text-xs">NUESTRA HISTORIA</p>
-            <h1 className="font-serif text-4xl md:text-5xl mt-2">
+            <h1 className="font-display text-4xl md:text-5xl font-light tracking-wide mt-2">
               Alaha’s nació para acercar el brillo a todos
             </h1>
             <p className="mt-4 text-neutral-300">
@@ -127,7 +127,7 @@ export default function Nosotros() {
             <Shirt className="h-5 w-5" />
             <span className="text-sm tracking-wide font-medium">COLECCIONES DE ROPA</span>
           </div>
-          <h2 className="font-serif text-2xl mt-2">Del accesorio a la prenda: un mismo estilo</h2>
+          <h2 className="font-display text-2xl font-light tracking-wide mt-2">Del accesorio a la prenda: un mismo estilo</h2>
           <p className="mt-3 text-neutral-700">
             Sumamos prendas cómodas y con carácter para completar tu look: polos, buzos, básicos
             esenciales y piezas con detalles que marcan la diferencia. La misma promesa de siempre:
@@ -148,7 +148,7 @@ export default function Nosotros() {
           <span className="text-sm tracking-wide font-medium">CURADURÍA & MARCAS ALIADAS</span>
         </div>
 
-        <h2 className="font-serif text-2xl mt-2">
+        <h2 className="font-display text-2xl font-light tracking-wide mt-2">
           Seleccionamos lo mejor para que te quede mejor
         </h2>
 
@@ -216,7 +216,7 @@ export default function Nosotros() {
 
       {/* FAQ con animación */}
       <section className="mt-14">
-        <h3 className="font-serif text-xl mb-4">Preguntas frecuentes</h3>
+        <h3 className="font-display text-xl font-light tracking-wide mb-4">Preguntas frecuentes</h3>
         <div className="grid gap-3">
           <FaqItem q="¿Todos los productos son de fabricación propia?">
             No necesariamente. Combinamos fabricación propia con una{" "}

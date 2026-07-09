@@ -150,7 +150,7 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           </div>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
-            <h3 className="font-serif text-2xl md:text-3xl mb-4 drop-shadow" style={{ color: '#fff8f0' }}>{c.title}</h3>
+            <h3 className="font-display text-2xl md:text-3xl font-light tracking-widest mb-4 drop-shadow" style={{ color: '#fff8f0' }}>{c.title}</h3>
             <span className="inline-block bg-amber-800 text-white text-xs tracking-widest px-6 py-2.5 group-hover:bg-amber-700 transition-colors duration-300">
               SHOP NOW
             </span>
@@ -198,7 +198,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
           )}
         </div>
         <div className="pt-3 pb-1">
-          <h3 className="font-serif text-sm leading-snug line-clamp-2">{p.name}</h3>
+          <h3 className="font-display text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
           <p className="text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
         </div>
       </div>
@@ -310,7 +310,7 @@ export default function Home() {
   return (
     <>
       {/* HERO — split layout */}
-      <section className="h-[50dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
+      <section className="h-[45dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
         {/* Lado izquierdo: texto (solo desktop) */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#f5efe6] flex-col justify-center items-center px-16 xl:px-24 text-center">
           <motion.div
@@ -318,7 +318,7 @@ export default function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h1 className="font-serif text-5xl xl:text-6xl font-semibold text-neutral-900 leading-[1.25]">
+            <h1 className="font-display text-5xl xl:text-6xl font-light tracking-wide text-amber-800 leading-[1.25]">
               Joyas esenciales,<br />elegancia cotidiana
             </h1>
             <p className="mt-5 text-neutral-500 text-base leading-relaxed max-w-sm mx-auto">
@@ -342,7 +342,7 @@ export default function Home() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 lg:hidden"
           >
-            <h1 className="font-serif text-4xl font-semibold text-white leading-[1.25]">
+            <h1 className="font-display text-4xl font-light tracking-wide text-amber-200 leading-[1.25]">
               Joyas esenciales,<br />elegancia cotidiana
             </h1>
             <p className="mt-3 text-white/70 text-lg leading-relaxed">
@@ -355,7 +355,7 @@ export default function Home() {
       {/* Destacados */}
       <section id="destacados" className="mx-auto max-w-7xl px-4 py-14 scroll-mt-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-2xl">Destacados</h2>
+          <h2 className="font-display text-2xl font-light tracking-wide">Destacados</h2>
           <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
             TODOS
           </Link>
@@ -395,7 +395,7 @@ export default function Home() {
       {!collectionsLoading && collections.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-14">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-2xl">Colecciones</h2>
+            <h2 className="font-display text-2xl font-light tracking-wide">Colecciones</h2>
             <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
               TODOS
             </Link>
@@ -417,7 +417,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pb-14">
         <div className="text-center mb-6">
           <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
-          <h3 className="font-serif text-3xl md:text-4xl mt-1">Felices con su brillo ✨</h3>
+          <h3 className="font-display text-3xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo ✨</h3>
           <p className="mt-3 text-neutral-600 max-w-2xl mx-auto">
             Un vistazo a entregas, looks del día y reviews reales.
           </p>

@@ -194,7 +194,7 @@ export default function Productos() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       {/* Título */}
-      <h1 className="font-serif text-2xl mb-4">Productos</h1>
+      <h1 className="font-display text-2xl font-light tracking-wide mb-4">Productos</h1>
 
       {/* Barra de herramientas: Filtros y Ordenar */}
       <div className="flex items-center justify-between gap-3 mb-6">

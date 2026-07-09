@@ -64,7 +64,7 @@ function RelatedCard({ p }: { p: ProductListItem }) {
           <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/35 to-transparent" />
         </div>
         <div className="p-4">
-          <div className="font-serif">{p.name}</div>
+          <div className="font-display font-light tracking-wide">{p.name}</div>
           <div className="text-xs text-neutral-500 capitalize">{p.category}</div>
         </div>
       </Link>
@@ -259,7 +259,7 @@ export default function ProductoDetalle() {
             <p className="text-xs uppercase tracking-wide text-neutral-500">
               {typeof product.category === 'string' ? product.category : product.category.name}
             </p>
-            <h1 className="font-serif text-3xl mt-1">{product.name}</h1>
+            <h1 className="font-display text-3xl font-light tracking-wide mt-1">{product.name}</h1>
             {product.badge_labels && product.badge_labels.length > 0 && (
               <div className="mt-2">
                 <BadgeChips badges={product.badge_labels} size="md" showTooltip />
@@ -335,7 +335,7 @@ export default function ProductoDetalle() {
       {/* Relacionados */}
       {related.length ? (
         <section className="mt-12">
-          <h2 className="font-serif text-xl mb-4">También te puede gustar</h2>
+          <h2 className="font-display text-xl font-light tracking-wide mb-4">También te puede gustar</h2>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {related.map((r) => (
               <RelatedCard key={r.id} p={r} />

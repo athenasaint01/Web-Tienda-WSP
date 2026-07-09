@@ -6,6 +6,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         serif: ["Cormorant Garamond", "Georgia", "serif"],
+        display: ["Josefin Sans", "sans-serif"],
         script: ["Great Vibes", "cursive"],
       },
       colors: {
