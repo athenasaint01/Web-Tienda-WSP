@@ -12,38 +12,26 @@ export default function Footer() {
   ].filter(s => s.url);
 
   return (
-    <footer className="border-t mt-16">
-      <div className="mx-auto max-w-7xl px-4 py-10 grid gap-8 sm:grid-cols-3 text-sm">
-        <div>
-          <img src="/brand/logo-wordmark.png.png" alt="Alahas" className="h-10 w-auto mb-3" />
-          <p className="text-neutral-500">Accesorios que elevan tu estilo</p>
+    <footer className="mt-16 bg-stone-100 py-10 flex flex-col items-center gap-6">
+      {socials.length > 0 && (
+        <div className="flex justify-center gap-8">
+          {socials.map(({ url, icon, label, hover }) => (
+            <a
+              key={label}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={label}
+              className={`text-neutral-400 transition ${hover}`}
+            >
+              <span className="[&>svg]:h-6 [&>svg]:w-6">{icon}</span>
+            </a>
+          ))}
         </div>
-
-        {socials.length > 0 && (
-          <div>
-            <h4 className="font-semibold mb-2">Redes sociales</h4>
-            <ul className="space-y-2 text-neutral-500">
-              {socials.map(({ url, icon, label, hover }) => (
-                <li key={label}>
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`inline-flex items-center gap-2 transition ${hover}`}
-                  >
-                    {icon} {label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-      </div>
-
-      <div className="border-t text-center text-xs text-neutral-400 py-4">
+      )}
+      <p className="text-xs tracking-widest text-neutral-400 uppercase">
         © {new Date().getFullYear()} Alahas. Todos los derechos reservados.
-      </div>
+      </p>
     </footer>
   );
 }

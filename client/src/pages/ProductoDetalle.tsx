@@ -165,11 +165,59 @@ export default function ProductoDetalle() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div>
+      {/* ── MOBILE: imagen full-width arriba ── */}
+      <div className="md:hidden relative w-full bg-white" style={{ aspectRatio: '1/1' }}>
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={imageUrls[i] ?? imageUrls[0]}
+            src={imageUrls[i] ?? imageUrls[0]}
+            alt={product.name}
+            className="w-full h-full object-cover select-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          />
+        </AnimatePresence>
+
+        {/* Badge AGOTADO */}
+        {product.stock <= 0 && (
+          <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow z-30">
+            AGOTADO
+          </div>
+        )}
+
+        {/* Flechas mobile */}
+        {count > 1 && (
+          <>
+            <button onClick={prev} aria-label="Anterior"
+              className="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm shadow z-20">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <button onClick={next} aria-label="Siguiente"
+              className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm shadow z-20">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </>
+        )}
+
+        {/* Dots indicadores */}
+        {count > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            {imageUrls.map((_, idx) => (
+              <button key={idx} onClick={() => setI(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === i ? 'w-5 bg-white' : 'w-1.5 bg-white/50'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-6 md:py-10">
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Galería */}
-        <div className="grid grid-cols-[92px_1fr] gap-4 items-start">
-          {/* Thumbs — sin overflow, sin línea, imagen centrada */}
+        {/* ── DESKTOP: galería con thumbs ── */}
+        <div className="hidden md:grid grid-cols-[92px_1fr] gap-4 items-start">
           <div className="flex md:flex-col gap-3 w-[92px]">
             {imageUrls.map((src, idx) => {
               const selected = i === idx;
@@ -181,56 +229,34 @@ export default function ProductoDetalle() {
                   aria-label={`Ver imagen ${idx + 1}`}
                   className={[
                     "relative shrink-0 w-[92px] rounded-[12px] transition",
-                    // fondos suaves; sin bordes ni ring
                     "bg-neutral-100/80 hover:bg-neutral-100",
                     selected ? "bg-neutral-200/90" : "",
                   ].join(" ")}
                 >
                   <div className="grid place-items-center w-full h-full p-2">
-                    <img
-                      src={src}
-                      alt={`${product.name} ${idx + 1}`}
-                      className="max-w-[90%] max-h-[90%] object-contain"
-                    />
+                    <img src={src} alt={`${product.name} ${idx + 1}`} className="max-w-[90%] max-h-[90%] object-contain" />
                   </div>
                 </motion.button>
               );
             })}
           </div>
 
-          {/* Imagen principal */}
           <div className="rounded-3xl overflow-hidden border border-black/10 relative bg-white">
-            {/* Badge de AGOTADO */}
             {product.stock <= 0 && (
-              <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-30">
-                AGOTADO
-              </div>
+              <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-30">AGOTADO</div>
             )}
-
-            {/* Flechas */}
             {count > 1 && (
               <>
-                <button
-                  onClick={prev}
-                  aria-label="Anterior"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-10 w-10 rounded-full bg-white/85 hover:bg-white text-black border shadow z-20"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <button onClick={prev} aria-label="Anterior"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-10 w-10 rounded-full bg-white/85 hover:bg-white text-black border shadow z-20">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
-                <button
-                  onClick={next}
-                  aria-label="Siguiente"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-10 w-10 rounded-full bg-white/85 hover:bg-white text-black border shadow z-20"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                <button onClick={next} aria-label="Siguiente"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-10 w-10 rounded-full bg-white/85 hover:bg-white text-black border shadow z-20">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               </>
             )}
-
             <AnimatePresence mode="wait">
               <motion.img
                 key={imageUrls[i] ?? imageUrls[0]}
@@ -240,10 +266,7 @@ export default function ProductoDetalle() {
                 style={{ transformOrigin: origin as any }}
                 onMouseMove={handleMainMove}
                 onMouseEnter={() => setHovering(true)}
-                onMouseLeave={() => {
-                  setHovering(false);
-                  setOrigin("50% 50%");
-                }}
+                onMouseLeave={() => { setHovering(false); setOrigin("50% 50%"); }}
                 initial={{ opacity: 0, scale: 1.02 }}
                 animate={{ opacity: 1, scale: hovering ? 1.35 : 1 }}
                 exit={{ opacity: 0 }}
@@ -343,6 +366,7 @@ export default function ProductoDetalle() {
           </div>
         </section>
       ) : null}
+      </div>
     </div>
   );
 }

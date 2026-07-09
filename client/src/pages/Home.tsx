@@ -1,13 +1,79 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useProducts } from "../hooks/useProducts";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { CollectionWithCategory, ProductListItem } from "../types/api";
 import * as api from "../services/api";
 import BadgeChips from "../components/BadgeChips";
 
+
+/* =========================
+   HERO SLIDES — 3 mensajes rotativos
+========================= */
+const heroSlides = [
+  {
+    eyebrow: "NUEVA COLECCIÓN",
+    title: "Joyas esenciales,\nelegancia cotidiana",
+    sub: "Collares, pulseras y anillos con acabados de alta calidad e hipoalergénicos.",
+  },
+  {
+    eyebrow: "OFERTAS ESPECIALES",
+    title: "Hasta 30% de descuento\nen piezas seleccionadas",
+    sub: "Aprovecha nuestras promociones por tiempo limitado. Brillo a precio honesto.",
+  },
+  {
+    eyebrow: "ENVÍO A TODO EL PAÍS",
+    title: "Tu joya favorita\nllega hasta tu puerta",
+    sub: "Empaque cuidado, entrega segura. Escríbenos por WhatsApp y coordinamos.",
+  },
+];
+
+function HeroSlides() {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setCurrent(s => (s + 1) % heroSlides.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+
+  const slide = heroSlides[current];
+
+  return (
+    <div className="w-full max-w-md mx-auto text-center">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="text-xs tracking-[0.25em] text-amber-600 font-medium mb-4">
+            {slide.eyebrow}
+          </p>
+          <h1 className="font-display text-5xl xl:text-6xl font-light tracking-wide text-amber-800 leading-[1.25] whitespace-pre-line">
+            {slide.title}
+          </h1>
+          <p className="mt-5 text-neutral-500 text-base leading-relaxed">
+            {slide.sub}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-8">
+        {heroSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`h-1 rounded-full transition-all duration-300 ${i === current ? 'w-6 bg-amber-700' : 'w-2 bg-amber-200'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const carouselImages = [
   "/assets/clients/cliente-1.jpg",
@@ -116,12 +182,9 @@ function InfiniteGalleryCarousel({
 type CollectionItem = { title: string; categorySlug: string; img: string };
 
 function usePerView() {
-  const [perView, setPerView] = useState(3);
+  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 3);
   useEffect(() => {
-    const update = () => {
-      const w = window.innerWidth;
-      setPerView(w < 640 ? 1 : w < 1024 ? 2 : 3);
-    };
+    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 3);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -209,52 +272,105 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
 /* =========================
    CARRUSEL DESTACADOS
 ========================= */
-function FeaturedCarousel({ products }: { products: ProductListItem[] }) {
-  const perView = usePerView();
-  const visibleCount = perView >= 3 ? 5 : 2;
-  const [index, setIndex] = useState(0);
-  const total = products.length;
+const translateX = (pos: number, perView: number, gap: number) =>
+  `translateX(calc(-${pos} * (100% / ${perView} + ${gap / perView}px)))`;
 
-  const next = () => setIndex(s => (s + 1) % total);
-  const prev = () => setIndex(s => (s - 1 + total) % total);
-
+function FeaturedCarousel({ products, perView }: { products: ProductListItem[], perView: number }) {
   const GAP = 16;
+  const total = products.length;
+  const looped = [...products, ...products, ...products];
+  const isDesktop = perView === 5;
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  // índice real en el array triplicado — empieza en el bloque central
+  const posRef = useRef(total);
+  const animating = useRef(false);
+
+  // Mueve el track sin transición (reposicionamiento silencioso)
+  const jumpTo = (pos: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    posRef.current = pos;
+    track.style.transition = 'none';
+    track.style.transform = translateX(pos, perView, GAP);
+    track.getBoundingClientRect(); // forzar reflow
+  };
+
+  // Mueve con transición animada
+  const slideTo = (pos: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    posRef.current = pos;
+    track.style.transition = 'transform 500ms ease-in-out';
+    track.style.transform = translateX(pos, perView, GAP);
+  };
+
+  const advance = (dir: 1 | -1) => {
+    if (animating.current) return;
+    animating.current = true;
+    slideTo(posRef.current + dir);
+  };
+
+  const onTransitionEnd = () => {
+    animating.current = false;
+    // Si salimos del bloque central, reposicionar sin animación
+    let pos = posRef.current;
+    if (pos >= total * 2) pos -= total;
+    if (pos < total) pos += total;
+    if (pos !== posRef.current) jumpTo(pos);
+  };
+
+  // Auto-avance solo en mobile
+  useEffect(() => {
+    if (isDesktop) return;
+    const id = setInterval(() => advance(1), 3000);
+    return () => clearInterval(id);
+  }, [total, isDesktop]);
+
+  // Touch
+  const touchStartX = useRef(0);
+  const touchDeltaX = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; touchDeltaX.current = 0; };
+  const onTouchMove = (e: React.TouchEvent) => { touchDeltaX.current = e.touches[0].clientX - touchStartX.current; };
+  const onTouchEnd = () => { if (Math.abs(touchDeltaX.current) > 40) advance(touchDeltaX.current < 0 ? 1 : -1); };
+
+  const itemW = `calc(100% / ${perView} - ${GAP * (perView - 1) / perView}px)`;
 
   return (
-    <div className="relative mt-6 overflow-hidden">
+    <div
+      className="relative mt-6 overflow-hidden"
+      onTouchStart={!isDesktop ? onTouchStart : undefined}
+      onTouchMove={!isDesktop ? onTouchMove : undefined}
+      onTouchEnd={!isDesktop ? onTouchEnd : undefined}
+    >
       <div
-        className="flex transition-transform duration-500 ease-in-out will-change-transform"
+        ref={trackRef}
+        className="flex will-change-transform"
         style={{
           gap: GAP,
-          transform: `translateX(calc(-${index} * (100% / ${visibleCount} + ${GAP / visibleCount}px)))`,
+          transform: translateX(total, perView, GAP),
         }}
+        onTransitionEnd={onTransitionEnd}
       >
-        {[...products, ...products.slice(0, visibleCount)].map((p, i) => (
-          <div
-            key={`${p.id}-${i}`}
-            className="shrink-0"
-            style={{ width: `calc(100% / ${visibleCount} - ${GAP * (visibleCount - 1) / visibleCount}px)` }}
-          >
+        {looped.map((p, i) => (
+          <div key={`${p.id}-${i}`} className="shrink-0" style={{ width: itemW }}>
             <FeaturedCard p={p} />
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={prev}
-        aria-label="Anterior"
-        className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        onClick={next}
-        aria-label="Siguiente"
-        className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10"
-      >
-        <ArrowRight className="h-5 w-5" />
-      </button>
+
+      {isDesktop && (
+        <>
+          <button type="button" onClick={() => advance(-1)} aria-label="Anterior"
+            className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <button type="button" onClick={() => advance(1)} aria-label="Siguiente"
+            className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -263,21 +379,55 @@ function FeaturedCarousel({ products }: { products: ProductListItem[] }) {
    FEATURED SECTION — lógica desktop/mobile
 ========================= */
 function FeaturedSection({ products }: { products: ProductListItem[] }) {
-  const perView = usePerView(); // >= 3 = desktop, < 3 = mobile
-  const isDesktop = perView >= 3;
+  const perView = usePerView(); // 5 en desktop, 3 en mobile
 
-  // Desktop: grid 5, carrusel si > 5
-  // Mobile:  grid 2, carrusel si >= 3
-  const useCarousel = isDesktop ? products.length > 5 : products.length >= 3;
+  const needsCarousel = products.length > perView;
 
-  if (useCarousel) return <FeaturedCarousel products={products} />;
+  if (needsCarousel) return <FeaturedCarousel products={products} perView={perView} />;
 
   return (
-    <div className={`mt-6 grid gap-4 grid-cols-2 md:grid-cols-5`}>
-      {products.slice(0, isDesktop ? 5 : 2).map((p) => (
+    <div className="mt-6 grid gap-4 grid-cols-3 md:grid-cols-5">
+      {products.slice(0, perView).map((p) => (
         <FeaturedCard key={p.id} p={p} />
       ))}
     </div>
+  );
+}
+
+/* =========================
+   SWIPE HINT — solo mobile
+========================= */
+function SwipeHint() {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const id = setTimeout(() => setVisible(false), 2200);
+    return () => clearTimeout(id);
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+          className="pointer-events-none absolute inset-0 flex items-center justify-center lg:hidden z-20"
+        >
+          <div className="flex flex-col items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-5 py-3">
+            <motion.span
+              animate={{ x: [0, 14, 0] }}
+              transition={{ duration: 0.9, repeat: 2, ease: 'easeInOut' }}
+              className="text-2xl select-none"
+            >
+              👆
+            </motion.span>
+            <span className="text-white text-[10px] tracking-widest">DESLIZA</span>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -310,21 +460,10 @@ export default function Home() {
   return (
     <>
       {/* HERO — split layout */}
-      <section className="h-[45dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
-        {/* Lado izquierdo: texto (solo desktop) */}
+      <section className="h-[40dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
+        {/* Lado izquierdo: texto rotante (solo desktop) */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#f5efe6] flex-col justify-center items-center px-16 xl:px-24 text-center">
-          <motion.div
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h1 className="font-display text-5xl xl:text-6xl font-light tracking-wide text-amber-800 leading-[1.25]">
-              Joyas esenciales,<br />elegancia cotidiana
-            </h1>
-            <p className="mt-5 text-neutral-500 text-base leading-relaxed max-w-sm mx-auto">
-              Collares, pulseras y anillos con acabados de alta calidad e hipoalergénicos.
-            </p>
-          </motion.div>
+          <HeroSlides />
         </div>
 
         {/* Lado derecho: imagen (full en mobile, mitad en desktop) */}
@@ -354,8 +493,7 @@ export default function Home() {
 
       {/* Destacados */}
       <section id="destacados" className="mx-auto max-w-7xl px-4 py-14 scroll-mt-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-2xl font-light tracking-wide">Destacados</h2>
+        <div className="flex justify-end mb-4">
           <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
             TODOS
           </Link>
@@ -381,7 +519,10 @@ export default function Home() {
         )}
 
         {!loading && !error && featuredProducts.length > 0 && (
-          <FeaturedSection products={featuredProducts} />
+          <div className="relative">
+            <FeaturedSection products={featuredProducts} />
+            <SwipeHint />
+          </div>
         )}
 
         {!loading && !error && featuredProducts.length === 0 && (
