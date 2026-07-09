@@ -182,9 +182,9 @@ function InfiniteGalleryCarousel({
 type CollectionItem = { title: string; categorySlug: string; img: string };
 
 function usePerView() {
-  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 3);
+  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 2);
   useEffect(() => {
-    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 3);
+    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 2);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -272,8 +272,10 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
 /* =========================
    CARRUSEL DESTACADOS
 ========================= */
-const translateX = (pos: number, perView: number, gap: number) =>
-  `translateX(calc(-${pos} * (100% / ${perView} + ${gap / perView}px)))`;
+const translateX = (pos: number, perView: number, gap: number, mobile = false) =>
+  mobile
+    ? `translateX(calc(-${pos} * ((100vw - ${gap * 3}px) / 2 + ${gap}px)))`
+    : `translateX(calc(-${pos} * (100% / ${perView} + ${gap / perView}px)))`;
 
 function FeaturedCarousel({ products, perView }: { products: ProductListItem[], perView: number }) {
   const GAP = 16;
@@ -292,7 +294,7 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
     if (!track) return;
     posRef.current = pos;
     track.style.transition = 'none';
-    track.style.transform = translateX(pos, perView, GAP);
+    track.style.transform = translateX(pos, perView, GAP, !isDesktop);
     track.getBoundingClientRect(); // forzar reflow
   };
 
@@ -302,7 +304,7 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
     if (!track) return;
     posRef.current = pos;
     track.style.transition = 'transform 500ms ease-in-out';
-    track.style.transform = translateX(pos, perView, GAP);
+    track.style.transform = translateX(pos, perView, GAP, !isDesktop);
   };
 
   const advance = (dir: 1 | -1) => {
@@ -334,11 +336,13 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
   const onTouchMove = (e: React.TouchEvent) => { touchDeltaX.current = e.touches[0].clientX - touchStartX.current; };
   const onTouchEnd = () => { if (Math.abs(touchDeltaX.current) > 40) advance(touchDeltaX.current < 0 ? 1 : -1); };
 
-  const itemW = `calc(100% / ${perView} - ${GAP * (perView - 1) / perView}px)`;
+  // En mobile: 2 cards visibles + peek de la 3ra, sin padding lateral
+  const mobileItemW = `calc((100vw - 16px * 3) / 2)`; // 2 cards + 3 gaps de 16px
+  const desktopItemW = `calc(100% / ${perView} - ${GAP * (perView - 1) / perView}px)`;
 
   return (
     <div
-      className="relative mt-6 overflow-hidden"
+      className={`relative mt-6 overflow-hidden ${!isDesktop ? '-mx-4' : ''}`}
       onTouchStart={!isDesktop ? onTouchStart : undefined}
       onTouchMove={!isDesktop ? onTouchMove : undefined}
       onTouchEnd={!isDesktop ? onTouchEnd : undefined}
@@ -348,12 +352,13 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
         className="flex will-change-transform"
         style={{
           gap: GAP,
-          transform: translateX(total, perView, GAP),
+          paddingLeft: !isDesktop ? 16 : 0,
+          transform: translateX(total, perView, GAP, !isDesktop),
         }}
         onTransitionEnd={onTransitionEnd}
       >
         {looped.map((p, i) => (
-          <div key={`${p.id}-${i}`} className="shrink-0" style={{ width: itemW }}>
+          <div key={`${p.id}-${i}`} className="shrink-0" style={{ width: isDesktop ? desktopItemW : mobileItemW }}>
             <FeaturedCard p={p} />
           </div>
         ))}
@@ -386,7 +391,7 @@ function FeaturedSection({ products }: { products: ProductListItem[] }) {
   if (needsCarousel) return <FeaturedCarousel products={products} perView={perView} />;
 
   return (
-    <div className="mt-6 grid gap-4 grid-cols-3 md:grid-cols-5">
+    <div className="mt-6 grid gap-4 grid-cols-2 md:grid-cols-5">
       {products.slice(0, perView).map((p) => (
         <FeaturedCard key={p.id} p={p} />
       ))}
