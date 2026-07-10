@@ -63,9 +63,9 @@ export default function Header() {
         <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between">
           <Link to="/" onClick={scrollToTop} className="flex items-center gap-3 relative z-[60]">
             <img
-              src="/brand/logo-wordmark.png.png"
+              src="/brand/logo-main.webp"
               alt="Alaha's"
-              className="h-8 w-auto"
+              className="h-10 w-auto"
             />
           </Link>
 

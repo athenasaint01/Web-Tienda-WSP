@@ -76,12 +76,12 @@ function InfiniteGalleryCarousel({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl bg-white"
+      className="relative overflow-hidden rounded-2xl"
       onMouseEnter={() => (pausedRef.current = true)}
       onMouseLeave={() => (pausedRef.current = false)}
     >
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#f2e8e1] to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#f2e8e1] to-transparent z-10" />
 
       <div
         ref={trackRef}
@@ -91,7 +91,7 @@ function InfiniteGalleryCarousel({
         {[...images, ...images].map((src, i) => (
           <div
             key={`${src}-${i}`}
-            className="shrink-0 overflow-hidden rounded-xl"
+            className="shrink-0 overflow-hidden rounded-lg"
             style={{ height, width: cardW }}
             aria-hidden={i >= images.length}
           >
@@ -386,8 +386,8 @@ export default function Home() {
       </section>
 
       {/* Destacados */}
-      <section id="destacados" className="mx-auto max-w-7xl px-4 py-14 scroll-mt-12">
-        <div className="flex justify-end mb-4">
+      <section id="destacados" className="mx-auto max-w-7xl px-4 py-6 lg:py-14 scroll-mt-12">
+        <div className="flex justify-end mb-2 lg:mb-4">
           <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
             TODOS
           </Link>
@@ -425,7 +425,7 @@ export default function Home() {
 
       {/* Colecciones */}
       {!collectionsLoading && collections.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-14">
+        <section className="mx-auto max-w-7xl px-4 py-6 lg:py-14">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-2xl font-light tracking-wide">Colecciones</h2>
             <Link to="/productos" className="text-xs tracking-widest border border-neutral-300 px-4 py-1.5 text-neutral-500 hover:border-amber-400 hover:text-amber-800 hover:bg-amber-50 transition-all duration-200">
@@ -433,7 +433,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-3 lg:mt-6">
             <CollectionsCarouselFader
               items={collections.map(collection => ({
                 title: collection.title,
@@ -446,11 +446,11 @@ export default function Home() {
       )}
 
       {/* Carrusel infinito de clientas */}
-      <section className="mx-auto max-w-7xl px-4 pb-14">
-        <div className="text-center mb-6">
+      <section className="mx-auto max-w-7xl px-4 pt-4 pb-8 lg:pt-0 lg:pb-14">
+        <div className="text-center mb-4 lg:mb-6">
           <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
-          <h3 className="font-display text-3xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo ✨</h3>
-          <p className="mt-3 text-neutral-600 max-w-2xl mx-auto">
+          <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo ✨</h3>
+          <p className="mt-2 lg:mt-3 text-neutral-600 max-w-2xl mx-auto">
             Un vistazo a entregas, looks del día y reviews reales.
           </p>
         </div>

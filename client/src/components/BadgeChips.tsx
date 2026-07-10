@@ -48,7 +48,7 @@ function SealSVG({
   return (
     <svg width={dim} height={dim} viewBox={`0 0 ${dim} ${dim}`}>
       {/* fondo negro */}
-      <circle cx={cx} cy={cx} r={r} fill="rgba(0,0,0,0.72)" />
+      <circle cx={cx} cy={cx} r={r} fill="#4a4438" />
 
       {hasBottom ? (
         <>

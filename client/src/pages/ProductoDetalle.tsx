@@ -79,9 +79,11 @@ export default function ProductoDetalle() {
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
   const waEnabled = useWhatsAppEnabled();
 
-  // zoom on hover
+  // zoom on hover (desktop) / tap-hold (mobile)
   const [origin, setOrigin] = useState<string>("50% 50%");
   const [hovering, setHovering] = useState(false);
+  const [mobileZoom, setMobileZoom] = useState(false);
+  const [mobileOrigin, setMobileOrigin] = useState("50% 50%");
 
   // Obtener productos relacionados (hook debe estar antes de cualquier early return)
   // Usamos optional chaining para evitar errores cuando product es null
@@ -167,17 +169,29 @@ export default function ProductoDetalle() {
   return (
     <div>
       {/* ── MOBILE: imagen full-width arriba ── */}
-      <div className="md:hidden relative w-full bg-white" style={{ aspectRatio: '1/1' }}>
+      <div className="md:hidden relative w-full bg-white overflow-hidden" style={{ aspectRatio: '1/1' }}>
         <AnimatePresence mode="wait">
           <motion.img
             key={imageUrls[i] ?? imageUrls[0]}
             src={imageUrls[i] ?? imageUrls[0]}
             alt={product.name}
-            className="w-full h-full object-cover select-none"
+            className="w-full h-full object-cover select-none touch-none"
+            style={{ transformOrigin: mobileOrigin }}
+            animate={{ scale: mobileZoom ? 2 : 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              if (mobileZoom) {
+                setMobileZoom(false);
+              } else {
+                setMobileOrigin(`${x}% ${y}%`);
+                setMobileZoom(true);
+              }
+            }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
           />
         </AnimatePresence>
 
