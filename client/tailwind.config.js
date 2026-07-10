@@ -11,7 +11,7 @@ export default {
       },
       colors: {
         ink: "#111827",     // negro suave
-        paper: "#ffffff",   // blanco
+        paper: "#fbfaf8",   // blanco cálido
       },
       borderRadius: {
         brand: "1.5rem",

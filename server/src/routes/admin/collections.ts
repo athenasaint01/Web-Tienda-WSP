@@ -90,9 +90,9 @@ router.post('/', authenticateToken, requireAdmin, upload.single('image'), async 
 
 /**
  * PUT /api/admin/collections/:id
- * Actualizar colección (sin imagen)
+ * Actualizar colección (con o sin imagen)
  */
-router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response) => {
+router.put('/:id', authenticateToken, requireAdmin, upload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
     const id = parseInt(req.params.id);
 
@@ -101,18 +101,40 @@ router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res
       return;
     }
 
-    const validation = collectionSchema.safeParse(req.body);
+    const file = req.file;
 
-    if (!validation.success) {
-      res.status(400).json({
-        ok: false,
-        error: 'Datos inválidos',
-        errors: validation.error.flatten().fieldErrors,
-      });
-      return;
+    // Si viene archivo usamos FormData schema, sino JSON schema
+    const isFormData = !!file || typeof req.body.category_id === 'string';
+    let updateData: any;
+
+    if (isFormData) {
+      const validation = collectionFormDataSchema.partial().safeParse(req.body);
+      if (!validation.success) {
+        res.status(400).json({ ok: false, error: 'Datos inválidos', errors: validation.error.flatten().fieldErrors });
+        return;
+      }
+      updateData = validation.data;
+    } else {
+      const validation = collectionSchema.safeParse(req.body);
+      if (!validation.success) {
+        res.status(400).json({ ok: false, error: 'Datos inválidos', errors: validation.error.flatten().fieldErrors });
+        return;
+      }
+      updateData = validation.data;
     }
 
-    const collection = await collectionService.updateCollection(id, validation.data);
+    // Procesar nueva imagen si viene
+    if (file) {
+      // Eliminar imagen anterior
+      const existing = await collectionService.getCollectionById(id);
+      if (existing?.image_url) {
+        await deleteCollectionImage(existing.image_url);
+      }
+      const filename = generateUniqueFilename(file.originalname, 'collection');
+      updateData.image_url = await processCollectionImage(file.buffer, filename);
+    }
+
+    const collection = await collectionService.updateCollection(id, updateData);
 
     if (!collection) {
       res.status(404).json({ ok: false, error: 'Colección no encontrada' });

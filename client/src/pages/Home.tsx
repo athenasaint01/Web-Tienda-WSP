@@ -55,7 +55,7 @@ function HeroSlides() {
             <p className="text-xs tracking-[0.25em] text-amber-600 font-medium mb-4">
               {slide.eyebrow}
             </p>
-            <h1 className="font-display text-3xl xl:text-4xl font-light tracking-wide text-amber-800 leading-[1.25] whitespace-pre-line">
+            <h1 className="font-display text-5xl xl:text-6xl font-light tracking-wide text-amber-800 leading-[1.25] whitespace-pre-line">
               {slide.title}
             </h1>
             <p className="mt-5 text-neutral-500 text-sm leading-relaxed">
@@ -230,9 +230,9 @@ function InfiniteGalleryCarousel({
 type CollectionItem = { title: string; categorySlug: string; img: string };
 
 function usePerView() {
-  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 2);
+  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 3);
   useEffect(() => {
-    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 2);
+    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 3);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -322,7 +322,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
 ========================= */
 const translateX = (pos: number, perView: number, gap: number, mobile = false) =>
   mobile
-    ? `translateX(calc(-${pos} * ((100vw - ${gap * 3}px) / 2 + ${gap}px)))`
+    ? `translateX(calc(-${pos} * ((100vw - ${gap * 4}px) / 3 + ${gap}px)))`
     : `translateX(calc(-${pos} * (100% / ${perView} + ${gap / perView}px)))`;
 
 function FeaturedCarousel({ products, perView }: { products: ProductListItem[], perView: number }) {
@@ -370,12 +370,11 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
     if (pos !== posRef.current) jumpTo(pos);
   };
 
-  // Auto-avance solo en mobile
+  // Auto-avance solo en desktop — en mobile el usuario navega manualmente
   useEffect(() => {
-    if (isDesktop) return;
-    const id = setInterval(() => advance(1), 3000);
-    return () => clearInterval(id);
-  }, [total, isDesktop]);
+    if (!isDesktop) return;
+    // sin auto-avance en desktop tampoco — solo botones
+  }, []);
 
   // Touch
   const touchStartX = useRef(0);
@@ -385,7 +384,7 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
   const onTouchEnd = () => { if (Math.abs(touchDeltaX.current) > 40) advance(touchDeltaX.current < 0 ? 1 : -1); };
 
   // En mobile: 2 cards visibles + peek de la 3ra, sin padding lateral
-  const mobileItemW = `calc((100vw - 16px * 3) / 2)`; // 2 cards + 3 gaps de 16px
+  const mobileItemW = `calc((100vw - 16px * 4) / 3)`; // 3 cards + 4 gaps de 16px
   const desktopItemW = `calc(100% / ${perView} - ${GAP * (perView - 1) / perView}px)`;
 
   return (
@@ -412,6 +411,7 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
         ))}
       </div>
 
+      {/* Flechas desktop: sólidas */}
       {isDesktop && (
         <>
           <button type="button" onClick={() => advance(-1)} aria-label="Anterior"
@@ -421,6 +421,19 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
           <button type="button" onClick={() => advance(1)} aria-label="Siguiente"
             className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </>
+      )}
+      {/* Flechas mobile: semitransparentes */}
+      {!isDesktop && (
+        <>
+          <button type="button" onClick={() => advance(-1)} aria-label="Anterior"
+            className="absolute left-1 top-1/3 -translate-y-1/2 rounded-full bg-white/40 backdrop-blur-sm hover:bg-white/60 transition p-1.5 z-10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <button type="button" onClick={() => advance(1)} aria-label="Siguiente"
+            className="absolute right-1 top-1/3 -translate-y-1/2 rounded-full bg-white/40 backdrop-blur-sm hover:bg-white/60 transition p-1.5 z-10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </>
       )}
@@ -447,53 +460,6 @@ function FeaturedSection({ products }: { products: ProductListItem[] }) {
   );
 }
 
-/* =========================
-   SWIPE HINT — solo mobile
-========================= */
-function SwipeHint() {
-  const [visible, setVisible] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const show = () => {
-    setVisible(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setVisible(false), 2200);
-  };
-
-  useEffect(() => {
-    // Al cerrar el popup mostramos el hint
-    window.addEventListener('popup:closed', show);
-    return () => {
-      window.removeEventListener('popup:closed', show);
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 4 }}
-          transition={{ duration: 0.4, ease: 'easeInOut' }}
-          className="pointer-events-none absolute inset-0 flex items-center justify-center lg:hidden z-20"
-        >
-          <div className="flex flex-col items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-2xl px-5 py-3">
-            <motion.span
-              animate={{ x: [0, 14, 0] }}
-              transition={{ duration: 0.9, repeat: 2, ease: 'easeInOut' }}
-              className="text-2xl select-none"
-            >
-              👆
-            </motion.span>
-            <span className="text-white text-[10px] tracking-widest">DESLIZA</span>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
 
 /* =========================
    HOME
@@ -573,10 +539,7 @@ export default function Home() {
         )}
 
         {!loading && !error && featuredProducts.length > 0 && (
-          <div className="relative">
-            <FeaturedSection products={featuredProducts} />
-            <SwipeHint />
-          </div>
+          <FeaturedSection products={featuredProducts} />
         )}
 
         {!loading && !error && featuredProducts.length === 0 && (

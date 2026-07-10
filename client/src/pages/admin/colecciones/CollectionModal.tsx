@@ -84,8 +84,31 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
 
     try {
       if (isEditing) {
-        // For editing, send JSON (image handled separately)
-        await api.updateCollection(collection.id, data);
+        const newImage = images[0] instanceof File ? images[0] : null;
+
+        if (newImage) {
+          // Enviar FormData si hay nueva imagen
+          const formData = new FormData();
+          formData.append('category_id', data.category_id.toString());
+          formData.append('title', data.title);
+          if (data.description) formData.append('description', data.description);
+          if (data.display_order !== undefined) formData.append('display_order', data.display_order.toString());
+          if (data.is_active !== undefined) formData.append('is_active', data.is_active ? 'true' : 'false');
+          formData.append('image', newImage);
+
+          const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+          const token = localStorage.getItem('auth_token');
+          const response = await fetch(`${API_BASE_URL}/admin/collections/${collection.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData,
+          });
+          const result = await response.json();
+          if (!result.ok) throw new Error(result.error || 'Error al actualizar colección');
+        } else {
+          // Sin imagen nueva, enviar JSON normal
+          await api.updateCollection(collection.id, data);
+        }
         toast.success('Colección actualizada');
       } else {
         // For creating, use FormData to send file

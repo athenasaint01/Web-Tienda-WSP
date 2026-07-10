@@ -20,7 +20,7 @@ function AnnouncementBar() {
       <span className="inline-flex items-center justify-center gap-3">
         <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
         <Truck className="h-3.5 w-3.5 shrink-0" />
-        ENVÍO GRATIS A TODO EL PAÍS EN COMPRAS SUPERIORES A S/ 299.00
+        ENVÍO GRATIS A TODO EL PERÚ EN COMPRAS SUPERIORES A S/ 299.00
         <Truck className="h-3.5 w-3.5 shrink-0" />
         <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
       </span>
