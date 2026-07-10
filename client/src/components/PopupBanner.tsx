@@ -39,6 +39,7 @@ export default function PopupBanner() {
 
   const dismiss = () => {
     setVisible(false);
+    window.dispatchEvent(new CustomEvent('popup:closed'));
   };
 
   const isExternal = popup?.button_url?.startsWith('http');

@@ -34,8 +34,8 @@ function SealSVG({
   const dotR = size === 'md' ? 1.1 : size === 'lg-card' ? 0.9 : 0.7;
 
   // Font sizes: bold sans-serif, generous
-  const fs1 = size === 'md' ? 13 : size === 'lg-card' ? 9.5 : 7;
-  const fs2 = size === 'md' ? 8  : size === 'lg-card' ? 6   : 4.5;
+  const fs1 = size === 'md' ? 11 : size === 'lg-card' ? 9 : 7.5;
+  const fs2 = size === 'md' ? 7  : size === 'lg-card' ? 5.5  : 4.8;
 
   // Vertical centering: one or two lines
   const lineH1 = fs1 * 1.15;
@@ -96,15 +96,15 @@ function SealSVG({
         {dots.map((d, i) => <circle key={i} cx={d.x} cy={d.y} r={dotR} />)}
       </g>
 
-      {/* text — bold sans-serif, no special font */}
+      {/* text — light geometric sans */}
       <text
         x={cx} y={y1}
         textAnchor="middle"
-        fontFamily="Arial Black, Arial, sans-serif"
+        fontFamily="Futura, Century Gothic, Trebuchet MS, Arial, sans-serif"
         fontSize={fs1}
-        fontWeight="900"
+        fontWeight="500"
         fill={col1}
-        letterSpacing="0.5"
+        letterSpacing="1.2"
       >
         {line1}
       </text>
@@ -112,11 +112,11 @@ function SealSVG({
         <text
           x={cx} y={y2}
           textAnchor="middle"
-          fontFamily="Arial, sans-serif"
+          fontFamily="Futura, Century Gothic, Trebuchet MS, Arial, sans-serif"
           fontSize={fs2}
-          fontWeight="700"
+          fontWeight="500"
           fill={col2}
-          letterSpacing="1"
+          letterSpacing="1.5"
         >
           {line2}
         </text>

@@ -98,6 +98,10 @@ router.post('/', upload.array('images', 6), async (req: AuthRequest, res: Respon
     res.status(201).json({ ok: true, data: product });
   } catch (error: any) {
     console.error('Error al crear producto:', error);
+    if (error.code === '23505' && error.constraint === 'products_slug_key') {
+      res.status(409).json({ ok: false, error: 'El slug ya está en uso. Cambia el nombre o edita el slug manualmente.' });
+      return;
+    }
     res.status(500).json({ ok: false, error: error.message || 'Error al crear producto' });
   }
 });
@@ -233,6 +237,10 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
     res.json({ ok: true, data: product });
   } catch (error: any) {
     console.error('Error al actualizar producto:', error);
+    if (error.code === '23505' && error.constraint === 'products_slug_key') {
+      res.status(409).json({ ok: false, error: 'El slug ya está en uso por otro producto. Cambia el slug manualmente.' });
+      return;
+    }
     res.status(500).json({ ok: false, error: error.message || 'Error al actualizar producto' });
   }
 });

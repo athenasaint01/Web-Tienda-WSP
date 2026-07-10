@@ -40,34 +40,82 @@ function HeroSlides() {
   const slide = heroSlides[current];
 
   return (
-    <div className="w-full max-w-md mx-auto text-center">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <p className="text-xs tracking-[0.25em] text-amber-600 font-medium mb-4">
-            {slide.eyebrow}
-          </p>
-          <h1 className="font-display text-5xl xl:text-6xl font-light tracking-wide text-amber-800 leading-[1.25] whitespace-pre-line">
-            {slide.title}
-          </h1>
-          <p className="mt-5 text-neutral-500 text-base leading-relaxed">
-            {slide.sub}
-          </p>
-        </motion.div>
-      </AnimatePresence>
+    <div className="w-full max-w-lg mx-auto text-center flex flex-col">
+      {/* Altura fija para que los slides no muevan el layout */}
+      <div className="relative" style={{ minHeight: '220px' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 flex flex-col justify-center"
+          >
+            <p className="text-xs tracking-[0.25em] text-amber-600 font-medium mb-4">
+              {slide.eyebrow}
+            </p>
+            <h1 className="font-display text-3xl xl:text-4xl font-light tracking-wide text-amber-800 leading-[1.25] whitespace-pre-line">
+              {slide.title}
+            </h1>
+            <p className="mt-5 text-neutral-500 text-sm leading-relaxed">
+              {slide.sub}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-      {/* Dots */}
+      {/* Dots — siempre estáticos fuera del AnimatePresence */}
       <div className="flex justify-center gap-2 mt-8">
         {heroSlides.map((_, i) => (
           <button
             key={i}
             onClick={() => setCurrent(i)}
             className={`h-1 rounded-full transition-all duration-300 ${i === current ? 'w-6 bg-amber-700' : 'w-2 bg-amber-200'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroSlidesMobile() {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setCurrent(s => (s + 1) % heroSlides.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+
+  const slide = heroSlides[current];
+
+  return (
+    <div className="w-full flex flex-col items-center">
+      <div className="relative w-full" style={{ minHeight: '120px' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 flex flex-col justify-center items-center"
+          >
+            <p className="text-[10px] tracking-[0.25em] text-amber-300 font-medium mb-2">
+              {slide.eyebrow}
+            </p>
+            <h1 className="font-display text-2xl font-light tracking-wide text-white leading-[1.3] whitespace-pre-line">
+              {slide.title}
+            </h1>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div className="flex justify-center gap-2 mt-4">
+        {heroSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`h-1 rounded-full transition-all duration-300 ${i === current ? 'w-5 bg-amber-300' : 'w-1.5 bg-white/30'}`}
           />
         ))}
       </div>
@@ -403,11 +451,22 @@ function FeaturedSection({ products }: { products: ProductListItem[] }) {
    SWIPE HINT — solo mobile
 ========================= */
 function SwipeHint() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = () => {
+    setVisible(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setVisible(false), 2200);
+  };
 
   useEffect(() => {
-    const id = setTimeout(() => setVisible(false), 2200);
-    return () => clearTimeout(id);
+    // Al cerrar el popup mostramos el hint
+    window.addEventListener('popup:closed', show);
+    return () => {
+      window.removeEventListener('popup:closed', show);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   return (
@@ -465,7 +524,7 @@ export default function Home() {
   return (
     <>
       {/* HERO — split layout */}
-      <section className="h-[40dvh] lg:h-[100dvh] flex flex-col lg:flex-row">
+      <section className="h-[40dvh] lg:h-[calc(100dvh-96px)] flex flex-col lg:flex-row">
         {/* Lado izquierdo: texto rotante (solo desktop) */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#f5efe6] flex-col justify-center items-center px-16 xl:px-24 text-center">
           <HeroSlides />
@@ -478,21 +537,11 @@ export default function Home() {
             alt="Alahas — joyas esenciales"
             className="w-full h-full object-cover object-center"
           />
-          {/* Overlay + texto solo en mobile */}
-          <div className="absolute inset-0 bg-black/60 lg:hidden" />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 lg:hidden"
-          >
-            <h1 className="font-display text-4xl font-light tracking-wide text-amber-200 leading-[1.25]">
-              Joyas esenciales,<br />elegancia cotidiana
-            </h1>
-            <p className="mt-3 text-white/70 text-lg leading-relaxed">
-              Collares, pulseras y anillos hipoalergénicos.
-            </p>
-          </motion.div>
+          {/* Overlay + texto rotativo solo en mobile */}
+          <div className="absolute inset-0 bg-black/55 lg:hidden" />
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 lg:hidden">
+            <HeroSlidesMobile />
+          </div>
         </div>
       </section>
 
