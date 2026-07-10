@@ -147,9 +147,8 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           </div>
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center whitespace-nowrap">
-            <h3 className="font-display text-2xl md:text-3xl font-light tracking-widest mb-4 drop-shadow" style={{ color: '#fff8f0' }}>{c.title}</h3>
-            <span className="inline-block bg-amber-800 text-white text-xs tracking-widest px-6 py-2.5 group-hover:bg-amber-700 transition-colors duration-300">
-              SHOP NOW
+            <span className="inline-block bg-[#d4a58a]/80 backdrop-blur-sm text-white text-xs tracking-widest px-6 py-2.5 group-hover:bg-[#c4927a]/90 transition-colors duration-300 font-display font-light">
+              {c.title}
             </span>
           </div>
         </Link>
@@ -189,14 +188,14 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
             />
           )}
           {p.badge_labels && p.badge_labels.length > 0 && (
-            <div className="absolute bottom-2 left-2 z-10 scale-75 sm:scale-100 origin-bottom-left">
+            <div className="absolute bottom-2 right-2 z-10 scale-[0.58] sm:scale-100 origin-bottom-right">
               <BadgeChips badges={p.badge_labels} size="lg-card" />
             </div>
           )}
         </div>
         <div className="pt-3 pb-1">
-          <h3 className="font-display text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
-          <p className="text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
+          <h3 className="font-display text-xs sm:text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
+          <p className="text-[10px] sm:text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
         </div>
       </div>
     </Link>
@@ -297,29 +296,29 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
         ))}
       </div>
 
-      {/* Flechas desktop: sólidas */}
+      {/* Flechas desktop */}
       {isDesktop && (
         <>
           <button type="button" onClick={() => advance(-1)} aria-label="Anterior"
-            className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-amber-50/70 backdrop-blur-sm ring-1 ring-amber-200/50 hover:bg-amber-100/80 transition p-2 z-10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#92714a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <button type="button" onClick={() => advance(1)} aria-label="Siguiente"
-            className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-white shadow ring-1 ring-black/10 hover:bg-neutral-100 transition p-2 z-10">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-amber-50/70 backdrop-blur-sm ring-1 ring-amber-200/50 hover:bg-amber-100/80 transition p-2 z-10">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#92714a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </>
       )}
-      {/* Flechas mobile: semitransparentes */}
+      {/* Flechas mobile */}
       {!isDesktop && (
         <>
           <button type="button" onClick={() => advance(-1)} aria-label="Anterior"
-            className="absolute left-1 top-1/3 -translate-y-1/2 rounded-full bg-white/40 backdrop-blur-sm hover:bg-white/60 transition p-1.5 z-10">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            className="absolute left-1 top-1/3 -translate-y-1/2 rounded-full bg-amber-50/60 backdrop-blur-sm ring-1 ring-amber-200/40 hover:bg-amber-100/75 transition p-1.5 z-10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#92714a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
           <button type="button" onClick={() => advance(1)} aria-label="Siguiente"
-            className="absolute right-1 top-1/3 -translate-y-1/2 rounded-full bg-white/40 backdrop-blur-sm hover:bg-white/60 transition p-1.5 z-10">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            className="absolute right-1 top-1/3 -translate-y-1/2 rounded-full bg-amber-50/60 backdrop-blur-sm ring-1 ring-amber-200/40 hover:bg-amber-100/75 transition p-1.5 z-10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#92714a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </>
       )}

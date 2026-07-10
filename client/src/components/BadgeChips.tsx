@@ -18,7 +18,6 @@ type Props = {
 function SealSVG({
   line1,
   line2,
-  silver,
   size,
 }: {
   line1: string;
@@ -26,99 +25,64 @@ function SealSVG({
   silver?: boolean;
   size: 'sm' | 'lg-card' | 'md';
 }) {
-  const dim = size === 'md' ? 72 : size === 'lg-card' ? 54 : 38;
+  const dim = size === 'md' ? 58 : size === 'lg-card' ? 42 : 30;
   const cx = dim / 2;
-  const r = dim / 2 - 1;
-  const innerR = size === 'md' ? 25.2 : size === 'lg-card' ? 19.5 : 14.5;
-  const ringStrokeR = size === 'md' ? 26.5 : size === 'lg-card' ? 21 : 15.5;
-  const dotR = size === 'md' ? 1.1 : size === 'lg-card' ? 0.9 : 0.7;
+  const r = dim / 2 - 0.5;
 
-  // Font sizes: bold sans-serif, generous
-  const fs1 = size === 'md' ? 11 : size === 'lg-card' ? 9 : 7.5;
-  const fs2 = size === 'md' ? 7  : size === 'lg-card' ? 5.5  : 4.8;
+  const fs1 = size === 'md' ? 12 : size === 'lg-card' ? 10 : 7;
+  const fs2 = size === 'md' ? 7.0 : size === 'lg-card' ? 5.5 : 4.2;
 
-  // Vertical centering: one or two lines
-  const lineH1 = fs1 * 1.15;
-  const lineH2 = fs2 * 1.2;
-  const totalH = line2 ? lineH1 + 2 + lineH2 : lineH1;
-  const y1 = cx - totalH / 2 + lineH1 * 0.78;
-  const y2 = y1 + lineH1 * 0.3 + lineH2;
+  // centrado dinámico para 2 niveles: line1 + divisor + line2
+  const gap = size === 'md' ? 3 : 2.5;           // espacio entre bloques
+  const totalH2 = fs1 + gap + 0.6 + gap + fs2;   // altura total del grupo
+  const y1      = cx - totalH2 / 2 + fs1 * 0.85; // baseline line1
+  const dividerY = y1 + fs1 * 0.2 + gap;
+  const y2      = dividerY + gap + fs2 * 0.85;    // baseline line2 (1 palabra)
+  const y2b     = y2 + fs2 * 1.25;               // baseline line2 (2ª palabra)
 
-  const ringGold   = silver ? 'url(#ringSilver)'  : 'url(#ringGold)';
-  const strokeRing = silver ? 'url(#strokeSilver)': 'url(#strokeGold)';
-  const col1       = silver ? '#E8E4E0' : '#F5D060';
-  const col2       = silver ? '#C0BCB8' : '#E0B040';
-  const dotColor   = silver ? '#D8D4CE' : '#F0C84A';
+  // centrado para 1 nivel
+  const yCentered = cx + fs1 * 0.35;
 
-  const dotCount = size === 'md' ? 16 : 14;
-  const dotRingR = (r + ringStrokeR) / 2;
-  const dots = Array.from({ length: dotCount }, (_, i) => {
-    const angle = (i / dotCount) * Math.PI * 2 - Math.PI / 2;
-    return { x: cx + Math.cos(angle) * dotRingR, y: cx + Math.sin(angle) * dotRingR };
-  });
+  const hasBottom = Boolean(line2);
 
   return (
     <svg width={dim} height={dim} viewBox={`0 0 ${dim} ${dim}`}>
-      <defs>
-        <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="#FFFBE0"/>
-          <stop offset="22%"  stopColor="#F0C84A"/>
-          <stop offset="50%"  stopColor="#C9973A"/>
-          <stop offset="78%"  stopColor="#A07020"/>
-          <stop offset="100%" stopColor="#FFFBE0"/>
-        </linearGradient>
-        <linearGradient id="strokeGold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"  stopColor="#F8E090"/>
-          <stop offset="50%" stopColor="#B88828"/>
-          <stop offset="100%" stopColor="#F8E090"/>
-        </linearGradient>
-        <linearGradient id="ringSilver" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"   stopColor="#FFFFFF"/>
-          <stop offset="25%"  stopColor="#D8D4CE"/>
-          <stop offset="55%"  stopColor="#A8A49E"/>
-          <stop offset="80%"  stopColor="#787470"/>
-          <stop offset="100%" stopColor="#FFFFFF"/>
-        </linearGradient>
-        <linearGradient id="strokeSilver" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%"  stopColor="#FFFFFF"/>
-          <stop offset="50%" stopColor="#909090"/>
-          <stop offset="100%" stopColor="#FFFFFF"/>
-        </linearGradient>
-      </defs>
+      {/* fondo negro */}
+      <circle cx={cx} cy={cx} r={r} fill="rgba(0,0,0,0.72)" />
 
-      {/* ring */}
-      <circle cx={cx} cy={cx} r={r} fill={ringGold} />
-      <circle cx={cx} cy={cx} r={ringStrokeR} fill="none" stroke={strokeRing} strokeWidth="0.9" />
-      {/* black center */}
-      <circle cx={cx} cy={cx} r={innerR} fill="#000" />
-      {/* dot ring */}
-      <g fill={dotColor} opacity="0.4">
-        {dots.map((d, i) => <circle key={i} cx={d.x} cy={d.y} r={dotR} />)}
-      </g>
-
-      {/* text — light geometric sans */}
-      <text
-        x={cx} y={y1}
-        textAnchor="middle"
-        fontFamily="Futura, Century Gothic, Trebuchet MS, Arial, sans-serif"
-        fontSize={fs1}
-        fontWeight="500"
-        fill={col1}
-        letterSpacing="1.2"
-      >
-        {line1}
-      </text>
-      {line2 && (
-        <text
-          x={cx} y={y2}
-          textAnchor="middle"
-          fontFamily="Futura, Century Gothic, Trebuchet MS, Arial, sans-serif"
-          fontSize={fs2}
-          fontWeight="500"
-          fill={col2}
-          letterSpacing="1.5"
-        >
-          {line2}
+      {hasBottom ? (
+        <>
+          {/* número */}
+          <text x={cx} y={y1} textAnchor="middle"
+            fontFamily="Archivo Narrow, Arial Narrow, Arial, sans-serif"
+            fontSize={fs1} fontWeight="400" fill="#ffffff" letterSpacing="0">
+            {line1}
+          </text>
+          {/* divisor */}
+          <line x1={cx - r * 0.55} y1={dividerY} x2={cx + r * 0.55} y2={dividerY}
+            stroke="rgba(255,255,255,0.25)" strokeWidth="0.6" />
+          {/* texto inferior — una o dos palabras */}
+          <text x={cx} y={y2} textAnchor="middle"
+            fontFamily="Archivo Narrow, Arial Narrow, Arial, sans-serif"
+            fontSize={fs2} fontWeight="400" fill="rgba(255,255,255,0.9)"
+            letterSpacing="0">
+            {line2!.split(' ')[0]}
+          </text>
+          {line2!.split(' ')[1] && (
+            <text x={cx} y={y2b} textAnchor="middle"
+              fontFamily="Archivo Narrow, Arial Narrow, Arial, sans-serif"
+              fontSize={fs2} fontWeight="400" fill="rgba(255,255,255,0.9)"
+              letterSpacing="0">
+              {line2!.split(' ')[1]}
+            </text>
+          )}
+        </>
+      ) : (
+        /* solo una línea centrada */
+        <text x={cx} y={yCentered} textAnchor="middle"
+          fontFamily="Archivo Narrow, Arial Narrow, Arial, sans-serif"
+          fontSize={fs1} fontWeight="400" fill="#ffffff">
+          {line1}
         </text>
       )}
     </svg>
