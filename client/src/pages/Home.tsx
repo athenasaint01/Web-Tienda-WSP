@@ -116,9 +116,9 @@ function InfiniteGalleryCarousel({
 type CollectionItem = { title: string; categorySlug: string; img: string };
 
 function usePerView() {
-  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 3);
+  const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 2);
   useEffect(() => {
-    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 3);
+    const update = () => setPerView(window.innerWidth >= 1024 ? 5 : 2);
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -188,14 +188,14 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
             />
           )}
           {p.badge_labels && p.badge_labels.length > 0 && (
-            <div className="absolute bottom-2 right-2 z-10 scale-[0.58] sm:scale-100 origin-bottom-right">
+            <div className="absolute bottom-2 right-2 z-10 scale-[0.80] sm:scale-100 origin-bottom-right">
               <BadgeChips badges={p.badge_labels} size="lg-card" />
             </div>
           )}
         </div>
         <div className="pt-3 pb-1">
-          <h3 className="font-display text-xs sm:text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
-          <p className="text-[10px] sm:text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
+          <h3 className="font-display text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
+          <p className="text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
         </div>
       </div>
     </Link>
@@ -207,7 +207,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
 ========================= */
 const translateX = (pos: number, perView: number, gap: number, mobile = false) =>
   mobile
-    ? `translateX(calc(-${pos} * ((100vw - ${gap * 4}px) / 3 + ${gap}px)))`
+    ? `translateX(calc(-${pos} * ((100vw - ${gap * 3}px) / 2 + ${gap}px)))`
     : `translateX(calc(-${pos} * (100% / ${perView} + ${gap / perView}px)))`;
 
 function FeaturedCarousel({ products, perView }: { products: ProductListItem[], perView: number }) {
@@ -269,7 +269,7 @@ function FeaturedCarousel({ products, perView }: { products: ProductListItem[], 
   const onTouchEnd = () => { if (Math.abs(touchDeltaX.current) > 40) advance(touchDeltaX.current < 0 ? 1 : -1); };
 
   // En mobile: 2 cards visibles + peek de la 3ra, sin padding lateral
-  const mobileItemW = `calc((100vw - 16px * 4) / 3)`; // 3 cards + 4 gaps de 16px
+  const mobileItemW = `calc((100vw - 16px * 3) / 2)`; // 2 cards + 3 gaps de 16px
   const desktopItemW = `calc(100% / ${perView} - ${GAP * (perView - 1) / perView}px)`;
 
   return (
