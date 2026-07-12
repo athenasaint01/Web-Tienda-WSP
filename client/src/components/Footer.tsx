@@ -43,7 +43,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p className="text-xs tracking-widest text-neutral-400 uppercase text-center">
-          © {new Date().getFullYear()} Alahas's.<br className="sm:hidden" />
+          © {new Date().getFullYear()} Alaha's.<br className="sm:hidden" />
           <span className="hidden sm:inline"> </span>Todos los derechos reservados.
         </p>
       </div>

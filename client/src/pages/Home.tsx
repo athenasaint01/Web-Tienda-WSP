@@ -194,8 +194,8 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
           )}
         </div>
         <div className="pt-3 pb-1">
-          <h3 className="font-display text-sm font-light tracking-wide leading-snug line-clamp-2">{p.name}</h3>
-          <p className="text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
+          <h3 className="font-display text-xs font-light tracking-widest leading-snug line-clamp-2 uppercase">{p.name}</h3>
+          <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
         </div>
       </div>
     </Link>
@@ -449,7 +449,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pt-4 pb-8 lg:pt-0 lg:pb-14">
         <div className="text-center mb-4 lg:mb-6">
           <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
-          <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo ✨</h3>
+          <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo</h3>
           <p className="mt-2 lg:mt-3 text-neutral-600 max-w-2xl mx-auto">
             Un vistazo a entregas, looks del día y reviews reales.
           </p>

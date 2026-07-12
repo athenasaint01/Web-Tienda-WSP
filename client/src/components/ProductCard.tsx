@@ -43,8 +43,8 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
           )}
         </div>
         <div className="pt-3 pb-1">
-          <h3 className="font-display text-base font-light tracking-wide leading-snug">{p.name}</h3>
-          <p className="text-xs text-neutral-400 capitalize mt-0.5">{p.category}</p>
+          <h3 className="font-display text-xs font-light tracking-widest leading-snug uppercase">{p.name}</h3>
+          <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
           {'stock' in p && p.stock > 0 && p.stock <= 5 && (
             <p className="text-xs text-amber-600 font-medium mt-1">
               ¡Solo quedan {p.stock}!

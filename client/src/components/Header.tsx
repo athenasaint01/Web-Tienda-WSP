@@ -54,7 +54,7 @@ export default function Header() {
                 to={`/productos?categoria=${cat.slug}`}
                 onClick={scrollToTop}
                 className={({ isActive }) =>
-                  `relative tracking-wide transition-colors duration-200 pb-0.5 group capitalize ${isActive ? "font-medium text-neutral-900" : "text-neutral-800"}`
+                  `relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-xs ${isActive ? "font-medium text-neutral-900" : "text-neutral-800"}`
                 }
               >
                 {({ isActive }) => (
@@ -120,7 +120,7 @@ export default function Header() {
                         to={`/productos?categoria=${cat.slug}`}
                         onClick={closeMenu}
                         className={({ isActive }) =>
-                          `block px-4 py-3 rounded-lg text-lg font-medium capitalize transition-all ${isActive ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400" : "hover:bg-amber-50/60 hover:text-amber-700 text-black/80"}`
+                          `block px-4 py-3 rounded-lg text-sm font-medium uppercase tracking-widest transition-all ${isActive ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400" : "hover:bg-amber-50/60 hover:text-amber-700 text-black/80"}`
                         }
                       >
                         {cat.name}
