@@ -376,13 +376,17 @@ export default function Home() {
     <>
       {/* HERO — banner completo */}
       <section className="relative h-[40dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
-        <img
-          src="/images/hero-banner.webp"
-          alt="Alahas — joyas esenciales"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          loading="eager"
-          fetchPriority="high"
-        />
+        <picture>
+          <source media="(min-width: 1024px)" srcSet="/images/hero-banner.webp" />
+          <source media="(max-width: 1023px)" srcSet="/images/hero-banner-mobile.webp" />
+          <img
+            src="/images/hero-banner.webp"
+            alt="Alahas — joyas esenciales"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            loading="eager"
+            fetchPriority="high"
+          />
+        </picture>
       </section>
 
       {/* Destacados */}
@@ -446,7 +450,7 @@ export default function Home() {
       )}
 
       {/* Carrusel infinito de clientas */}
-      <section className="mx-auto max-w-7xl px-4 pt-4 pb-8 lg:pt-0 lg:pb-14">
+      <section className="mx-auto max-w-7xl px-4 pt-1 pb-1 lg:pt-0 lg:pb-4">
         <div className="text-center mb-4 lg:mb-6">
           <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
           <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo</h3>
