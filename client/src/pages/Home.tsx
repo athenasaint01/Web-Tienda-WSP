@@ -382,7 +382,7 @@ export default function Home() {
           <img
             src="/images/hero-banner.webp"
             alt="Alahas — joyas esenciales"
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-bottom"
             loading="eager"
             fetchPriority="high"
           />
