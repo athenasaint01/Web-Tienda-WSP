@@ -11,7 +11,7 @@ export default {
       },
       colors: {
         ink: "#111827",     // negro suave
-        paper: "#f9f3ef",
+        paper: "#faf4ee",   // lino claro — entre banner y productos
       },
       borderRadius: {
         brand: "1.5rem",

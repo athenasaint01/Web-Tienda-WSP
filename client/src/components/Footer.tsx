@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { FacebookIcon } from "lucide-react";
 import { FaInstagram, FaTiktok } from "react-icons/fa";
 import { useSettings } from "../hooks/useSettings";
@@ -12,27 +13,40 @@ export default function Footer() {
   ].filter(s => s.url);
 
   return (
-    <footer className="mt-16 bg-stone-100 py-10 flex flex-col items-center gap-6">
-      {socials.length > 0 && (
-        <div className="flex justify-center gap-8">
-          {socials.map(({ url, icon, label, mobileColor, color }) => (
-            <a
-              key={label}
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={label}
-              className={`transition sm:text-neutral-400 ${mobileColor} ${color}`}
-            >
-              <span className="[&>svg]:h-6 [&>svg]:w-6">{icon}</span>
-            </a>
-          ))}
+    <footer className="mt-16 bg-stone-100 py-10">
+      <div className="mx-auto max-w-7xl px-6 flex flex-col items-center gap-6">
+
+        {/* Links secundarios */}
+        <div className="flex items-center gap-6 text-xs tracking-widest text-neutral-400 uppercase">
+          <Link to="/nosotros" className="hover:text-amber-700 transition-colors">Nosotros</Link>
+          <span className="w-px h-3 bg-neutral-300" />
+          <Link to="/marca" className="hover:text-amber-700 transition-colors">Marca</Link>
         </div>
-      )}
-      <p className="text-xs tracking-widest text-neutral-400 uppercase text-center">
-        © {new Date().getFullYear()} Alahas's.<br className="sm:hidden" />
-        <span className="hidden sm:inline"> </span>Todos los derechos reservados.
-      </p>
+
+        {/* Redes sociales */}
+        {socials.length > 0 && (
+          <div className="flex justify-center gap-8">
+            {socials.map(({ url, icon, label, mobileColor, color }) => (
+              <a
+                key={label}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={label}
+                className={`transition sm:text-neutral-400 ${mobileColor} ${color}`}
+              >
+                <span className="[&>svg]:h-6 [&>svg]:w-6">{icon}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* Copyright */}
+        <p className="text-xs tracking-widest text-neutral-400 uppercase text-center">
+          © {new Date().getFullYear()} Alahas's.<br className="sm:hidden" />
+          <span className="hidden sm:inline"> </span>Todos los derechos reservados.
+        </p>
+      </div>
     </footer>
   );
 }
