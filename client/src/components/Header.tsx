@@ -98,7 +98,7 @@ export default function Header() {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[55] md:hidden"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[55] md:hidden"
               onClick={closeMenu}
             />
             <motion.nav

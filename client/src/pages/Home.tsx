@@ -138,7 +138,7 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
           <img
             src={c.img}
             alt={c.title}
-            className="w-full aspect-[4/3] md:aspect-[16/9] object-cover"
+            className="w-full aspect-[4/3] md:aspect-[16/9] object-cover" style={{ objectPosition: '50% 73%' }}
             loading={i === 0 ? "eager" : "lazy"}
             decoding="async"
           />
@@ -193,7 +193,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
             </div>
           )}
         </div>
-        <div className="pt-3 pb-1">
+        <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug line-clamp-2 uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
         </div>

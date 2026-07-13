@@ -42,7 +42,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             </div>
           )}
         </div>
-        <div className="pt-3 pb-1">
+        <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
           {'stock' in p && p.stock > 0 && p.stock <= 5 && (

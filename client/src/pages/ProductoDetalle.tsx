@@ -52,7 +52,7 @@ function RelatedCard({ p }: { p: ProductListItem }) {
       whileHover={{ y: -2 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{ rotateX: enableTilt ? rx : 0, rotateY: enableTilt ? ry : 0, transformPerspective: 900 }}
-      className="group rounded-3xl overflow-hidden border bg-white will-change-transform"
+      className="group overflow-hidden border bg-white will-change-transform"
     >
       <Link to={`/producto/${p.slug}`} className="block" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="relative">
@@ -177,7 +177,9 @@ export default function ProductoDetalle() {
             alt={product.name}
             className="w-full h-full object-cover select-none touch-none"
             style={{ transformOrigin: mobileOrigin }}
-            animate={{ scale: mobileZoom ? 2 : 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, scale: mobileZoom ? 2 : 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
@@ -190,8 +192,6 @@ export default function ProductoDetalle() {
                 setMobileZoom(true);
               }
             }}
-            initial={{ opacity: 0 }}
-            exit={{ opacity: 0 }}
           />
         </AnimatePresence>
 
@@ -242,7 +242,7 @@ export default function ProductoDetalle() {
                   onClick={() => setI(idx)}
                   aria-label={`Ver imagen ${idx + 1}`}
                   className={[
-                    "relative shrink-0 w-[92px] rounded-[12px] transition",
+                    "relative shrink-0 w-[92px] transition",
                     "bg-neutral-100/80 hover:bg-neutral-100",
                     selected ? "bg-neutral-200/90" : "",
                   ].join(" ")}

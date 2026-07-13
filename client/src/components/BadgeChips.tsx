@@ -30,7 +30,7 @@ function SealSVG({
   const r = dim / 2 - 0.5;
 
   const fs1 = size === 'md' ? 12 : size === 'lg-card' ? 10 : 7;
-  const fs2 = size === 'md' ? 7.0 : size === 'lg-card' ? 5.5 : 4.2;
+  const fs2 = size === 'md' ? 7.0 : size === 'lg-card' ? 7.0 : 5.5;
 
   // centrado dinámico para 2 niveles: line1 + divisor + line2
   const gap = size === 'md' ? 3 : 2.5;           // espacio entre bloques
@@ -114,13 +114,13 @@ export default function BadgeChips({ badges, size = 'sm', showTooltip = false }:
         return (
           <div key={b} className="relative group">
             {seal}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52
-                            bg-neutral-900 text-white text-xs px-3 py-2 leading-snug
+            <div className="absolute bottom-full left-0 mb-2 w-64
+                            bg-neutral-900 text-white text-xs px-4 py-3 leading-relaxed
                             opacity-0 group-hover:opacity-100 pointer-events-none
-                            transition-opacity duration-200 z-50">
-              <p className="font-semibold mb-0.5">{entry.line1}{entry.line2 ? ` ${entry.line2}` : ''}</p>
-              <p className="text-neutral-300">{entry.desc}</p>
-              <div className="absolute top-full left-1/2 -translate-x-1/2
+                            transition-opacity duration-200 z-50 shadow-lg">
+              <p className="font-semibold mb-1 text-white">{entry.line1}{entry.line2 ? ` ${entry.line2}` : ''}</p>
+              <p className="text-neutral-300 text-[11px] leading-relaxed">{entry.desc}</p>
+              <div className="absolute top-full left-4
                               border-4 border-transparent border-t-neutral-900" />
             </div>
           </div>
