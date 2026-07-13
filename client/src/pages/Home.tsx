@@ -38,7 +38,6 @@ function InfiniteGalleryCarousel({
   speedSec?: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
   const cardW = Math.round((height * 3) / 4);
 
   useEffect(() => {
@@ -55,11 +54,9 @@ function InfiniteGalleryCarousel({
       const half = track.scrollWidth / 2;
       const speedPx = half / speedSec;
 
-      if (!pausedRef.current) {
-        pos -= speedPx * dt;
-        if (pos <= -half) pos += half;
-        track.style.transform = `translate3d(${Math.round(pos * 100) / 100}px,0,0)`;
-      }
+      pos -= speedPx * dt;
+      if (pos <= -half) pos += half;
+      track.style.transform = `translate3d(${Math.round(pos * 100) / 100}px,0,0)`;
 
       raf = requestAnimationFrame(loop);
     };
@@ -77,8 +74,6 @@ function InfiniteGalleryCarousel({
   return (
     <div
       className="relative overflow-hidden rounded-2xl"
-      onMouseEnter={() => (pausedRef.current = true)}
-      onMouseLeave={() => (pausedRef.current = false)}
     >
       <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#faf4ee] to-transparent z-10" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#faf4ee] to-transparent z-10" />
@@ -453,10 +448,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 pt-1 pb-1 lg:pt-0 lg:pb-4">
         <div className="text-center mb-4 lg:mb-6">
           <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
-          <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1">Felices con su brillo</h3>
-          <p className="mt-2 lg:mt-3 text-neutral-600 max-w-2xl mx-auto">
-            Un vistazo a entregas, looks del día y reviews reales.
-          </p>
+          <h3 className="font-display text-2xl md:text-4xl font-light tracking-wide mt-1 uppercase">Felices con su brillo</h3>
         </div>
         <InfiniteGalleryCarousel images={carouselImages} height={240} speedSec={32} />
       </section>

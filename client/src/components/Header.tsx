@@ -34,11 +34,11 @@ export default function Header() {
     open:   { opacity: 1, x: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
   };
 
-  const iconCls = "p-2 text-neutral-600 hover:text-neutral-900 transition-colors rounded-lg hover:bg-black/5";
+  const iconCls = "p-2 text-[#4a4438]/70 hover:text-[#4a4438] transition-colors rounded-lg hover:bg-black/5";
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/75 backdrop-blur border-b border-black/5">
+      <header className="sticky top-0 z-50 backdrop-blur border-b border-white/10" style={{ backgroundColor: '#f7e8e1' }}>
         <div className="mx-auto max-w-7xl px-4 h-16 flex items-center justify-between gap-4">
 
           {/* Logo */}
@@ -54,13 +54,13 @@ export default function Header() {
                 to={`/productos?categoria=${cat.slug}`}
                 onClick={scrollToTop}
                 className={({ isActive }) =>
-                  `relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-xs ${isActive ? "font-medium text-neutral-900" : "text-neutral-800"}`
+                  `relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-xs ${isActive ? "font-medium text-[#4a4438]" : "text-[#4a4438]/70"}`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <span className={`group-hover:text-neutral-900 transition-colors ${isActive ? "text-neutral-900" : ""}`}>{cat.name}</span>
-                    <span className={`absolute -bottom-0.5 left-0 h-px bg-amber-400 transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+                    <span className={`group-hover:text-[#4a4438] transition-colors ${isActive ? "text-[#4a4438]" : ""}`}>{cat.name}</span>
+                    <span className={`absolute -bottom-0.5 left-0 h-px bg-[#4a4438] transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
                   </>
                 )}
               </NavLink>
