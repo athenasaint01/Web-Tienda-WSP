@@ -13,7 +13,7 @@ export default function Footer() {
   ].filter(s => s.url);
 
   return (
-    <footer className="mt-16 py-10" style={{ backgroundColor: '#fcfbf9' }}>
+    <footer className="mt-16 py-10" style={{ backgroundColor: '#faf4ee' }}>
       <div className="mx-auto max-w-7xl px-6 flex flex-col items-center gap-6">
 
         {/* Links secundarios */}
