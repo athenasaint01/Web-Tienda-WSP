@@ -447,8 +447,7 @@ export default function Home() {
       {/* Carrusel infinito de clientas */}
       <section className="mx-auto max-w-7xl px-4 pt-1 pb-1 lg:pt-0 lg:pb-4">
         <div className="text-center mb-4 lg:mb-6">
-          <p className="text-sm tracking-widest text-amber-600">NUESTRAS CLIENTAS</p>
-          <h3 className="font-display text-lg md:text-2xl font-light tracking-wide mt-1 uppercase">Felices con su brillo</h3>
+          <p className="text-xs tracking-widest uppercase text-[#4a4438]/70 font-medium">NUESTROS CLIENTES FELICES CON SU BRILLO</p>
         </div>
         <InfiniteGalleryCarousel images={carouselImages} height={240} speedSec={32} />
       </section>
