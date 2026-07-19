@@ -39,6 +39,12 @@ function AutoSlider({ images }: { images: string[] }) {
 }
 
 export default function Marca() {
+  useEffect(() => {
+    document.title = "Marca — Alahas | Joyería con identidad";
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute("content", "Descubre la identidad de Alahas: una marca de joyería fina peruana con diseño propio y materiales de calidad.");
+  }, []);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-14">
       <motion.div

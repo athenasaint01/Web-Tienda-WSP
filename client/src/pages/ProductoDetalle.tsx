@@ -92,6 +92,16 @@ export default function ProductoDetalle() {
     limit: 4,
   });
 
+  // SEO: título y description dinámicos por producto
+  useEffect(() => {
+    if (!product) return;
+    document.title = `${product.name} — Alahas`;
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute("content", product.description
+        ? product.description.slice(0, 155)
+        : `${product.name} — joyería fina Alahas. Acero inoxidable y plata 925.`);
+  }, [product]);
+
   // keyboard nav - también debe estar antes de early returns
   useEffect(() => {
     if (!product?.images) return;

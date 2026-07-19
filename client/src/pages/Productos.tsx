@@ -40,6 +40,14 @@ export default function Productos() {
     return () => window.removeEventListener('resize', updateLimit);
   }, [limit, params, setParams]);
 
+  // SEO: título dinámico según categoría activa
+  useEffect(() => {
+    const cat = params.get("categoria");
+    document.title = cat
+      ? `${cat.charAt(0).toUpperCase() + cat.slice(1)} — Alahas`
+      : "Todos los productos — Alahas | Joyería Fina";
+  }, [params]);
+
   // Estado derivado de la URL
   const selected = {
     categoria: params.getAll("categoria"),

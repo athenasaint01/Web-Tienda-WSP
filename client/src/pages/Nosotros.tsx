@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { waLink } from "../lib/wa";
 import {
@@ -61,6 +61,12 @@ function FaqItem({ q, children }: { q: string; children: React.ReactNode }) {
 
 export default function Nosotros() {
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
+
+  useEffect(() => {
+    document.title = "Nosotros — Alahas | Nuestra historia";
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute("content", "Conoce la historia de Alahas, joyería fina peruana. Nuestro compromiso con la calidad, el diseño y el brillo que te mereces.");
+  }, []);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">

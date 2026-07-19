@@ -86,7 +86,7 @@ function InfiniteGalleryCarousel({
         {[...images, ...images].map((src, i) => (
           <div
             key={`${src}-${i}`}
-            className="shrink-0 overflow-hidden rounded-lg"
+            className="shrink-0 overflow-hidden"
             style={{ height, width: cardW }}
             aria-hidden={i >= images.length}
           >
@@ -353,6 +353,12 @@ export default function Home() {
   const [collectionsLoading, setCollectionsLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "Alahas — Joyería Fina | Collares, Pulseras, Anillos y Aretes";
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute("content", "Descubre la colección de joyería Alahas: collares, pulseras, anillos y aretes en acero inoxidable 316L y plata 925. Envíos a todo el Perú.");
+  }, []);
+
+  useEffect(() => {
     const fetchCollections = async () => {
       try {
         const data = await api.getActiveCollections();
@@ -445,7 +451,7 @@ export default function Home() {
       )}
 
       {/* Carrusel infinito de clientas */}
-      <section className="mx-auto max-w-7xl px-4 pt-1 pb-1 lg:pt-0 lg:pb-4">
+      <section className="mx-auto max-w-7xl px-4 pt-1 pb-0 lg:pt-0 lg:pb-0">
         <div className="text-center mb-4 lg:mb-6">
           <p className="text-xs tracking-widest uppercase text-[#4a4438]/70 font-medium">NUESTROS CLIENTES FELICES CON SU BRILLO</p>
         </div>

@@ -2,6 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Search, User, ShoppingBag } from "lucide-react";
+import SearchModal from "./SearchModal";
 
 type Category = { id: number; name: string; slug: string };
 
@@ -21,6 +22,7 @@ function useCategories() {
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const categories = useCategories();
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -69,7 +71,7 @@ export default function Header() {
 
           {/* Iconos derecha */}
           <div className="flex items-center gap-1 relative z-[60]">
-            <button aria-label="Buscar" className={iconCls}>
+            <button aria-label="Buscar" className={iconCls} onClick={() => setSearchOpen(true)}>
               <Search size={19} />
             </button>
             <button aria-label="Mi cuenta" className={iconCls}>
@@ -148,6 +150,7 @@ export default function Header() {
           </>
         )}
       </AnimatePresence>
+      <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }
