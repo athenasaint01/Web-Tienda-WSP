@@ -1,7 +1,16 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import * as authService from '../services/authService';
-import { authenticate } from '../middleware/auth';
+import { authenticate, requireAdmin } from '../middleware/auth';
 import { z } from 'zod';
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { ok: false, error: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -31,7 +40,7 @@ const changePasswordSchema = z.object({
 // =============================================
 
 // POST /api/auth/login - Iniciar sesión
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', loginLimiter, async (req: Request, res: Response) => {
   try {
     // Validar datos
     const validation = loginSchema.safeParse(req.body);
@@ -53,9 +62,8 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/auth/register - Registrar nuevo usuario (admin)
-// Nota: En producción, esta ruta debería estar protegida
-router.post('/register', async (req: Request, res: Response) => {
+// POST /api/auth/register - Registrar nuevo usuario (requiere admin autenticado)
+router.post('/register', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     // Validar datos
     const validation = registerSchema.safeParse(req.body);

@@ -41,8 +41,10 @@ export const query = async (text: string, params?: any[]) => {
   const start = Date.now();
   try {
     const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log('📊 Query ejecutado', { text, duration, rows: res.rowCount });
+    if (process.env.NODE_ENV !== 'production') {
+      const duration = Date.now() - start;
+      console.log('📊 Query ejecutado', { duration, rows: res.rowCount });
+    }
     return res;
   } catch (error) {
     console.error('❌ Error en query:', { text, error });

@@ -19,7 +19,6 @@ import adminSettingsRouter from "./routes/admin/settings";
 import collectionsRouter from "./routes/collections";
 import popupRouter from "./routes/popup";
 import settingsRouter from "./routes/settings";
-import fixAdminRouter from "./routes/fix-admin";
 import { testConnection } from "./config/database";
 
 const app = express();
@@ -54,9 +53,6 @@ app.use("/api/tags", tagsRouter);
 app.use("/api/collections", collectionsRouter);
 app.use("/api/popup", popupRouter);
 app.use("/api/settings", settingsRouter);
-
-// TEMPORAL: Fix admin password (DELETE AFTER USE)
-app.use("/api/dev", fixAdminRouter);
 
 // API Routes - Admin (protegidas con JWT)
 app.use("/api/admin/products", adminProductsRouter);
