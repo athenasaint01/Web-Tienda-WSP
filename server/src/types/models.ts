@@ -14,9 +14,13 @@ export interface Category {
 
 export interface Material {
   id: number;
+  code?: string;
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -25,6 +29,58 @@ export interface Tag {
   id: number;
   name: string;
   slug: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Audience {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  display_order: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Thickness {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  level: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Size {
+  id: number;
+  code?: string;
+  label: string;
+  ring_size?: number;
+  diameter_mm?: number;
+  display_order: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Length {
+  id: number;
+  code?: string;
+  label: string;
+  value_cm: number;
+  display_order: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Color {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  hex?: string | null;
+  display_order: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -47,6 +103,8 @@ export interface Product {
   slug: string;
   name: string;
   category_id: number;
+  audience_id?: number | null;
+  thickness_id?: number | null;
   description?: string;
   featured: boolean;
   stock: number;
@@ -104,6 +162,11 @@ export interface ProductWithDetails extends Product {
   images: ProductImage[];
   materials: Material[];
   tags: Tag[];
+  audience: Audience | null;
+  thickness: Thickness | null;
+  sizes: Size[];
+  lengths: Length[];
+  colors: Color[];
 }
 
 export interface ProductListItem {
@@ -120,6 +183,9 @@ export interface ProductListItem {
   image_url_2?: string;
   materials: string[];
   tags: string[];
+  audience?: string | null;
+  thickness?: string | null;
+  colors: string[];
 }
 
 // =============================================
@@ -130,6 +196,8 @@ export interface CreateProductDTO {
   slug: string;
   name: string;
   category_id: number;
+  audience_id?: number | null;
+  thickness_id?: number | null;
   description?: string;
   featured?: boolean;
   stock?: number;
@@ -143,12 +211,17 @@ export interface CreateProductDTO {
   }[];
   material_ids?: number[];
   tag_ids?: number[];
+  size_ids?: number[];
+  length_ids?: number[];
+  color_ids?: number[];
 }
 
 export interface UpdateProductDTO {
   slug?: string;
   name?: string;
   category_id?: number;
+  audience_id?: number | null;
+  thickness_id?: number | null;
   description?: string;
   featured?: boolean;
   stock?: number;
@@ -158,6 +231,9 @@ export interface UpdateProductDTO {
   badge_labels?: string[];
   material_ids?: number[];
   tag_ids?: number[];
+  size_ids?: number[];
+  length_ids?: number[];
+  color_ids?: number[];
 }
 
 export interface CreateCategoryDTO {
@@ -227,6 +303,9 @@ export interface ProductFilters {
   category?: string | string[];
   material?: string | string[];
   tag?: string | string[];
+  audience?: string | string[];
+  thickness?: string | string[];
+  color?: string | string[];
   q?: string; // búsqueda
   featured?: boolean;
   is_active?: boolean;

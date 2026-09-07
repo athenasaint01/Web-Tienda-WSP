@@ -19,6 +19,9 @@ export const getAllProducts = async (
     category,
     material,
     tag,
+    audience,
+    thickness,
+    color,
     q,
     featured,
     is_active = true,
@@ -75,6 +78,43 @@ export const getAllProducts = async (
     params.push(tags);
   }
 
+  // Filtro: público (uno o múltiples) - FK directa en products
+  if (audience) {
+    const audiences = Array.isArray(audience) ? audience : [audience];
+    conditions.push(
+      `EXISTS (
+        SELECT 1 FROM audiences a
+        WHERE a.id = p.audience_id AND a.slug = ANY($${paramCount++})
+      )`
+    );
+    params.push(audiences);
+  }
+
+  // Filtro: grosor (uno o múltiples) - FK directa en products
+  if (thickness) {
+    const thicknesses = Array.isArray(thickness) ? thickness : [thickness];
+    conditions.push(
+      `EXISTS (
+        SELECT 1 FROM thicknesses th
+        WHERE th.id = p.thickness_id AND th.slug = ANY($${paramCount++})
+      )`
+    );
+    params.push(thicknesses);
+  }
+
+  // Filtro: color (uno o múltiples) - N:M
+  if (color) {
+    const colors = Array.isArray(color) ? color : [color];
+    conditions.push(
+      `EXISTS (
+        SELECT 1 FROM product_colors pc
+        JOIN colors co ON pc.color_id = co.id
+        WHERE pc.product_id = p.id AND co.slug = ANY($${paramCount++})
+      )`
+    );
+    params.push(colors);
+  }
+
   // Filtro: búsqueda por texto
   if (q) {
     conditions.push(
@@ -122,7 +162,7 @@ export const getAllProducts = async (
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) as image_url,
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = FALSE ORDER BY display_order ASC LIMIT 1) as image_url_2,
       COALESCE(
-        (SELECT json_agg(json_build_object('name', m.name, 'slug', m.slug) ORDER BY m.name)
+        (SELECT json_agg(json_build_object('name', m.name, 'slug', m.slug, 'name_short', m.name_short, 'name_en', m.name_en) ORDER BY m.display_order, m.name)
          FROM product_materials pm
          JOIN materials m ON pm.material_id = m.id
          WHERE pm.product_id = p.id),
@@ -135,6 +175,17 @@ export const getAllProducts = async (
          WHERE pt.product_id = p.id),
         '[]'
       ) as tags,
+      (SELECT json_build_object('name', a.name, 'slug', a.slug)
+         FROM audiences a WHERE a.id = p.audience_id) as audience,
+      (SELECT json_build_object('name', th.name, 'slug', th.slug, 'level', th.level)
+         FROM thicknesses th WHERE th.id = p.thickness_id) as thickness,
+      COALESCE(
+        (SELECT json_agg(json_build_object('name', co.name, 'slug', co.slug, 'hex', co.hex) ORDER BY co.display_order)
+         FROM product_colors pc
+         JOIN colors co ON pc.color_id = co.id
+         WHERE pc.product_id = p.id),
+        '[]'
+      ) as colors,
       COALESCE(p.badge_labels, '{}') as badge_labels
     FROM products p
     JOIN categories c ON p.category_id = c.id
@@ -191,35 +242,80 @@ export const getProductBySlug = async (slug: string): Promise<ProductWithDetails
 
   const product = result.rows[0];
 
-  // Obtener imágenes
-  const imagesResult = await pool.query(
-    `SELECT * FROM product_images WHERE product_id = $1 ORDER BY display_order, is_primary DESC`,
-    [product.id]
-  );
+  return hydrateProductRelations(product);
+};
 
-  // Obtener materiales
-  const materialsResult = await pool.query(
-    `SELECT m.* FROM materials m
-     JOIN product_materials pm ON m.id = pm.material_id
-     WHERE pm.product_id = $1
-     ORDER BY m.name`,
-    [product.id]
-  );
-
-  // Obtener tags
-  const tagsResult = await pool.query(
-    `SELECT t.* FROM tags t
-     JOIN product_tags pt ON t.id = pt.tag_id
-     WHERE pt.product_id = $1
-     ORDER BY t.name`,
-    [product.id]
-  );
+// =============================================
+// HELPER: cargar todas las relaciones de un producto
+// =============================================
+const hydrateProductRelations = async (product: any): Promise<ProductWithDetails> => {
+  const [
+    imagesResult,
+    materialsResult,
+    tagsResult,
+    audienceResult,
+    thicknessResult,
+    sizesResult,
+    lengthsResult,
+    colorsResult,
+  ] = await Promise.all([
+    pool.query(
+      `SELECT * FROM product_images WHERE product_id = $1 ORDER BY display_order, is_primary DESC`,
+      [product.id]
+    ),
+    pool.query(
+      `SELECT m.* FROM materials m
+       JOIN product_materials pm ON m.id = pm.material_id
+       WHERE pm.product_id = $1
+       ORDER BY m.display_order, m.name`,
+      [product.id]
+    ),
+    pool.query(
+      `SELECT t.* FROM tags t
+       JOIN product_tags pt ON t.id = pt.tag_id
+       WHERE pt.product_id = $1
+       ORDER BY t.name`,
+      [product.id]
+    ),
+    product.audience_id
+      ? pool.query(`SELECT * FROM audiences WHERE id = $1`, [product.audience_id])
+      : Promise.resolve({ rows: [] as any[] }),
+    product.thickness_id
+      ? pool.query(`SELECT * FROM thicknesses WHERE id = $1`, [product.thickness_id])
+      : Promise.resolve({ rows: [] as any[] }),
+    pool.query(
+      `SELECT s.* FROM sizes s
+       JOIN product_sizes ps ON s.id = ps.size_id
+       WHERE ps.product_id = $1
+       ORDER BY s.display_order, s.ring_size`,
+      [product.id]
+    ),
+    pool.query(
+      `SELECT l.* FROM lengths l
+       JOIN product_lengths pl ON l.id = pl.length_id
+       WHERE pl.product_id = $1
+       ORDER BY l.display_order, l.value_cm`,
+      [product.id]
+    ),
+    pool.query(
+      `SELECT co.*, pc.is_primary AS product_is_primary FROM colors co
+       JOIN product_colors pc ON co.id = pc.color_id
+       WHERE pc.product_id = $1
+       ORDER BY pc.is_primary DESC, co.display_order`,
+      [product.id]
+    ),
+  ]);
 
   return {
     ...product,
     images: imagesResult.rows,
     materials: materialsResult.rows,
     tags: tagsResult.rows,
+    audience: audienceResult.rows[0] || null,
+    thickness: thicknessResult.rows[0] || null,
+    sizes: sizesResult.rows,
+    lengths: lengthsResult.rows,
+    colors: colorsResult.rows,
   };
 };
 
@@ -244,32 +340,7 @@ export const getProductById = async (id: number): Promise<ProductWithDetails | n
 
   const product = result.rows[0];
 
-  // Obtener relaciones
-  const [imagesResult, materialsResult, tagsResult] = await Promise.all([
-    pool.query(
-      `SELECT * FROM product_images WHERE product_id = $1 ORDER BY display_order, is_primary DESC`,
-      [product.id]
-    ),
-    pool.query(
-      `SELECT m.* FROM materials m
-       JOIN product_materials pm ON m.id = pm.material_id
-       WHERE pm.product_id = $1 ORDER BY m.name`,
-      [product.id]
-    ),
-    pool.query(
-      `SELECT t.* FROM tags t
-       JOIN product_tags pt ON t.id = pt.tag_id
-       WHERE pt.product_id = $1 ORDER BY t.name`,
-      [product.id]
-    ),
-  ]);
-
-  return {
-    ...product,
-    images: imagesResult.rows,
-    materials: materialsResult.rows,
-    tags: tagsResult.rows,
-  };
+  return hydrateProductRelations(product);
 };
 
 // =============================================
@@ -286,13 +357,15 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (slug, name, category_id, description, featured, stock, low_stock_threshold, wa_template, badge_labels)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, stock, low_stock_threshold, wa_template, badge_labels)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         normalizedSlug,
         data.name,
         data.category_id,
+        data.audience_id ?? null,
+        data.thickness_id ?? null,
         data.description,
         data.featured || false,
         data.stock !== undefined ? data.stock : 0,
@@ -336,6 +409,36 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
       }
     }
 
+    // 5. Agregar tallas
+    if (data.size_ids && data.size_ids.length > 0) {
+      for (const sizeId of data.size_ids) {
+        await client.query(
+          `INSERT INTO product_sizes (product_id, size_id) VALUES ($1, $2)`,
+          [product.id, sizeId]
+        );
+      }
+    }
+
+    // 6. Agregar largos
+    if (data.length_ids && data.length_ids.length > 0) {
+      for (const lengthId of data.length_ids) {
+        await client.query(
+          `INSERT INTO product_lengths (product_id, length_id) VALUES ($1, $2)`,
+          [product.id, lengthId]
+        );
+      }
+    }
+
+    // 7. Agregar colores (el primero se marca como principal)
+    if (data.color_ids && data.color_ids.length > 0) {
+      for (let i = 0; i < data.color_ids.length; i++) {
+        await client.query(
+          `INSERT INTO product_colors (product_id, color_id, is_primary) VALUES ($1, $2, $3)`,
+          [product.id, data.color_ids[i], i === 0]
+        );
+      }
+    }
+
     await client.query('COMMIT');
     return product;
   } catch (error) {
@@ -356,7 +459,7 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
     await client.query('BEGIN');
 
     // Separar campos de producto de las relaciones
-    const { material_ids, tag_ids, ...productData } = data;
+    const { material_ids, tag_ids, size_ids, length_ids, color_ids, ...productData } = data;
 
     // Normalizar slug si está presente
     if (productData.slug) {
@@ -414,6 +517,47 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
         await client.query(
           `INSERT INTO product_tags (product_id, tag_id) VALUES ${tagValues}`,
           [id, ...tag_ids]
+        );
+      }
+    }
+
+    // Actualizar tallas si se proporcionaron
+    if (size_ids !== undefined) {
+      await client.query('DELETE FROM product_sizes WHERE product_id = $1', [id]);
+
+      if (size_ids.length > 0) {
+        const sizeValues = size_ids.map((_id: number, i: number) => `($1, $${i + 2})`).join(', ');
+        await client.query(
+          `INSERT INTO product_sizes (product_id, size_id) VALUES ${sizeValues}`,
+          [id, ...size_ids]
+        );
+      }
+    }
+
+    // Actualizar largos si se proporcionaron
+    if (length_ids !== undefined) {
+      await client.query('DELETE FROM product_lengths WHERE product_id = $1', [id]);
+
+      if (length_ids.length > 0) {
+        const lengthValues = length_ids.map((_id: number, i: number) => `($1, $${i + 2})`).join(', ');
+        await client.query(
+          `INSERT INTO product_lengths (product_id, length_id) VALUES ${lengthValues}`,
+          [id, ...length_ids]
+        );
+      }
+    }
+
+    // Actualizar colores si se proporcionaron (el primero = principal)
+    if (color_ids !== undefined) {
+      await client.query('DELETE FROM product_colors WHERE product_id = $1', [id]);
+
+      if (color_ids.length > 0) {
+        const colorValues = color_ids
+          .map((_id: number, i: number) => `($1, $${i + 2}, ${i === 0 ? 'TRUE' : 'FALSE'})`)
+          .join(', ');
+        await client.query(
+          `INSERT INTO product_colors (product_id, color_id, is_primary) VALUES ${colorValues}`,
+          [id, ...color_ids]
         );
       }
     }

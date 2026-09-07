@@ -10,30 +10,37 @@ const router = Router();
 router.use(authenticateToken, requireAdmin);
 
 // Schema de validación para producto (sin imágenes, se manejan aparte)
+// Helper: parsear un campo FormData que contiene un array JSON de IDs
+const jsonIdArray = () =>
+  z.string().transform(val => {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return [];
+    }
+  }).optional();
+
+// Helper: parsear un FK opcional que llega como string ('' o 'null' => null)
+const optionalFk = () =>
+  z.string().transform(val => (val && val !== 'null' && val !== '' ? parseInt(val) : null)).optional();
+
 const productDataSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(255),
   category_id: z.string().transform(val => parseInt(val)),
+  audience_id: optionalFk(),
+  thickness_id: optionalFk(),
   description: z.string().optional(),
   featured: z.string().transform(val => val === 'true').optional(),
   stock: z.string().transform(val => val ? parseInt(val) : 0).optional(),
   low_stock_threshold: z.string().transform(val => val ? parseInt(val) : 5).optional(),
   wa_template: z.string().optional(),
   is_active: z.string().transform(val => val === 'true').optional(),
-  material_ids: z.string().transform(val => {
-    try {
-      return JSON.parse(val);
-    } catch {
-      return [];
-    }
-  }).optional(),
-  tag_ids: z.string().transform(val => {
-    try {
-      return JSON.parse(val);
-    } catch {
-      return [];
-    }
-  }).optional(),
+  material_ids: jsonIdArray(),
+  tag_ids: jsonIdArray(),
+  size_ids: jsonIdArray(),
+  length_ids: jsonIdArray(),
+  color_ids: jsonIdArray(),
   badge_labels: z.string().transform(val => {
     try {
       return JSON.parse(val);
@@ -121,38 +128,42 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
 
     const files = req.files as Express.Multer.File[] | undefined;
 
+    // Helper: campo FormData con array JSON opcional (undefined si no se envía / inválido)
+    const jsonArrayOrUndefined = () =>
+      z.string().transform(val => {
+        try {
+          return val ? JSON.parse(val) : undefined;
+        } catch {
+          return undefined;
+        }
+      }).optional();
+
+    // Helper: FK opcional desde FormData ('' o 'null' => null; ausente => undefined)
+    const optionalFkOrUndefined = () =>
+      z.string().transform(val => {
+        if (val === undefined) return undefined;
+        return val && val !== 'null' && val !== '' ? parseInt(val) : null;
+      }).optional();
+
     // Schema for FormData (when images are included)
     const updateFormDataSchema = z.object({
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
       name: z.string().min(1).max(255).optional(),
       category_id: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
+      audience_id: optionalFkOrUndefined(),
+      thickness_id: optionalFkOrUndefined(),
       description: z.string().optional(),
       featured: z.string().transform(val => val === 'true').optional(),
       stock: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       low_stock_threshold: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       wa_template: z.string().optional(),
       is_active: z.string().transform(val => val === 'true').optional(),
-      material_ids: z.string().transform(val => {
-        try {
-          return val ? JSON.parse(val) : undefined;
-        } catch {
-          return undefined;
-        }
-      }).optional(),
-      tag_ids: z.string().transform(val => {
-        try {
-          return val ? JSON.parse(val) : undefined;
-        } catch {
-          return undefined;
-        }
-      }).optional(),
-      badge_labels: z.string().transform(val => {
-        try {
-          return val ? JSON.parse(val) : undefined;
-        } catch {
-          return undefined;
-        }
-      }).optional(),
+      material_ids: jsonArrayOrUndefined(),
+      tag_ids: jsonArrayOrUndefined(),
+      size_ids: jsonArrayOrUndefined(),
+      length_ids: jsonArrayOrUndefined(),
+      color_ids: jsonArrayOrUndefined(),
+      badge_labels: jsonArrayOrUndefined(),
       deleted_images: z.string().transform(val => {
         try {
           return val ? JSON.parse(val) : [];
@@ -167,6 +178,8 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
       name: z.string().min(1).max(255).optional(),
       category_id: z.number().int().positive().optional(),
+      audience_id: z.number().int().positive().nullable().optional(),
+      thickness_id: z.number().int().positive().nullable().optional(),
       description: z.string().optional(),
       featured: z.boolean().optional(),
       stock: z.number().int().min(0).optional(),
@@ -175,6 +188,9 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       is_active: z.boolean().optional(),
       material_ids: z.array(z.number().int().positive()).optional(),
       tag_ids: z.array(z.number().int().positive()).optional(),
+      size_ids: z.array(z.number().int().positive()).optional(),
+      length_ids: z.array(z.number().int().positive()).optional(),
+      color_ids: z.array(z.number().int().positive()).optional(),
       badge_labels: z.array(z.string()).optional(),
     });
 

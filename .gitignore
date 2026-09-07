@@ -71,6 +71,7 @@ temp/
 
 # Archivos de respaldo de bases de datos
 *.sql
+!/database/**/*.sql
 *.sqlite
 *.sqlite3
 *.db
@@ -128,3 +129,9 @@ backup/
 # package.json
 /client/src/data/
 /database
+# ...pero versionar las migraciones y el esquema (necesario para el deploy)
+!/database/
+/database/*
+!/database/migrations/
+!/database/schema.sql
+!/database/seed.sql

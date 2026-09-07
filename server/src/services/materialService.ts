@@ -2,17 +2,24 @@ import pool from '../config/database';
 
 export interface Material {
   id: number;
+  code?: string;
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
   created_at: Date;
   updated_at: Date;
 }
 
 export interface MaterialInput {
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
 }
 
 /**
@@ -20,7 +27,7 @@ export interface MaterialInput {
  */
 export const getAllMaterials = async (): Promise<Material[]> => {
   const result = await pool.query(
-    'SELECT * FROM materials ORDER BY name ASC'
+    'SELECT * FROM materials ORDER BY display_order ASC, name ASC'
   );
   return result.rows;
 };
@@ -51,13 +58,13 @@ export const getMaterialBySlug = async (slug: string): Promise<Material | null> 
  * Crear nuevo material
  */
 export const createMaterial = async (data: MaterialInput): Promise<Material> => {
-  const { name, slug, description } = data;
+  const { name, name_short, name_en, slug, description, display_order } = data;
 
   const result = await pool.query(
-    `INSERT INTO materials (name, slug, description)
-     VALUES ($1, $2, $3)
+    `INSERT INTO materials (name, name_short, name_en, slug, description, display_order)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [name, slug, description]
+    [name, name_short ?? name.slice(0, 24), name_en ?? null, slug, description, display_order ?? 0]
   );
 
   return result.rows[0];
@@ -70,17 +77,20 @@ export const updateMaterial = async (
   id: number,
   data: Partial<MaterialInput>
 ): Promise<Material | null> => {
-  const { name, slug, description } = data;
+  const { name, name_short, name_en, slug, description, display_order } = data;
 
   const result = await pool.query(
     `UPDATE materials
      SET name = COALESCE($1, name),
-         slug = COALESCE($2, slug),
-         description = COALESCE($3, description),
+         name_short = COALESCE($2, name_short),
+         name_en = COALESCE($3, name_en),
+         slug = COALESCE($4, slug),
+         description = COALESCE($5, description),
+         display_order = COALESCE($6, display_order),
          updated_at = CURRENT_TIMESTAMP
-     WHERE id = $4
+     WHERE id = $7
      RETURNING *`,
-    [name, slug, description, id]
+    [name, name_short, name_en, slug, description, display_order, id]
   );
 
   return result.rows[0] || null;
