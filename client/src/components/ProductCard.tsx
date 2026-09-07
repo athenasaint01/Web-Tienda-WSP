@@ -45,6 +45,25 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
         <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
+          {p.colors && p.colors.length > 0 && (
+            <div className="flex items-center gap-1 mt-1.5">
+              {p.colors.slice(0, 5).map((c) => (
+                <span
+                  key={c.slug}
+                  title={c.name}
+                  className="inline-block w-2.5 h-2.5 rounded-full border border-black/15"
+                  style={
+                    c.hex
+                      ? { background: c.hex }
+                      : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }
+                  }
+                />
+              ))}
+              {p.colors.length > 5 && (
+                <span className="text-[9px] text-neutral-400">+{p.colors.length - 5}</span>
+              )}
+            </div>
+          )}
           {'stock' in p && p.stock > 0 && p.stock <= 5 && (
             <p className="text-xs text-amber-600 font-medium mt-1">
               ¡Solo quedan {p.stock}!

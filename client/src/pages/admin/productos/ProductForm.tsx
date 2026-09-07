@@ -32,19 +32,29 @@ const productSchema = z.object({
   slug: z.string().min(1, 'El slug es requerido').max(200).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
   description: z.string().optional(),
   category_id: z.number({ message: 'La categoría es requerida' }),
+  audience_id: z.number().nullable().optional(),
+  thickness_id: z.number().nullable().optional(),
   featured: z.boolean().optional(),
   stock: z.number().min(0, 'El stock no puede ser negativo').optional(),
   low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').optional(),
   wa_template: z.string().optional(),
   material_ids: z.array(z.number()).optional(),
   tag_ids: z.array(z.number()).optional(),
+  size_ids: z.array(z.number()).optional(),
+  length_ids: z.array(z.number()).optional(),
+  color_ids: z.array(z.number()).optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
 
 type Category = { id: number; name: string };
-type Material = { id: number; name: string };
+type Material = { id: number; name: string; name_en?: string; name_short?: string };
 type Tag = { id: number; name: string };
+type Audience = { id: number; name: string };
+type Thickness = { id: number; name: string; level: number };
+type Size = { id: number; label: string };
+type Length = { id: number; label: string };
+type Color = { id: number; name: string; hex?: string | null };
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -54,6 +64,11 @@ export default function ProductForm() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [audiences, setAudiences] = useState<Audience[]>([]);
+  const [thicknesses, setThicknesses] = useState<Thickness[]>([]);
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [lengths, setLengths] = useState<Length[]>([]);
+  const [colors, setColors] = useState<Color[]>([]);
   const [images, setImages] = useState<(File | string)[]>([]);
   const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [badgeLabels, setBadgeLabels] = useState<string[]>([]);
@@ -75,13 +90,21 @@ export default function ProductForm() {
       featured: false,
       stock: 0,
       low_stock_threshold: 5,
+      audience_id: null,
+      thickness_id: null,
       material_ids: [],
       tag_ids: [],
+      size_ids: [],
+      length_ids: [],
+      color_ids: [],
     },
   });
 
   const selectedMaterials = watch('material_ids') || [];
   const selectedTags = watch('tag_ids') || [];
+  const selectedSizes = watch('size_ids') || [];
+  const selectedLengths = watch('length_ids') || [];
+  const selectedColors = watch('color_ids') || [];
   const nameValue = useWatch({ control, name: 'name' });
 
   // Auto-generar slug desde nombre solo al crear
@@ -98,22 +121,37 @@ export default function ProductForm() {
   const loadFormData = async () => {
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-      // Load categories, materials, tags
-      const [categoriesRes, materialsRes, tagsRes] = await Promise.all([
+      // Load catálogos: categorías, materiales, tags, públicos, grosores, tallas, largos, colores
+      const [
+        categoriesRes, materialsRes, tagsRes,
+        audiencesRes, thicknessesRes, sizesRes, lengthsRes, colorsRes,
+      ] = await Promise.all([
         fetch(`${API_BASE_URL}/categories`),
         fetch(`${API_BASE_URL}/materials`),
         fetch(`${API_BASE_URL}/tags`),
+        fetch(`${API_BASE_URL}/audiences`),
+        fetch(`${API_BASE_URL}/thicknesses`),
+        fetch(`${API_BASE_URL}/sizes`),
+        fetch(`${API_BASE_URL}/lengths`),
+        fetch(`${API_BASE_URL}/colors`),
       ]);
 
-      const [categoriesData, materialsData, tagsData] = await Promise.all([
-        categoriesRes.json(),
-        materialsRes.json(),
-        tagsRes.json(),
+      const [
+        categoriesData, materialsData, tagsData,
+        audiencesData, thicknessesData, sizesData, lengthsData, colorsData,
+      ] = await Promise.all([
+        categoriesRes.json(), materialsRes.json(), tagsRes.json(),
+        audiencesRes.json(), thicknessesRes.json(), sizesRes.json(), lengthsRes.json(), colorsRes.json(),
       ]);
 
       if (categoriesData.ok) setCategories(categoriesData.data);
       if (materialsData.ok) setMaterials(materialsData.data);
       if (tagsData.ok) setTags(tagsData.data);
+      if (audiencesData.ok) setAudiences(audiencesData.data);
+      if (thicknessesData.ok) setThicknesses(thicknessesData.data);
+      if (sizesData.ok) setSizes(sizesData.data);
+      if (lengthsData.ok) setLengths(lengthsData.data);
+      if (colorsData.ok) setColors(colorsData.data);
 
       // Load product if editing
       if (id) {
@@ -124,12 +162,17 @@ export default function ProductForm() {
           setValue('slug', product.slug);
           setValue('description', product.description || '');
           setValue('category_id', product.category_id);
+          setValue('audience_id', product.audience_id ?? null);
+          setValue('thickness_id', product.thickness_id ?? null);
           setValue('featured', product.featured || false);
           setValue('stock', product.stock || 0);
           setValue('low_stock_threshold', product.low_stock_threshold || 5);
           setValue('wa_template', product.wa_template || '');
           setValue('material_ids', product.materials?.map((m: any) => m.id) || []);
           setValue('tag_ids', product.tags?.map((t: any) => t.id) || []);
+          setValue('size_ids', product.sizes?.map((s: any) => s.id) || []);
+          setValue('length_ids', product.lengths?.map((l: any) => l.id) || []);
+          setValue('color_ids', product.colors?.map((c: any) => c.id) || []);
           setBadgeLabels(product.badge_labels || []);
           // Cargar imágenes existentes como URLs
           if (product.images && product.images.length > 0) {
@@ -183,116 +226,76 @@ export default function ProductForm() {
     setImages(newImages);
   };
 
+  /**
+   * Construye el FormData común para crear/actualizar producto.
+   * Los *_ids siempre se envían (incluso vacíos) para que el backend
+   * pueda limpiar relaciones al deseleccionar todo.
+   */
+  const buildProductFormData = (data: ProductFormData): FormData => {
+    const formData = new FormData();
+
+    formData.append('name', data.name);
+    formData.append('slug', data.slug);
+    formData.append('category_id', data.category_id.toString());
+    formData.append('audience_id', data.audience_id != null ? String(data.audience_id) : '');
+    formData.append('thickness_id', data.thickness_id != null ? String(data.thickness_id) : '');
+    formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
+    formData.append('stock', (data.stock ?? 0).toString());
+    formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
+
+    if (data.description) formData.append('description', data.description);
+    if (data.wa_template) formData.append('wa_template', data.wa_template);
+
+    formData.append('material_ids', JSON.stringify(data.material_ids ?? []));
+    formData.append('tag_ids', JSON.stringify(data.tag_ids ?? []));
+    formData.append('size_ids', JSON.stringify(data.size_ids ?? []));
+    formData.append('length_ids', JSON.stringify(data.length_ids ?? []));
+    formData.append('color_ids', JSON.stringify(data.color_ids ?? []));
+    formData.append('badge_labels', JSON.stringify(badgeLabels));
+
+    return formData;
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+      const token = localStorage.getItem('auth_token');
+
       if (isEditing) {
-        // Check if there are new images to upload or deleted images
         const newImages = images.filter((img): img is File => img instanceof File);
-        const hasChanges = newImages.length > 0 || deletedImageUrls.length > 0;
+        const formData = buildProductFormData(data);
 
-        if (hasChanges) {
-          // If there are changes (new or deleted images), use FormData
-          const formData = new FormData();
-
-          formData.append('name', data.name);
-          formData.append('slug', data.slug);
-          formData.append('category_id', data.category_id.toString());
-          formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
-          formData.append('stock', (data.stock ?? 0).toString());
-          formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
-
-          if (data.description) formData.append('description', data.description);
-          if (data.wa_template) formData.append('wa_template', data.wa_template);
-
-          if (data.material_ids && data.material_ids.length > 0) {
-            formData.append('material_ids', JSON.stringify(data.material_ids));
-          }
-
-          if (data.tag_ids && data.tag_ids.length > 0) {
-            formData.append('tag_ids', JSON.stringify(data.tag_ids));
-          }
-
-          formData.append('badge_labels', JSON.stringify(badgeLabels));
-
-          // Append new image files
-          newImages.forEach((file) => {
-            formData.append('images', file);
-          });
-
-          // Append deleted image URLs
-          if (deletedImageUrls.length > 0) {
-            formData.append('deleted_images', JSON.stringify(deletedImageUrls));
-          }
-
-          // Use PUT with FormData
-          const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-          const token = localStorage.getItem('auth_token');
-          const response = await fetch(`${API_BASE_URL}/admin/products/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-          });
-
-          const result = await response.json();
-
-          if (!result.ok) {
-            throw new Error(result.error || 'Error al actualizar producto');
-          }
-
-          // Clear deleted images list after successful update
-          setDeletedImageUrls([]);
-          toast.success('Producto actualizado');
-        } else {
-          // No new images or deletions, use regular JSON update
-          await api.updateProduct(Number(id), { ...data, badge_labels: badgeLabels } as any);
-          toast.success('Producto actualizado');
-        }
-      } else {
-        // For creating, use FormData to send files
-        const formData = new FormData();
-
-        formData.append('name', data.name);
-        formData.append('slug', data.slug);
-        formData.append('category_id', data.category_id.toString());
-        formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
-        formData.append('stock', (data.stock ?? 0).toString());
-        formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
-
-        if (data.description) formData.append('description', data.description);
-        if (data.wa_template) formData.append('wa_template', data.wa_template);
-
-        if (data.material_ids && data.material_ids.length > 0) {
-          formData.append('material_ids', JSON.stringify(data.material_ids));
+        newImages.forEach((file) => formData.append('images', file));
+        if (deletedImageUrls.length > 0) {
+          formData.append('deleted_images', JSON.stringify(deletedImageUrls));
         }
 
-        if (data.tag_ids && data.tag_ids.length > 0) {
-          formData.append('tag_ids', JSON.stringify(data.tag_ids));
-        }
-
-        formData.append('badge_labels', JSON.stringify(badgeLabels));
-
-        // Append only new image files (File objects, not URLs)
-        images.forEach((image) => {
-          if (image instanceof File) {
-            formData.append('images', image);
-          }
-        });
-
-        // Send FormData instead of JSON
-        const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-        const token = localStorage.getItem('auth_token');
-        const response = await fetch(`${API_BASE_URL}/admin/products`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+        const response = await fetch(`${API_BASE_URL}/admin/products/${id}`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
 
         const result = await response.json();
+        if (!result.ok) {
+          throw new Error(result.error || 'Error al actualizar producto');
+        }
 
+        setDeletedImageUrls([]);
+        toast.success('Producto actualizado');
+      } else {
+        const formData = buildProductFormData(data);
+        images.forEach((image) => {
+          if (image instanceof File) formData.append('images', image);
+        });
+
+        const response = await fetch(`${API_BASE_URL}/admin/products`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        const result = await response.json();
         if (!result.ok) {
           throw new Error(result.error || 'Error al crear producto');
         }
@@ -305,23 +308,20 @@ export default function ProductForm() {
     }
   };
 
-  const toggleMaterial = (materialId: number) => {
-    const current = selectedMaterials;
-    if (current.includes(materialId)) {
-      setValue('material_ids', current.filter(id => id !== materialId));
-    } else {
-      setValue('material_ids', [...current, materialId]);
-    }
+  // Toggle genérico para cualquier campo de array de IDs (material_ids, size_ids, ...)
+  const toggleId = (
+    field: 'material_ids' | 'tag_ids' | 'size_ids' | 'length_ids' | 'color_ids',
+    current: number[],
+    value: number,
+  ) => {
+    setValue(
+      field,
+      current.includes(value) ? current.filter((v) => v !== value) : [...current, value],
+    );
   };
 
-  const toggleTag = (tagId: number) => {
-    const current = selectedTags;
-    if (current.includes(tagId)) {
-      setValue('tag_ids', current.filter(id => id !== tagId));
-    } else {
-      setValue('tag_ids', [...current, tagId]);
-    }
-  };
+  const toggleMaterial = (id: number) => toggleId('material_ids', selectedMaterials, id);
+  const toggleTag = (id: number) => toggleId('tag_ids', selectedTags, id);
 
   if (loading) {
     return (
@@ -397,6 +397,36 @@ export default function ProductForm() {
               </option>
             ))}
           </FormSelect>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormSelect
+              label="Público"
+              {...register('audience_id', {
+                setValueAs: (v) => (v ? Number(v) : null),
+              })}
+              error={errors.audience_id?.message}
+              helperText="Para quién es la pieza"
+            >
+              <option value="">Sin especificar</option>
+              {audiences.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </FormSelect>
+
+            <FormSelect
+              label="Grosor"
+              {...register('thickness_id', {
+                setValueAs: (v) => (v ? Number(v) : null),
+              })}
+              error={errors.thickness_id?.message}
+              helperText="De muy delgado a muy grueso"
+            >
+              <option value="">Sin especificar</option>
+              {thicknesses.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </FormSelect>
+          </div>
 
           <div className="flex items-center gap-3">
             <input
@@ -478,6 +508,7 @@ export default function ProductForm() {
               <button
                 key={material.id}
                 type="button"
+                title={material.name}
                 onClick={() => toggleMaterial(material.id)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   selectedMaterials.includes(material.id)
@@ -493,6 +524,86 @@ export default function ProductForm() {
             <p className="text-sm text-neutral-500">
               No hay materiales disponibles. Créalos primero en la sección de Materiales.
             </p>
+          )}
+        </div>
+
+        {/* Tallas */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Tallas <span className="font-normal text-neutral-500 text-sm">(anillos)</span></h2>
+          <div className="flex flex-wrap gap-2">
+            {sizes.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => toggleId('size_ids', selectedSizes, s.id)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  selectedSizes.includes(s.id)
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {sizes.length === 0 && (
+            <p className="text-sm text-neutral-500">No hay tallas en el catálogo.</p>
+          )}
+        </div>
+
+        {/* Largos */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Largos <span className="font-normal text-neutral-500 text-sm">(cadenas / pulseras)</span></h2>
+          <div className="flex flex-wrap gap-2 max-h-48 overflow-auto pr-1">
+            {lengths.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => toggleId('length_ids', selectedLengths, l.id)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  selectedLengths.includes(l.id)
+                    ? 'bg-neutral-900 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+          {lengths.length === 0 && (
+            <p className="text-sm text-neutral-500">No hay largos en el catálogo.</p>
+          )}
+        </div>
+
+        {/* Colores */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900">Colores</h2>
+          <p className="text-xs text-neutral-500">El primero seleccionado se marca como color principal en la tarjeta del catálogo.</p>
+          <div className="flex flex-wrap gap-2">
+            {colors.map((c) => {
+              const active = selectedColors.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => toggleId('color_ids', selectedColors, c.id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    active
+                      ? 'border-neutral-900 bg-neutral-900 text-white'
+                      : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
+                  }`}
+                >
+                  <span
+                    className="inline-block w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
+                    style={c.hex ? { background: c.hex } : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }}
+                  />
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+          {colors.length === 0 && (
+            <p className="text-sm text-neutral-500">No hay colores en el catálogo.</p>
           )}
         </div>
 

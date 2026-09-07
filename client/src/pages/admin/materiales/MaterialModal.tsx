@@ -20,14 +20,25 @@ const toSlug = (text: string) =>
 
 const materialSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(100),
+  name_short: z.string().max(24, 'Máximo 24 caracteres').optional(),
+  name_en: z.string().max(60, 'Máximo 60 caracteres').optional(),
   slug: z.string().min(1, 'El slug es requerido').max(100).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
   description: z.string().optional(),
+  display_order: z.number().min(0).optional(),
 });
 
 type MaterialFormData = z.infer<typeof materialSchema>;
 
 type MaterialModalProps = {
-  material: { id: number; name: string; slug: string; description?: string } | null;
+  material: {
+    id: number;
+    name: string;
+    name_short?: string;
+    name_en?: string;
+    slug: string;
+    description?: string;
+    display_order?: number;
+  } | null;
   onClose: (success?: boolean) => void;
 };
 
@@ -89,12 +100,29 @@ export default function MaterialModal({ material, onClose }: MaterialModalProps)
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <FormInput
-            label="Nombre"
+            label="Nombre completo (ficha del producto)"
             {...register('name')}
             error={errors.name?.message}
-            placeholder="Ej: Acero"
+            placeholder="Ej: Acero 316L con baño en oro 18K"
             required
           />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormInput
+              label="Nombre corto (español)"
+              {...register('name_short')}
+              error={errors.name_short?.message}
+              helperText="Máx. 24 caracteres. Ej: Acero + Oro 18K"
+              placeholder="Acero + Oro 18K"
+            />
+            <FormInput
+              label="Nombre en inglés (sello del catálogo)"
+              {...register('name_en')}
+              error={errors.name_en?.message}
+              helperText="Se muestra en el sello sobre la foto"
+              placeholder="Gold-Plated Steel"
+            />
+          </div>
 
           <FormInput
             label="Slug"
@@ -106,9 +134,18 @@ export default function MaterialModal({ material, onClose }: MaterialModalProps)
               },
             })}
             error={errors.slug?.message}
-            helperText="Solo minúsculas, números y guiones. Ej: acero"
-            placeholder="acero"
+            helperText="Solo minúsculas, números y guiones. Ej: acero-316l"
+            placeholder="acero-316l"
             required
+          />
+
+          <FormInput
+            label="Orden"
+            type="number"
+            min="0"
+            {...register('display_order', { setValueAs: (v) => (v === '' || v == null ? undefined : Number(v)) })}
+            error={errors.display_order?.message}
+            helperText="Posición en las listas"
           />
 
           <FormTextarea

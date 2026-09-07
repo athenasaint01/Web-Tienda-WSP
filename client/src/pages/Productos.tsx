@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import FiltersSidebar from "../components/FiltersSidebar";
+import FiltersSidebar, { type FilterKey } from "../components/FiltersSidebar";
 import Chip from "../components/Chip";
 import { useProducts } from "../hooks/useProducts";
+import { useFilterCatalogs } from "../hooks/useFilterCatalogs";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -53,16 +54,25 @@ export default function Productos() {
     categoria: params.getAll("categoria"),
     material: params.getAll("material"),
     tags: params.getAll("tag"),
+    publico: params.getAll("publico"),
+    grosor: params.getAll("grosor"),
+    color: params.getAll("color"),
     q: params.get("q") ?? "",
     sort: (params.get("sort") as SortKey) ?? "relevancia",
     page: parseInt(params.get("page") ?? "1"),
   };
+
+  // Catálogos completos para los filtros (no dependen de los productos filtrados)
+  const { materials: allMaterials, audiences, thicknesses, colors: allColors } = useFilterCatalogs();
 
   // Obtener productos desde la API con filtros
   const { products, pagination, loading, error } = useProducts({
     categoria: selected.categoria.length > 0 ? selected.categoria : undefined,
     material: selected.material.length > 0 ? selected.material : undefined,
     tag: selected.tags.length > 0 ? selected.tags : undefined,
+    publico: selected.publico.length > 0 ? selected.publico : undefined,
+    grosor: selected.grosor.length > 0 ? selected.grosor : undefined,
+    color: selected.color.length > 0 ? selected.color : undefined,
     q: selected.q || undefined,
     sort: selected.sort,
     page: selected.page,
@@ -78,18 +88,6 @@ export default function Productos() {
       }
     });
     return Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [products]);
-
-  const materials = useMemo(() => {
-    const materialsMap = new Map<string, { name: string; slug: string }>();
-    products.forEach(p => {
-      p.materials.forEach(m => {
-        if (!materialsMap.has(m.slug)) {
-          materialsMap.set(m.slug, m);
-        }
-      });
-    });
-    return Array.from(materialsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [products]);
 
   const tags = useMemo(() => {
@@ -147,9 +145,16 @@ export default function Productos() {
   // Helpers URL
   const updateParams = (next: URLSearchParams) => setParams(next, { replace: true });
 
-  const toggle = (key: "categoria" | "material" | "tags", value: string) => {
+  const toggle = (key: FilterKey, value: string) => {
     setIsInitialLoad(false);
-    const map = { categoria: "categoria", material: "material", tags: "tag" } as const;
+    const map: Record<FilterKey, string> = {
+      categoria: "categoria",
+      material: "material",
+      tags: "tag",
+      publico: "publico",
+      grosor: "grosor",
+      color: "color",
+    };
     const urlKey = map[key];
     const current = new Set(params.getAll(urlKey));
     current.has(value) ? current.delete(value) : current.add(value);
@@ -170,6 +175,26 @@ export default function Productos() {
   };
 
   const clearAll = () => navigate("/productos", { replace: true });
+
+  // Objeto de selección compartido por ambas instancias del sidebar
+  const sidebarSelected = {
+    categoria: selected.categoria,
+    material: selected.material,
+    tags: selected.tags,
+    publico: selected.publico,
+    grosor: selected.grosor,
+    color: selected.color,
+    q: selected.q,
+  };
+
+  const hasActiveFilters =
+    selected.categoria.length ||
+    selected.material.length ||
+    selected.tags.length ||
+    selected.publico.length ||
+    selected.grosor.length ||
+    selected.color.length ||
+    selected.q;
 
   const setSort = (sort: SortKey) => {
     setIsInitialLoad(false);
@@ -243,13 +268,16 @@ export default function Productos() {
         {/* Sidebar Desktop - Siempre visible en desktop */}
         <div className="hidden md:block">
           <FiltersSidebar
-            selected={{ categoria: selected.categoria, material: selected.material, tags: selected.tags, q: selected.q }}
+            selected={sidebarSelected}
             onToggle={toggle}
             onSearch={setQuery}
             onClearAll={clearAll}
             categories={categories}
-            materials={materials}
+            materials={allMaterials}
             tags={tags}
+            audiences={audiences}
+            thicknesses={thicknesses}
+            colors={allColors}
           />
         </div>
 
@@ -290,13 +318,16 @@ export default function Productos() {
                 {/* Contenido del modal */}
                 <div className="p-4">
                   <FiltersSidebar
-                    selected={{ categoria: selected.categoria, material: selected.material, tags: selected.tags, q: selected.q }}
+                    selected={sidebarSelected}
                     onToggle={toggle}
                     onSearch={setQuery}
                     onClearAll={clearAll}
                     categories={categories}
-                    materials={materials}
+                    materials={allMaterials}
                     tags={tags}
+                    audiences={audiences}
+                    thicknesses={thicknesses}
+                    colors={allColors}
                     compact={true}
                   />
                 </div>
@@ -334,7 +365,7 @@ export default function Productos() {
           )}
 
           {/* Chips activos */}
-          {!loading && (selected.categoria.length || selected.material.length || selected.tags.length || selected.q) ? (
+          {!loading && hasActiveFilters ? (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selected.q && <Chip onRemove={() => setQuery("")}>Buscar: "{selected.q}"</Chip>}
               {selected.categoria.map((slug) => {
@@ -345,11 +376,35 @@ export default function Productos() {
                   </Chip>
                 );
               })}
+              {selected.publico.map((slug) => {
+                const a = audiences.find(x => x.slug === slug);
+                return (
+                  <Chip key={`p-${slug}`} onRemove={() => toggle("publico", slug)}>
+                    Público: {a?.name || slug}
+                  </Chip>
+                );
+              })}
               {selected.material.map((slug) => {
-                const material = materials.find(m => m.slug === slug);
+                const material = allMaterials.find(m => m.slug === slug);
                 return (
                   <Chip key={`m-${slug}`} onRemove={() => toggle("material", slug)}>
                     Material: {material?.name || slug}
+                  </Chip>
+                );
+              })}
+              {selected.color.map((slug) => {
+                const c = allColors.find(x => x.slug === slug);
+                return (
+                  <Chip key={`col-${slug}`} onRemove={() => toggle("color", slug)}>
+                    Color: {c?.name || slug}
+                  </Chip>
+                );
+              })}
+              {selected.grosor.map((slug) => {
+                const t = thicknesses.find(x => x.slug === slug);
+                return (
+                  <Chip key={`g-${slug}`} onRemove={() => toggle("grosor", slug)}>
+                    Grosor: {t?.name || slug}
                   </Chip>
                 );
               })}

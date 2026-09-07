@@ -265,7 +265,7 @@ export default function ProductoDetalle() {
             })}
           </div>
 
-          <div className="rounded-3xl overflow-hidden border border-black/10 relative bg-white">
+          <div className="overflow-hidden border border-black/10 relative bg-white">
             {product.stock <= 0 && (
               <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-30">AGOTADO</div>
             )}
@@ -338,11 +338,80 @@ export default function ProductoDetalle() {
             )}
           </div>
 
-          {product.materials?.length ? (
+          {/* Ficha de atributos */}
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            {product.materials?.length ? (
+              <div className="sm:col-span-2">
+                <dt className="font-medium mb-1">Materiales</dt>
+                <dd className="flex flex-wrap gap-1.5">
+                  {product.materials.map((m: any) => {
+                    if (typeof m === 'string') {
+                      return (
+                        <span key={m} className="rounded-full border px-2.5 py-0.5 text-xs">{m}</span>
+                      );
+                    }
+                    // Sello en inglés visible; español completo en el tooltip
+                    return (
+                      <span
+                        key={m.id}
+                        title={m.name}
+                        className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs cursor-help"
+                      >
+                        {m.name_en || m.name_short || m.name}
+                      </span>
+                    );
+                  })}
+                </dd>
+              </div>
+            ) : null}
+
+            {product.audience && (
+              <div>
+                <dt className="font-medium inline">Público: </dt>
+                <dd className="inline">{product.audience.name}</dd>
+              </div>
+            )}
+
+            {product.thickness && (
+              <div>
+                <dt className="font-medium inline">Grosor: </dt>
+                <dd className="inline">{product.thickness.name}</dd>
+              </div>
+            )}
+
+            {product.sizes?.length ? (
+              <div className="sm:col-span-2">
+                <dt className="font-medium inline">Tallas: </dt>
+                <dd className="inline">{product.sizes.map((s: any) => s.label).join(' · ')}</dd>
+              </div>
+            ) : null}
+
+            {product.lengths?.length ? (
+              <div className="sm:col-span-2">
+                <dt className="font-medium inline">Largos: </dt>
+                <dd className="inline">{product.lengths.map((l: any) => l.label).join(' · ')}</dd>
+              </div>
+            ) : null}
+          </dl>
+
+          {/* Colores disponibles */}
+          {product.colors?.length ? (
             <div className="text-sm">
-              <span className="font-medium">Materiales: </span>
-              <span className="capitalize">
-                {product.materials.map((m: any) => typeof m === 'string' ? m : m.name).join(", ")}
+              <span className="font-medium">Colores: </span>
+              <span className="inline-flex flex-wrap items-center gap-2 align-middle">
+                {product.colors.map((c: any) => (
+                  <span key={c.id} className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block w-3.5 h-3.5 rounded-full border border-black/20"
+                      style={
+                        c.hex
+                          ? { background: c.hex }
+                          : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }
+                      }
+                    />
+                    {c.name}
+                  </span>
+                ))}
               </span>
             </div>
           ) : null}

@@ -11,9 +11,13 @@ export type Category = {
 
 export type Material = {
   id: number;
+  code?: string;
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
 }
 
 export type Tag = {
@@ -21,6 +25,54 @@ export type Tag = {
   name: string;
   slug: string;
 }
+
+export type Audience = {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  display_order: number;
+}
+
+export type Thickness = {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  level: number;
+}
+
+export type Size = {
+  id: number;
+  code?: string;
+  label: string;
+  ring_size?: number | string | null;
+  diameter_mm?: number | string | null;
+  display_order: number;
+}
+
+export type Length = {
+  id: number;
+  code?: string;
+  label: string;
+  value_cm: number | string;
+  display_order: number;
+}
+
+export type Color = {
+  id: number;
+  code?: string;
+  name: string;
+  slug: string;
+  hex?: string | null;
+  display_order: number;
+}
+
+// Color tal como llega dentro de un producto (con flag de principal)
+export type ProductColor = Color & { product_is_primary?: boolean };
+
+// Referencia ligera {name, slug} usada en listados
+export type AttrRef = { name: string; slug: string };
 
 export type Collection = {
   id: number;
@@ -77,8 +129,11 @@ export type ProductListItem = {
   is_out_of_stock: boolean;
   image_url?: string;
   image_url_2?: string;
-  materials: Array<{ name: string; slug: string }>;
+  materials: Array<{ name: string; slug: string; name_short?: string; name_en?: string }>;
   tags: Array<{ name: string; slug: string }>;
+  audience?: AttrRef | null;
+  thickness?: (AttrRef & { level?: number }) | null;
+  colors: Array<{ name: string; slug: string; hex?: string | null }>;
   badge_labels?: string[];
 }
 
@@ -94,9 +149,16 @@ export type ProductDetail = {
   wa_template?: string;
   is_active: boolean;
   category: Category;
+  audience_id?: number | null;
+  thickness_id?: number | null;
   images: ProductImage[];
   materials: Material[];
   tags: Tag[];
+  audience: Audience | null;
+  thickness: Thickness | null;
+  sizes: Size[];
+  lengths: Length[];
+  colors: ProductColor[];
   badge_labels?: string[];
   created_at: string;
   updated_at: string;
@@ -107,6 +169,9 @@ export type ProductFilters = {
   categoria?: string | string[];
   material?: string | string[];
   tag?: string | string[];
+  publico?: string | string[];
+  grosor?: string | string[];
+  color?: string | string[];
   q?: string;
   featured?: boolean;
   sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent';

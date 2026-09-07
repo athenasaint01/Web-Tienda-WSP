@@ -6,9 +6,13 @@ import MaterialModal from './MaterialModal';
 
 type Material = {
   id: number;
+  code?: string;
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
 };
 
 export default function MaterialesPage() {
@@ -108,13 +112,16 @@ export default function MaterialesPage() {
             <thead className="bg-neutral-50 border-b border-neutral-200">
               <tr>
                 <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
-                  Nombre
+                  Nombre completo
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
+                  Corto (ES)
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
+                  Sello (EN)
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
                   Slug
-                </th>
-                <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
-                  Descripción
                 </th>
                 <th className="text-right px-6 py-3 text-sm font-semibold text-neutral-700">
                   Acciones
@@ -128,10 +135,13 @@ export default function MaterialesPage() {
                     {material.name}
                   </td>
                   <td className="px-6 py-4 text-sm text-neutral-600">
-                    {material.slug}
+                    {material.name_short || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-neutral-600">
-                    {material.description || '-'}
+                    {material.name_en || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-neutral-600">
+                    {material.slug}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">

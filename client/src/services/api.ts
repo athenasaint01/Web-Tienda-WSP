@@ -168,6 +168,23 @@ export const sendContactForm = async (data: ContactFormData): Promise<ApiRespons
 };
 
 // =============================================
+// CATÁLOGOS DE ATRIBUTOS (PÚBLICOS)
+// =============================================
+
+/** Helper genérico para GET /api/<recurso> que responde { ok, data } */
+async function getCatalog<T>(resource: string): Promise<T[]> {
+  const res = await fetchAPI<ApiResponse<T[]>>(`/${resource}`);
+  return res.ok && res.data ? res.data : [];
+}
+
+export const getAudiences = () => getCatalog<import('../types/api').Audience>('audiences');
+export const getThicknesses = () => getCatalog<import('../types/api').Thickness>('thicknesses');
+export const getSizes = () => getCatalog<import('../types/api').Size>('sizes');
+export const getLengths = () => getCatalog<import('../types/api').Length>('lengths');
+export const getColors = () => getCatalog<import('../types/api').Color>('colors');
+export const getMaterials = () => getCatalog<import('../types/api').Material>('materials');
+
+// =============================================
 // CATEGORÍAS, MATERIALES Y TAGS
 // =============================================
 // Nota: Los filtros ahora se obtienen directamente desde la API
@@ -227,8 +244,11 @@ export const deleteCategory = async (id: number) => {
 
 export type MaterialData = {
   name: string;
+  name_short?: string;
+  name_en?: string;
   slug: string;
   description?: string;
+  display_order?: number;
 };
 
 export const createMaterial = async (data: MaterialData) => {
@@ -253,6 +273,64 @@ export const deleteMaterial = async (id: number) => {
     headers: getAuthHeaders(),
   });
 };
+
+// =============================================
+// ADMIN - CATÁLOGOS DE ATRIBUTOS (audiences / thicknesses / sizes / lengths / colors)
+// =============================================
+
+export type AudienceData = { name: string; slug: string; display_order?: number };
+export type ThicknessData = { name: string; slug: string; level: number };
+export type SizeData = { label: string; ring_size?: number; diameter_mm?: number; display_order?: number };
+export type LengthData = { label: string; value_cm: number; display_order?: number };
+export type ColorData = { name: string; slug: string; hex?: string | null; display_order?: number };
+
+/** Fábrica de CRUD admin para un recurso simple { ok, data } */
+function makeAdminCrud<T>(resource: string) {
+  return {
+    create: (data: T) =>
+      fetchAPI(`/admin/${resource}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      }),
+    update: (id: number, data: Partial<T>) =>
+      fetchAPI(`/admin/${resource}/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
+      }),
+    remove: (id: number) =>
+      fetchAPI(`/admin/${resource}/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      }),
+  };
+}
+
+const audiencesCrud = makeAdminCrud<AudienceData>('audiences');
+export const createAudience = audiencesCrud.create;
+export const updateAudience = audiencesCrud.update;
+export const deleteAudience = audiencesCrud.remove;
+
+const thicknessesCrud = makeAdminCrud<ThicknessData>('thicknesses');
+export const createThickness = thicknessesCrud.create;
+export const updateThickness = thicknessesCrud.update;
+export const deleteThickness = thicknessesCrud.remove;
+
+const sizesCrud = makeAdminCrud<SizeData>('sizes');
+export const createSize = sizesCrud.create;
+export const updateSize = sizesCrud.update;
+export const deleteSize = sizesCrud.remove;
+
+const lengthsCrud = makeAdminCrud<LengthData>('lengths');
+export const createLength = lengthsCrud.create;
+export const updateLength = lengthsCrud.update;
+export const deleteLength = lengthsCrud.remove;
+
+const colorsCrud = makeAdminCrud<ColorData>('colors');
+export const createColor = colorsCrud.create;
+export const updateColor = colorsCrud.update;
+export const deleteColor = colorsCrud.remove;
 
 // =============================================
 // ADMIN - TAGS
@@ -294,6 +372,8 @@ export type ProductData = {
   slug: string;
   name: string;
   category_id: number;
+  audience_id?: number | null;
+  thickness_id?: number | null;
   description?: string;
   featured?: boolean;
   wa_template?: string;
@@ -304,6 +384,9 @@ export type ProductData = {
   }>;
   material_ids?: number[];
   tag_ids?: number[];
+  size_ids?: number[];
+  length_ids?: number[];
+  color_ids?: number[];
 };
 
 export const createProduct = async (data: ProductData) => {

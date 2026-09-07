@@ -1,17 +1,90 @@
 import { memo, useEffect, useState } from "react";
 
+export type FilterKey = "categoria" | "material" | "tags" | "publico" | "grosor" | "color";
+
+type Option = { name: string; slug: string; hex?: string | null };
+
 type Props = {
-  selected: { categoria: string[]; material: string[]; tags: string[]; q: string };
-  onToggle: (key: "categoria" | "material" | "tags", value: string) => void;
+  selected: {
+    categoria: string[];
+    material: string[];
+    tags: string[];
+    publico: string[];
+    grosor: string[];
+    color: string[];
+    q: string;
+  };
+  onToggle: (key: FilterKey, value: string) => void;
   onSearch: (q: string) => void;
   onClearAll: () => void;
-  categories: Array<{ name: string; slug: string }>;
-  materials: Array<{ name: string; slug: string }>;
-  tags: Array<{ name: string; slug: string }>;
+  categories: Option[];
+  materials: Option[];
+  tags: Option[];
+  audiences: Option[];
+  thicknesses: Option[];
+  colors: Option[];
   compact?: boolean; // Para uso dentro del modal
 };
 
-function FiltersSidebarBase({ selected, onToggle, onSearch, onClearAll, categories, materials, tags, compact = false }: Props) {
+function CheckboxGroup({
+  title,
+  options,
+  selected,
+  filterKey,
+  onToggle,
+  maxHeight,
+}: {
+  title: string;
+  options: Option[];
+  selected: string[];
+  filterKey: FilterKey;
+  onToggle: Props["onToggle"];
+  maxHeight?: string;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <div className="mb-4">
+      <div className="text-sm font-medium mb-2">{title}</div>
+      <div className={`space-y-2 ${maxHeight ?? ""} ${maxHeight ? "overflow-auto pr-1" : ""}`}>
+        {options.map((o) => (
+          <label key={o.slug} className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 rounded border"
+              checked={selected.includes(o.slug)}
+              onChange={() => onToggle(filterKey, o.slug)}
+            />
+            {o.hex !== undefined && (
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-black/20 shrink-0"
+                style={
+                  o.hex
+                    ? { background: o.hex }
+                    : { background: "conic-gradient(red, orange, yellow, green, blue, violet, red)" }
+                }
+              />
+            )}
+            <span className="capitalize">{o.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FiltersSidebarBase({
+  selected,
+  onToggle,
+  onSearch,
+  onClearAll,
+  categories,
+  materials,
+  tags,
+  audiences,
+  thicknesses,
+  colors,
+  compact = false,
+}: Props) {
   // input controlado + debounce
   const [q, setQ] = useState(selected.q);
   useEffect(() => setQ(selected.q), [selected.q]);
@@ -42,59 +115,12 @@ function FiltersSidebarBase({ selected, onToggle, onSearch, onClearAll, categori
         type="search"
       />
 
-      {/* Categoría */}
-      <div className="mb-4">
-        <div className="text-sm font-medium mb-2">Categoría</div>
-        <div className="space-y-2">
-          {categories.map((c) => (
-            <label key={c.slug} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4 rounded border"
-                checked={selected.categoria.includes(c.slug)}
-                onChange={() => onToggle("categoria", c.slug)}
-              />
-              <span className="capitalize">{c.name}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Material */}
-      <div className="mb-4">
-        <div className="text-sm font-medium mb-2">Material</div>
-        <div className="space-y-2">
-          {materials.map((m) => (
-            <label key={m.slug} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4 rounded border"
-                checked={selected.material.includes(m.slug)}
-                onChange={() => onToggle("material", m.slug)}
-              />
-              <span className="capitalize">{m.name}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Tags */}
-      <div>
-        <div className="text-sm font-medium mb-2">Tags</div>
-        <div className="space-y-2 max-h-56 overflow-auto pr-1">
-          {tags.map((t) => (
-            <label key={t.slug} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4 rounded border"
-                checked={selected.tags.includes(t.slug)}
-                onChange={() => onToggle("tags", t.slug)}
-              />
-              <span className="capitalize">{t.name}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      <CheckboxGroup title="Categoría" options={categories} selected={selected.categoria} filterKey="categoria" onToggle={onToggle} />
+      <CheckboxGroup title="Público" options={audiences} selected={selected.publico} filterKey="publico" onToggle={onToggle} />
+      <CheckboxGroup title="Material" options={materials} selected={selected.material} filterKey="material" onToggle={onToggle} maxHeight="max-h-56" />
+      <CheckboxGroup title="Color" options={colors} selected={selected.color} filterKey="color" onToggle={onToggle} maxHeight="max-h-56" />
+      <CheckboxGroup title="Grosor" options={thicknesses} selected={selected.grosor} filterKey="grosor" onToggle={onToggle} />
+      <CheckboxGroup title="Tags" options={tags} selected={selected.tags} filterKey="tags" onToggle={onToggle} maxHeight="max-h-56" />
     </>
   );
 

@@ -1,54 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getProductBySlug } from '../services/api';
-
-// Tipos inline para evitar problemas de importación
-type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-}
-
-type Material = {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-}
-
-type Tag = {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-type ProductImage = {
-  id: number;
-  product_id: number;
-  image_url: string;
-  display_order: number;
-  is_primary: boolean;
-  alt_text?: string;
-}
-
-type ProductDetail = {
-  id: number;
-  slug: string;
-  name: string;
-  description?: string;
-  featured: boolean;
-  stock: number;
-  low_stock_threshold: number;
-  wa_template?: string;
-  is_active: boolean;
-  category: Category;
-  images: ProductImage[];
-  materials: Material[];
-  tags: Tag[];
-  badge_labels?: string[];
-  created_at: string;
-  updated_at: string;
-}
+import type { ProductDetail } from '../types/api';
 
 interface UseProductResult {
   product: ProductDetail | null;

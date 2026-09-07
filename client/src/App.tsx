@@ -15,6 +15,12 @@ import CategoriasPage from "./pages/admin/categorias/CategoriasPage";
 import ColeccionesPage from "./pages/admin/colecciones/ColeccionesPage";
 import MaterialesPage from "./pages/admin/materiales/MaterialesPage";
 import TagsPage from "./pages/admin/tags/TagsPage";
+import AtributosIndex from "./pages/admin/catalogos/AtributosIndex";
+import PublicosPage from "./pages/admin/catalogos/PublicosPage";
+import GrosoresPage from "./pages/admin/catalogos/GrosoresPage";
+import TallasPage from "./pages/admin/catalogos/TallasPage";
+import LargosPage from "./pages/admin/catalogos/LargosPage";
+import ColoresPage from "./pages/admin/catalogos/ColoresPage";
 import ProductosPage from "./pages/admin/productos/ProductosPage";
 import ProductForm from "./pages/admin/productos/ProductForm";
 import PopupsPage from "./pages/admin/popups/PopupsPage";
@@ -50,8 +56,14 @@ export default function App() {
           <Route path="productos/:id/editar" element={<ProductForm />} />
           <Route path="categorias" element={<CategoriasPage />} />
           <Route path="colecciones" element={<ColeccionesPage />} />
+          <Route path="atributos" element={<AtributosIndex />} />
           <Route path="materiales" element={<MaterialesPage />} />
           <Route path="tags" element={<TagsPage />} />
+          <Route path="publicos" element={<PublicosPage />} />
+          <Route path="grosores" element={<GrosoresPage />} />
+          <Route path="tallas" element={<TallasPage />} />
+          <Route path="largos" element={<LargosPage />} />
+          <Route path="colores" element={<ColoresPage />} />
           <Route path="popups" element={<PopupsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
