@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CollectionWithCategory, ProductListItem } from "../types/api";
 import * as api from "../services/api";
 import BadgeChips from "../components/BadgeChips";
+import { useCurrency, formatPrice } from "../hooks/useSettings";
 
 
 
@@ -159,6 +160,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
   const img1 = p.image_url ?? "/assets/demo/placeholder.jpg";
   const img2 = p.image_url_2;
   const hasSecondImage = Boolean(img2);
+  const currency = useCurrency();
   return (
     <Link to={`/producto/${p.slug}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
       <div className="group overflow-hidden">
@@ -191,6 +193,9 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
         <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug line-clamp-2 uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
+          {p.price != null && (
+            <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
+          )}
         </div>
       </div>
     </Link>
