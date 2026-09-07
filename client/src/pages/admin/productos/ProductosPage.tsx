@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as api from '../../../services/api';
-import { useCurrency } from '../../../hooks/useSettings';
+import { useCurrency, formatPrice, getOffer } from '../../../hooks/useSettings';
 
 type Product = {
   id: number;
@@ -12,6 +12,7 @@ type Product = {
   category: string;
   featured: boolean;
   price?: number | null;
+  sale_price?: number | null;
   image_url?: string;
 };
 
@@ -132,9 +133,21 @@ export default function ProductosPage() {
                     {product.category}
                   </td>
                   <td className="px-6 py-4 text-sm text-neutral-700">
-                    {product.price != null
-                      ? `${currency} ${Number.isInteger(product.price) ? product.price : product.price.toFixed(2)}`
-                      : <span className="text-neutral-400">—</span>}
+                    {(() => {
+                      const offer = getOffer(product.price, product.sale_price);
+                      if (offer) {
+                        return (
+                          <span className="flex items-baseline gap-1.5">
+                            <span className="font-medium text-[#c4927a]">{formatPrice(offer.salePrice, currency)}</span>
+                            <span className="text-xs text-neutral-400 line-through">{formatPrice(offer.price, currency)}</span>
+                            <span className="text-[10px] font-semibold text-[#a06f57]">-{offer.percent}%</span>
+                          </span>
+                        );
+                      }
+                      return product.price != null
+                        ? formatPrice(product.price, currency)
+                        : <span className="text-neutral-400">—</span>;
+                    })()}
                   </td>
                   <td className="px-6 py-4">
                     {product.featured ? (

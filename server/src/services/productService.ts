@@ -349,6 +349,18 @@ export const getProductById = async (id: number): Promise<ProductWithDetails | n
 };
 
 // =============================================
+// HELPER: valida que el precio de oferta sea menor al precio normal.
+// Si no lo es (o falta el precio normal), se ignora el sale_price.
+const sanitizeSalePrice = (
+  price: number | null | undefined,
+  salePrice: number | null | undefined
+): number | null => {
+  if (salePrice == null) return null;
+  if (price == null || salePrice <= 0 || salePrice >= price) return null;
+  return salePrice;
+};
+
+// =============================================
 // CREAR PRODUCTO
 // =============================================
 export const createProduct = async (data: CreateProductDTO): Promise<Product> => {
@@ -359,6 +371,7 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // Normalizar slug: convertir a minúsculas y reemplazar espacios por guiones
     const normalizedSlug = data.slug.toLowerCase().replace(/\s+/g, '-');
+    const salePrice = sanitizeSalePrice(data.price, data.sale_price);
 
     // 1. Crear producto
     const productResult = await client.query(
@@ -374,7 +387,7 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.description,
         data.featured || false,
         data.price ?? null,
-        data.sale_price ?? null,
+        salePrice,
         data.stock !== undefined ? data.stock : 0,
         data.low_stock_threshold !== undefined ? data.low_stock_threshold : 5,
         data.wa_template,
@@ -471,6 +484,24 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
     // Normalizar slug si está presente
     if (productData.slug) {
       productData.slug = productData.slug.toLowerCase().replace(/\s+/g, '-');
+    }
+
+    // Validar sale_price contra el precio efectivo (nuevo si viene, o el actual).
+    if (productData.price !== undefined || productData.sale_price !== undefined) {
+      const currentRow = await client.query(
+        'SELECT price, sale_price FROM products WHERE id = $1',
+        [id]
+      );
+      const cur = currentRow.rows[0] || {};
+      const currentPrice = cur.price != null ? parseFloat(cur.price) : null;
+      const currentSale = cur.sale_price != null ? parseFloat(cur.sale_price) : null;
+
+      const effectivePrice = productData.price !== undefined ? productData.price : currentPrice;
+      const effectiveSale = productData.sale_price !== undefined ? productData.sale_price : currentSale;
+
+      // Reescribe sale_price siempre que price o sale_price cambien, para
+      // mantener la invariante sale_price < price (o null).
+      productData.sale_price = sanitizeSalePrice(effectivePrice, effectiveSale);
     }
 
     // Actualizar campos básicos del producto

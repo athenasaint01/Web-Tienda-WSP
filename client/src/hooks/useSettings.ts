@@ -75,3 +75,17 @@ export function formatPrice(amount: number | null | undefined, symbol: string): 
   const value = hasDecimals ? amount.toFixed(2) : String(Math.round(amount));
   return `${symbol} ${value}`;
 }
+
+/**
+ * Devuelve la info de oferta de un producto (o null si no está en oferta).
+ * Un producto está en oferta si tiene price y sale_price válido y menor.
+ */
+export function getOffer(
+  price: number | null | undefined,
+  salePrice: number | null | undefined
+): { price: number; salePrice: number; percent: number; savings: number } | null {
+  if (price == null || salePrice == null || salePrice <= 0 || salePrice >= price) return null;
+  const savings = price - salePrice;
+  const percent = Math.round((savings / price) * 100);
+  return { price, salePrice, percent, savings };
+}

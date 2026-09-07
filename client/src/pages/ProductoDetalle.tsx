@@ -5,7 +5,7 @@ import { useProducts } from "../hooks/useProducts";
 import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
 import ProductCard from "../components/ProductCard";
-import { useWhatsAppEnabled, useCurrency, formatPrice } from "../hooks/useSettings";
+import { useWhatsAppEnabled, useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
@@ -100,7 +100,10 @@ export default function ProductoDetalle() {
   const next = () => setI((curr) => (curr + 1) % count);
   const prev = () => setI((curr) => (curr - 1 + count) % count);
 
-  const priceLabel = product.price != null ? formatPrice(product.price, currency) : "";
+  const offer = getOffer(product.price, product.sale_price);
+  // Precio que se muestra "grande" y el que va al mensaje de WhatsApp.
+  const displayPrice = offer ? offer.salePrice : product.price;
+  const priceLabel = displayPrice != null ? formatPrice(displayPrice, currency) : "";
 
   const msg =
     product.wa_template ??
@@ -254,9 +257,21 @@ export default function ProductoDetalle() {
             )}
           </div>
 
-          {priceLabel && (
+          {offer ? (
+            <div className="flex flex-wrap items-baseline gap-3">
+              <span className="font-display text-3xl font-light text-[#c4927a]">
+                {formatPrice(offer.salePrice, currency)}
+              </span>
+              <span className="text-lg text-neutral-400 line-through">
+                {formatPrice(offer.price, currency)}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-[#d4a58a]/15 px-3 py-1 text-xs font-medium text-[#a06f57]">
+                Ahorras {formatPrice(offer.savings, currency)} ({offer.percent}%)
+              </span>
+            </div>
+          ) : priceLabel ? (
             <p className="font-display text-2xl font-light text-neutral-900">{priceLabel}</p>
-          )}
+          ) : null}
 
           {product.description && (
             <p className="text-neutral-700 whitespace-pre-line">{product.description}</p>

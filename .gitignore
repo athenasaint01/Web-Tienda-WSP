@@ -135,3 +135,7 @@ backup/
 !/database/migrations/
 !/database/schema.sql
 !/database/seed.sql
+
+# TypeScript build cache
+server/tsconfig.tsbuildinfo
+client/tsconfig.*.tsbuildinfo

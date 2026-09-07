@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { CollectionWithCategory, ProductListItem } from "../types/api";
 import * as api from "../services/api";
 import BadgeChips from "../components/BadgeChips";
-import { useCurrency, formatPrice } from "../hooks/useSettings";
+import OfferRibbon from "../components/OfferRibbon";
+import { useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
 
 
 
@@ -161,10 +162,12 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
   const img2 = p.image_url_2;
   const hasSecondImage = Boolean(img2);
   const currency = useCurrency();
+  const offer = getOffer(p.price, p.sale_price);
   return (
     <Link to={`/producto/${p.slug}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
       <div className="group overflow-hidden">
         <div className="relative aspect-square overflow-hidden bg-neutral-100">
+          {offer && <OfferRibbon />}
           <img
             src={img1}
             alt={p.name}
@@ -193,9 +196,14 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
         <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug line-clamp-2 uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
-          {p.price != null && (
+          {offer ? (
+            <p className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-sm font-medium text-[#c4927a]">{formatPrice(offer.salePrice, currency)}</span>
+              <span className="text-xs text-neutral-400 line-through">{formatPrice(offer.price, currency)}</span>
+            </p>
+          ) : p.price != null ? (
             <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
-          )}
+          ) : null}
         </div>
       </div>
     </Link>

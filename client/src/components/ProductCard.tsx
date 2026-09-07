@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import type { ProductListItem } from "../types/api";
 import BadgeChips from "./BadgeChips";
-import { useCurrency, formatPrice } from "../hooks/useSettings";
+import OfferRibbon from "./OfferRibbon";
+import { useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
 
 type ProductCardProps = ProductListItem;
 
@@ -10,6 +11,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
   const img2 = p.image_url_2;
   const hasSecondImage = Boolean(img2);
   const currency = useCurrency();
+  const offer = getOffer(p.price, p.sale_price);
 
   return (
     <article className="group overflow-hidden bg-white">
@@ -33,6 +35,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             />
           )}
 
+          {offer && <OfferRibbon />}
           {'is_out_of_stock' in p && p.is_out_of_stock && (
             <div className="absolute top-3 right-3 bg-red-600 text-white px-2 py-1 text-xs font-bold z-10">
               AGOTADO
@@ -47,9 +50,14 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
         <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
-          {p.price != null && (
+          {offer ? (
+            <p className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-sm font-medium text-[#c4927a]">{formatPrice(offer.salePrice, currency)}</span>
+              <span className="text-xs text-neutral-400 line-through">{formatPrice(offer.price, currency)}</span>
+            </p>
+          ) : p.price != null ? (
             <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
-          )}
+          ) : null}
           {p.colors && p.colors.length > 0 && (
             <div className="flex items-center gap-1 mt-1.5">
               {p.colors.slice(0, 5).map((c) => (
