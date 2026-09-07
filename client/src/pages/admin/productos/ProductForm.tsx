@@ -621,7 +621,7 @@ export default function ProductForm() {
 
         {/* Largos */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Largos <span className="font-normal text-neutral-500 text-sm">(cadenas / pulseras)</span></h2>
+          <h2 className="text-lg font-semibold text-neutral-900">Largos <span className="font-normal text-neutral-500 text-sm">(cadenas / pulseras / aretes largo /  argollas)</span></h2>
           <div className="flex flex-wrap gap-2 max-h-48 overflow-auto pr-1">
             {lengths.map((l) => (
               <button
