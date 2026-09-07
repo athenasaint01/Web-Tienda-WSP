@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as api from '../../../services/api';
+import { useCurrency } from '../../../hooks/useSettings';
 
 type Product = {
   id: number;
@@ -10,12 +11,14 @@ type Product = {
   slug: string;
   category: string;
   featured: boolean;
+  price?: number | null;
   image_url?: string;
 };
 
 export default function ProductosPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const currency = useCurrency();
 
   const loadProducts = async () => {
     try {
@@ -95,6 +98,9 @@ export default function ProductosPage() {
                   Categoría
                 </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
+                  Precio
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">
                   Destacado
                 </th>
                 <th className="text-right px-6 py-3 text-sm font-semibold text-neutral-700">
@@ -124,6 +130,11 @@ export default function ProductosPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-neutral-600">
                     {product.category}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-neutral-700">
+                    {product.price != null
+                      ? `${currency} ${Number.isInteger(product.price) ? product.price : product.price.toFixed(2)}`
+                      : <span className="text-neutral-400">—</span>}
                   </td>
                   <td className="px-6 py-4">
                     {product.featured ? (

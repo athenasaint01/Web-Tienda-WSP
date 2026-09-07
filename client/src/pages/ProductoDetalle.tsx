@@ -5,7 +5,7 @@ import { useProducts } from "../hooks/useProducts";
 import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
 import ProductCard from "../components/ProductCard";
-import { useWhatsAppEnabled } from "../hooks/useSettings";
+import { useWhatsAppEnabled, useCurrency, formatPrice } from "../hooks/useSettings";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
@@ -15,6 +15,7 @@ export default function ProductoDetalle() {
   const [i, setI] = useState(0);
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
   const waEnabled = useWhatsAppEnabled();
+  const currency = useCurrency();
 
   // zoom on hover (desktop) / tap-hold (mobile)
   const [origin, setOrigin] = useState<string>("50% 50%");
@@ -99,9 +100,11 @@ export default function ProductoDetalle() {
   const next = () => setI((curr) => (curr + 1) % count);
   const prev = () => setI((curr) => (curr - 1 + count) % count);
 
+  const priceLabel = product.price != null ? formatPrice(product.price, currency) : "";
+
   const msg =
     product.wa_template ??
-    `Hola, me interesa el ${product.name} (${product.slug}).`;
+    `Hola, me interesa el ${product.name}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug}).`;
 
   // Filtrar el producto actual de los relacionados
   const related = relatedRaw.filter((p) => p.id !== product.id).slice(0, 3);
@@ -250,6 +253,10 @@ export default function ProductoDetalle() {
               </div>
             )}
           </div>
+
+          {priceLabel && (
+            <p className="font-display text-2xl font-light text-neutral-900">{priceLabel}</p>
+          )}
 
           {product.description && (
             <p className="text-neutral-700 whitespace-pre-line">{product.description}</p>

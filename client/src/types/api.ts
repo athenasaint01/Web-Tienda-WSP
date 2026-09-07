@@ -125,6 +125,8 @@ export type ProductListItem = {
   category_slug: string;
   description?: string;
   featured: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
@@ -148,6 +150,8 @@ export type ProductDetail = {
   low_stock_threshold: number;
   wa_template?: string;
   is_active: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   category: Category;
   audience_id?: number | null;
   thickness_id?: number | null;

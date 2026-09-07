@@ -157,6 +157,8 @@ export const getAllProducts = async (
       c.slug as category_slug,
       p.description,
       p.featured,
+      p.price::float8 AS price,
+      p.sale_price::float8 AS sale_price,
       p.stock,
       CASE WHEN p.stock <= 0 THEN TRUE ELSE FALSE END as is_out_of_stock,
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) as image_url,
@@ -308,6 +310,9 @@ const hydrateProductRelations = async (product: any): Promise<ProductWithDetails
 
   return {
     ...product,
+    // pg devuelve NUMERIC como string -> normalizar a number | null
+    price: product.price != null ? parseFloat(product.price) : null,
+    sale_price: product.sale_price != null ? parseFloat(product.sale_price) : null,
     images: imagesResult.rows,
     materials: materialsResult.rows,
     tags: tagsResult.rows,
@@ -357,8 +362,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, stock, low_stock_threshold, wa_template, badge_labels)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, price, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         normalizedSlug,
@@ -368,6 +373,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.thickness_id ?? null,
         data.description,
         data.featured || false,
+        data.price ?? null,
+        data.sale_price ?? null,
         data.stock !== undefined ? data.stock : 0,
         data.low_stock_threshold !== undefined ? data.low_stock_threshold : 5,
         data.wa_template,

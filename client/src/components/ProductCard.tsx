@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ProductListItem } from "../types/api";
 import BadgeChips from "./BadgeChips";
+import { useCurrency, formatPrice } from "../hooks/useSettings";
 
 type ProductCardProps = ProductListItem;
 
@@ -8,6 +9,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
   const img1 = p.image_url ?? "/assets/demo/placeholder.jpg";
   const img2 = p.image_url_2;
   const hasSecondImage = Boolean(img2);
+  const currency = useCurrency();
 
   return (
     <article className="group overflow-hidden bg-white">
@@ -45,6 +47,9 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
         <div className="pt-3 pb-1 px-2">
           <h3 className="font-display text-xs font-light tracking-widest leading-snug uppercase">{p.name}</h3>
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
+          {p.price != null && (
+            <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
+          )}
           {p.colors && p.colors.length > 0 && (
             <div className="flex items-center gap-1 mt-1.5">
               {p.colors.slice(0, 5).map((c) => (

@@ -35,6 +35,7 @@ const productSchema = z.object({
   audience_id: z.number().nullable().optional(),
   thickness_id: z.number().nullable().optional(),
   featured: z.boolean().optional(),
+  price: z.number().min(0, 'El precio no puede ser negativo').nullable().optional(),
   stock: z.number().min(0, 'El stock no puede ser negativo').optional(),
   low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').optional(),
   wa_template: z.string().optional(),
@@ -88,6 +89,7 @@ export default function ProductForm() {
     resolver: zodResolver(productSchema),
     defaultValues: {
       featured: false,
+      price: null,
       stock: 0,
       low_stock_threshold: 5,
       audience_id: null,
@@ -165,6 +167,7 @@ export default function ProductForm() {
           setValue('audience_id', product.audience_id ?? null);
           setValue('thickness_id', product.thickness_id ?? null);
           setValue('featured', product.featured || false);
+          setValue('price', product.price ?? null);
           setValue('stock', product.stock || 0);
           setValue('low_stock_threshold', product.low_stock_threshold || 5);
           setValue('wa_template', product.wa_template || '');
@@ -240,6 +243,7 @@ export default function ProductForm() {
     formData.append('audience_id', data.audience_id != null ? String(data.audience_id) : '');
     formData.append('thickness_id', data.thickness_id != null ? String(data.thickness_id) : '');
     formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
+    formData.append('price', data.price != null ? String(data.price) : '');
     formData.append('stock', (data.stock ?? 0).toString());
     formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
 
@@ -438,6 +442,25 @@ export default function ProductForm() {
             <label htmlFor="featured" className="text-sm font-medium text-neutral-700">
               Producto destacado (aparece en la página principal)
             </label>
+          </div>
+        </div>
+
+        {/* Precio */}
+        <div className="space-y-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <h3 className="text-sm font-semibold text-emerald-900">Precio</h3>
+          <div className="max-w-xs">
+            <FormInput
+              label="Precio de venta"
+              type="number"
+              step="0.01"
+              min="0"
+              {...register('price', {
+                setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
+              })}
+              error={errors.price?.message}
+              placeholder="Ej: 129.90"
+              helperText="Déjalo vacío si el precio se consulta por WhatsApp. Se muestra en el catálogo, la ficha y el mensaje de WhatsApp."
+            />
           </div>
         </div>
 

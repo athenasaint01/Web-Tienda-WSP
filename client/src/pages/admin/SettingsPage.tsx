@@ -13,6 +13,7 @@ type Form = {
   facebook_url: string;
   instagram_url: string;
   tiktok_url: string;
+  currency_symbol: string;
 };
 
 const empty: Form = {
@@ -21,6 +22,7 @@ const empty: Form = {
   facebook_url: '',
   instagram_url: '',
   tiktok_url: '',
+  currency_symbol: 'S/',
 };
 
 export default function SettingsPage() {
@@ -41,6 +43,7 @@ export default function SettingsPage() {
             ...empty,
             ...raw,
             whatsapp_enabled: raw.whatsapp_enabled !== 'false',
+            currency_symbol: raw.currency_symbol || 'S/',
           });
         }
       })
@@ -136,6 +139,28 @@ export default function SettingsPage() {
             </a>
           )}
         </div>
+      </div>
+
+      {/* Moneda */}
+      <div className="border border-neutral-200 p-6 mb-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-4">Moneda</h2>
+        <label className="text-sm text-neutral-700 mb-1 block">Símbolo de moneda</label>
+        <input
+          type="text"
+          maxLength={5}
+          placeholder="S/"
+          value={form.currency_symbol}
+          onChange={e => setForm(f => ({ ...f, currency_symbol: e.target.value }))}
+          className="w-32 border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-amber-400"
+        />
+        <p className="text-xs text-neutral-400 mt-1">
+          Se muestra antes del precio en el catálogo y en la ficha. Ej: S/ · $ · €
+        </p>
+        {form.currency_symbol && (
+          <p className="text-xs text-neutral-500 mt-2">
+            Vista previa: <span className="font-medium text-neutral-800">{form.currency_symbol} 129.90</span>
+          </p>
+        )}
       </div>
 
       {/* Redes sociales */}

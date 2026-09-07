@@ -107,6 +107,8 @@ export interface Product {
   thickness_id?: number | null;
   description?: string;
   featured: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   stock: number;
   low_stock_threshold: number;
   wa_template?: string;
@@ -177,6 +179,8 @@ export interface ProductListItem {
   category_slug: string;
   description?: string;
   featured: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
@@ -200,6 +204,8 @@ export interface CreateProductDTO {
   thickness_id?: number | null;
   description?: string;
   featured?: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;
@@ -224,6 +230,8 @@ export interface UpdateProductDTO {
   thickness_id?: number | null;
   description?: string;
   featured?: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;

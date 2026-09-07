@@ -376,6 +376,8 @@ export type ProductData = {
   thickness_id?: number | null;
   description?: string;
   featured?: boolean;
+  price?: number | null;
+  sale_price?: number | null;
   wa_template?: string;
   images?: Array<{
     url: string;

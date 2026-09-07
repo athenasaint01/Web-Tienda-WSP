@@ -57,3 +57,21 @@ export function useWhatsAppEnabled(): boolean {
   if (val === undefined) return true;
   return val === 'true';
 }
+
+// Símbolo de moneda configurable (default 'S/')
+export function useCurrency(): string {
+  const { settings } = useSettings();
+  return settings['currency_symbol'] || 'S/';
+}
+
+/**
+ * Formatea un monto con el símbolo de moneda.
+ * Ej: formatPrice(129.9, 'S/') -> "S/ 129.90"
+ *     formatPrice(120, 'S/')   -> "S/ 120"
+ */
+export function formatPrice(amount: number | null | undefined, symbol: string): string {
+  if (amount == null || isNaN(amount)) return '';
+  const hasDecimals = Math.round(amount * 100) % 100 !== 0;
+  const value = hasDecimals ? amount.toFixed(2) : String(Math.round(amount));
+  return `${symbol} ${value}`;
+}

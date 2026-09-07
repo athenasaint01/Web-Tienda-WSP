@@ -24,6 +24,14 @@ const jsonIdArray = () =>
 const optionalFk = () =>
   z.string().transform(val => (val && val !== 'null' && val !== '' ? parseInt(val) : null)).optional();
 
+// Helper: monto decimal opcional desde FormData ('' => null)
+const optionalMoney = () =>
+  z.string().transform(val => {
+    if (val === undefined || val === '' || val === 'null') return null;
+    const n = parseFloat(val);
+    return isNaN(n) || n < 0 ? null : n;
+  }).optional();
+
 const productDataSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(255),
@@ -32,6 +40,8 @@ const productDataSchema = z.object({
   thickness_id: optionalFk(),
   description: z.string().optional(),
   featured: z.string().transform(val => val === 'true').optional(),
+  price: optionalMoney(),
+  sale_price: optionalMoney(),
   stock: z.string().transform(val => val ? parseInt(val) : 0).optional(),
   low_stock_threshold: z.string().transform(val => val ? parseInt(val) : 5).optional(),
   wa_template: z.string().optional(),
@@ -145,6 +155,15 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
         return val && val !== 'null' && val !== '' ? parseInt(val) : null;
       }).optional();
 
+    // Helper: monto decimal opcional desde FormData ('' => null; ausente => undefined)
+    const optionalMoneyOrUndefined = () =>
+      z.string().transform(val => {
+        if (val === undefined) return undefined;
+        if (val === '' || val === 'null') return null;
+        const n = parseFloat(val);
+        return isNaN(n) || n < 0 ? null : n;
+      }).optional();
+
     // Schema for FormData (when images are included)
     const updateFormDataSchema = z.object({
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
@@ -154,6 +173,8 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       thickness_id: optionalFkOrUndefined(),
       description: z.string().optional(),
       featured: z.string().transform(val => val === 'true').optional(),
+      price: optionalMoneyOrUndefined(),
+      sale_price: optionalMoneyOrUndefined(),
       stock: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       low_stock_threshold: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       wa_template: z.string().optional(),
@@ -182,6 +203,8 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       thickness_id: z.number().int().positive().nullable().optional(),
       description: z.string().optional(),
       featured: z.boolean().optional(),
+      price: z.number().min(0).nullable().optional(),
+      sale_price: z.number().min(0).nullable().optional(),
       stock: z.number().int().min(0).optional(),
       low_stock_threshold: z.number().int().min(0).optional(),
       wa_template: z.string().optional(),
