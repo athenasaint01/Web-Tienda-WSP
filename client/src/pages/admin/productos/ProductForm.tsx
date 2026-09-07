@@ -266,9 +266,9 @@ export default function ProductForm() {
         const formData = buildProductFormData(data);
 
         newImages.forEach((file) => formData.append('images', file));
-        if (deletedImageUrls.length > 0) {
-          formData.append('deleted_images', JSON.stringify(deletedImageUrls));
-        }
+        // Siempre enviar deleted_images (aunque sea []) para que el backend
+        // trate el request como FormData y aplique el schema correcto.
+        formData.append('deleted_images', JSON.stringify(deletedImageUrls));
 
         const response = await fetch(`${API_BASE_URL}/admin/products/${id}`, {
           method: 'PUT',

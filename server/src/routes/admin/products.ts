@@ -194,10 +194,15 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       badge_labels: z.array(z.string()).optional(),
     });
 
-    // Determine if this is FormData or JSON
-    // FormData is used when: 1) there are new files OR 2) deleted_images field is present
-    const hasDeletedImages = req.body.deleted_images !== undefined;
-    const isFormData = (files && files.length > 0) || hasDeletedImages;
+    // Determine if this is FormData or JSON.
+    // Con multer, un request multipart/form-data siempre trae Content-Type
+    // 'multipart/form-data' y multer deja los campos de texto en req.body como
+    // strings. Si NO es multipart, es JSON (express.json ya parseó los tipos).
+    const contentType = req.headers['content-type'] || '';
+    const isFormData =
+      contentType.includes('multipart/form-data') ||
+      (files && files.length > 0) ||
+      req.body.deleted_images !== undefined;
     const schema = isFormData ? updateFormDataSchema : updateJsonSchema;
     const validation = schema.safeParse(req.body);
 
