@@ -663,6 +663,44 @@ export const addProductImage = async (
 };
 
 // =============================================
+// GARANTIZAR IMAGEN PRINCIPAL
+// Si el producto tiene imágenes pero ninguna is_primary, marca la primera
+// (por display_order) como principal. Si tiene más de una, deja solo una.
+// =============================================
+export const ensurePrimaryImage = async (productId: number): Promise<void> => {
+  const primaries = await pool.query(
+    'SELECT id FROM product_images WHERE product_id = $1 AND is_primary = TRUE ORDER BY display_order',
+    [productId]
+  );
+
+  if (primaries.rows.length === 1) return; // ya está bien
+
+  if (primaries.rows.length === 0) {
+    // Ninguna principal -> marcar la primera imagen que exista
+    await pool.query(
+      `UPDATE product_images SET is_primary = TRUE
+       WHERE id = (
+         SELECT id FROM product_images WHERE product_id = $1
+         ORDER BY display_order, id LIMIT 1
+       )`,
+      [productId]
+    );
+    return;
+  }
+
+  // Más de una principal -> dejar solo la de menor display_order
+  await pool.query(
+    `UPDATE product_images SET is_primary = FALSE
+     WHERE product_id = $1 AND id <> (
+       SELECT id FROM product_images
+       WHERE product_id = $1 AND is_primary = TRUE
+       ORDER BY display_order, id LIMIT 1
+     )`,
+    [productId]
+  );
+};
+
+// =============================================
 // ELIMINAR IMAGEN DE PRODUCTO POR URL
 // =============================================
 export const deleteProductImageByUrl = async (

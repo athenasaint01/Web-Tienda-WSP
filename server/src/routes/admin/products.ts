@@ -298,7 +298,14 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       }
     }
 
-    res.json({ ok: true, data: product });
+    // Tras borrar y/o agregar imágenes, asegurar que exista una principal.
+    if ((files && files.length > 0) || deletedImages.length > 0) {
+      await productService.ensurePrimaryImage(id);
+    }
+
+    // Devolver el producto con las imágenes ya actualizadas
+    const finalProduct = await productService.getProductById(id);
+    res.json({ ok: true, data: finalProduct ?? product });
   } catch (error: any) {
     console.error('Error al actualizar producto:', error);
     if (error.code === '23505' && error.constraint === 'products_slug_key') {
@@ -365,6 +372,8 @@ router.post('/:id/images', upload.array('images', 6), async (req: AuthRequest, r
       await productService.addProductImage(id, imageUrl);
     }
 
+    await productService.ensurePrimaryImage(id);
+
     res.status(201).json({ ok: true, message: `${imageUrls.length} imagen(es) agregada(s)` });
   } catch (error: any) {
     console.error('Error al agregar imágenes:', error);
@@ -408,6 +417,9 @@ router.delete('/:id/images/:imageId', async (req: AuthRequest, res: Response) =>
     if (image.image_url.startsWith('/uploads/')) {
       await deleteImageFiles(image.image_url);
     }
+
+    // Si se borró la principal, promover otra a principal.
+    await productService.ensurePrimaryImage(id);
 
     res.json({ ok: true, message: 'Imagen eliminada correctamente' });
   } catch (error: any) {
