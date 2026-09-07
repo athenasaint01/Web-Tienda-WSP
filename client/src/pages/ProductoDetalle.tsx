@@ -1,76 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import { useProducts } from "../hooks/useProducts";
 import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
+import ProductCard from "../components/ProductCard";
 import { useWhatsAppEnabled } from "../hooks/useSettings";
-import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import type { ProductListItem } from "../types/api";
-
-/** Card con micro-tilt para la sección "Relacionados" */
-function RelatedCard({ p }: { p: ProductListItem }) {
-  const img = p.image_url ?? "/assets/demo/placeholder.jpg";
-
-  const [enableTilt, setEnableTilt] = useState(true);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setEnableTilt(window.matchMedia("(pointer: fine)").matches);
-    }
-  }, []);
-
-  const ref = useRef<HTMLDivElement>(null);
-  const tiltX = useMotionValue(0);
-  const tiltY = useMotionValue(0);
-  const rx = useSpring(tiltX, { stiffness: 150, damping: 18 });
-  const ry = useSpring(tiltY, { stiffness: 150, damping: 18 });
-  const MAX_TILT = 4;
-
-  function handleMouseMove(e: React.MouseEvent) {
-    if (!enableTilt) return;
-    const rect = ref.current?.getBoundingClientRect();
-    if (!rect) return;
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
-    tiltX.set(-(py - 0.5) * (MAX_TILT * 2));
-    tiltY.set((px - 0.5) * (MAX_TILT * 2));
-  }
-  function handleMouseLeave() {
-    tiltX.set(0);
-    tiltY.set(0);
-  }
-
-  return (
-    <motion.article
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      style={{ rotateX: enableTilt ? rx : 0, rotateY: enableTilt ? ry : 0, transformPerspective: 900 }}
-      className="group overflow-hidden border bg-white will-change-transform"
-    >
-      <Link to={`/producto/${p.slug}`} className="block" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <div className="relative">
-          <img
-            src={img}
-            alt={p.name}
-            className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-          />
-          <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/35 to-transparent" />
-        </div>
-        <div className="p-4">
-          <div className="font-display font-light tracking-wide">{p.name}</div>
-          <div className="text-xs text-neutral-500 capitalize">{p.category}</div>
-        </div>
-      </Link>
-    </motion.article>
-  );
-}
 
 export default function ProductoDetalle() {
   const { slug } = useParams();
@@ -452,9 +389,9 @@ export default function ProductoDetalle() {
       {related.length ? (
         <section className="mt-12">
           <h2 className="font-display text-xl font-light tracking-wide mb-4">También te puede gustar</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {related.map((r) => (
-              <RelatedCard key={r.id} p={r} />
+              <ProductCard key={r.id} p={r} />
             ))}
           </div>
         </section>
