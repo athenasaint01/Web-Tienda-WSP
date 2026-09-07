@@ -12,6 +12,7 @@ type Product = {
   category: string;
   featured: boolean;
   price?: number | null;
+  discount_percent?: number | null;
   sale_price?: number | null;
   image_url?: string;
 };

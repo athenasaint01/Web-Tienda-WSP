@@ -35,7 +35,7 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             />
           )}
 
-          {offer && <OfferRibbon />}
+          {offer && <OfferRibbon label={`-${offer.percent}%`} />}
           {'is_out_of_stock' in p && p.is_out_of_stock && (
             <div className="absolute top-3 right-3 bg-red-600 text-white px-2 py-1 text-xs font-bold z-10">
               AGOTADO

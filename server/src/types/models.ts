@@ -108,7 +108,8 @@ export interface Product {
   description?: string;
   featured: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // DERIVADO: price * (1 - discount_percent/100)
   stock: number;
   low_stock_threshold: number;
   wa_template?: string;
@@ -180,7 +181,8 @@ export interface ProductListItem {
   description?: string;
   featured: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // DERIVADO: price * (1 - discount_percent/100)
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
@@ -205,7 +207,8 @@ export interface CreateProductDTO {
   description?: string;
   featured?: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // DERIVADO: price * (1 - discount_percent/100)
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;
@@ -231,7 +234,8 @@ export interface UpdateProductDTO {
   description?: string;
   featured?: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // DERIVADO: price * (1 - discount_percent/100)
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;

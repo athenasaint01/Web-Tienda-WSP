@@ -126,7 +126,8 @@ export type ProductListItem = {
   description?: string;
   featured: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // derivado: price * (1 - discount_percent/100)
   stock: number;
   is_out_of_stock: boolean;
   image_url?: string;
@@ -151,7 +152,8 @@ export type ProductDetail = {
   wa_template?: string;
   is_active: boolean;
   price?: number | null;
-  sale_price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // derivado: price * (1 - discount_percent/100)
   category: Category;
   audience_id?: number | null;
   thickness_id?: number | null;

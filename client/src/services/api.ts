@@ -377,7 +377,7 @@ export type ProductData = {
   description?: string;
   featured?: boolean;
   price?: number | null;
-  sale_price?: number | null; // precio con descuento (< price)
+  discount_percent?: number | null; // % de descuento (0-95); el sale_price se calcula en el backend
   wa_template?: string;
   images?: Array<{
     url: string;

@@ -158,6 +158,7 @@ export const getAllProducts = async (
       p.description,
       p.featured,
       p.price::float8 AS price,
+      p.discount_percent,
       p.sale_price::float8 AS sale_price,
       p.stock,
       CASE WHEN p.stock <= 0 THEN TRUE ELSE FALSE END as is_out_of_stock,
@@ -212,8 +213,18 @@ export const getAllProducts = async (
   const total = parseInt(countResult.rows[0].total);
   const totalPages = Math.ceil(total / limit);
 
+  // sale_price siempre derivado del precio y el % (por si la columna quedó desincronizada)
+  const data = dataResult.rows.map((row: any) => {
+    const discountPercent = sanitizeDiscount(row.discount_percent);
+    return {
+      ...row,
+      discount_percent: discountPercent,
+      sale_price: computeSalePrice(row.price, discountPercent),
+    };
+  });
+
   return {
-    data: dataResult.rows,
+    data,
     pagination: {
       page,
       limit,
@@ -308,11 +319,16 @@ const hydrateProductRelations = async (product: any): Promise<ProductWithDetails
     ),
   ]);
 
+  // pg devuelve NUMERIC como string -> normalizar a number | null
+  const price = product.price != null ? parseFloat(product.price) : null;
+  const discountPercent = sanitizeDiscount(product.discount_percent);
+
   return {
     ...product,
-    // pg devuelve NUMERIC como string -> normalizar a number | null
-    price: product.price != null ? parseFloat(product.price) : null,
-    sale_price: product.sale_price != null ? parseFloat(product.sale_price) : null,
+    price,
+    discount_percent: discountPercent,
+    // sale_price siempre derivado del precio y el % (nunca de la columna)
+    sale_price: computeSalePrice(price, discountPercent),
     images: imagesResult.rows,
     materials: materialsResult.rows,
     tags: tagsResult.rows,
@@ -349,15 +365,22 @@ export const getProductById = async (id: number): Promise<ProductWithDetails | n
 };
 
 // =============================================
-// HELPER: valida que el precio de oferta sea menor al precio normal.
-// Si no lo es (o falta el precio normal), se ignora el sale_price.
-const sanitizeSalePrice = (
+// HELPER: normaliza el porcentaje de descuento a un entero 0-95, o null.
+const sanitizeDiscount = (pct: number | null | undefined): number | null => {
+  if (pct == null || isNaN(pct)) return null;
+  const n = Math.round(pct);
+  if (n <= 0) return null;
+  if (n > 95) return 95;
+  return n;
+};
+
+// HELPER: precio de oferta derivado del precio y el % de descuento.
+const computeSalePrice = (
   price: number | null | undefined,
-  salePrice: number | null | undefined
+  discountPercent: number | null | undefined
 ): number | null => {
-  if (salePrice == null) return null;
-  if (price == null || salePrice <= 0 || salePrice >= price) return null;
-  return salePrice;
+  if (price == null || discountPercent == null || discountPercent <= 0) return null;
+  return Math.round(price * (1 - discountPercent / 100) * 100) / 100;
 };
 
 // =============================================
@@ -371,12 +394,14 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // Normalizar slug: convertir a minúsculas y reemplazar espacios por guiones
     const normalizedSlug = data.slug.toLowerCase().replace(/\s+/g, '-');
-    const salePrice = sanitizeSalePrice(data.price, data.sale_price);
+    const price = data.price ?? null;
+    const discountPercent = sanitizeDiscount(data.discount_percent);
+    const salePrice = computeSalePrice(price, discountPercent);
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, price, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING *`,
       [
         normalizedSlug,
@@ -386,7 +411,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.thickness_id ?? null,
         data.description,
         data.featured || false,
-        data.price ?? null,
+        price,
+        discountPercent,
         salePrice,
         data.stock !== undefined ? data.stock : 0,
         data.low_stock_threshold !== undefined ? data.low_stock_threshold : 5,
@@ -486,22 +512,24 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
       productData.slug = productData.slug.toLowerCase().replace(/\s+/g, '-');
     }
 
-    // Validar sale_price contra el precio efectivo (nuevo si viene, o el actual).
-    if (productData.price !== undefined || productData.sale_price !== undefined) {
+    // Si cambia el precio o el % de descuento, recalcular discount_percent
+    // (normalizado) y sale_price (derivado) para mantener todo consistente.
+    if (productData.price !== undefined || productData.discount_percent !== undefined) {
       const currentRow = await client.query(
-        'SELECT price, sale_price FROM products WHERE id = $1',
+        'SELECT price, discount_percent FROM products WHERE id = $1',
         [id]
       );
       const cur = currentRow.rows[0] || {};
       const currentPrice = cur.price != null ? parseFloat(cur.price) : null;
-      const currentSale = cur.sale_price != null ? parseFloat(cur.sale_price) : null;
+      const currentPct = cur.discount_percent != null ? Number(cur.discount_percent) : null;
 
       const effectivePrice = productData.price !== undefined ? productData.price : currentPrice;
-      const effectiveSale = productData.sale_price !== undefined ? productData.sale_price : currentSale;
+      const effectivePct =
+        productData.discount_percent !== undefined ? productData.discount_percent : currentPct;
 
-      // Reescribe sale_price siempre que price o sale_price cambien, para
-      // mantener la invariante sale_price < price (o null).
-      productData.sale_price = sanitizeSalePrice(effectivePrice, effectiveSale);
+      const pct = sanitizeDiscount(effectivePrice != null ? effectivePct : null);
+      productData.discount_percent = pct;
+      (productData as any).sale_price = computeSalePrice(effectivePrice, pct);
     }
 
     // Actualizar campos básicos del producto

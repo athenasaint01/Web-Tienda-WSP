@@ -167,7 +167,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
     <Link to={`/producto/${p.slug}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
       <div className="group overflow-hidden">
         <div className="relative aspect-square overflow-hidden bg-neutral-100">
-          {offer && <OfferRibbon />}
+          {offer && <OfferRibbon label={`-${offer.percent}%`} />}
           <img
             src={img1}
             alt={p.name}

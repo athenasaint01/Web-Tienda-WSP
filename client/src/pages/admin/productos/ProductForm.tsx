@@ -11,6 +11,7 @@ import FormTextarea from '../../../components/admin/ui/FormTextarea';
 import FormSelect from '../../../components/admin/ui/FormSelect';
 import ImageUpload from '../../../components/admin/ui/ImageUpload';
 import { BADGE_MAP } from '../../../components/BadgeChips';
+import { useCurrency } from '../../../hooks/useSettings';
 
 const toSlug = (text: string) =>
   text
@@ -36,7 +37,12 @@ const productSchema = z.object({
   thickness_id: z.number().nullable().optional(),
   featured: z.boolean().optional(),
   price: z.number().min(0, 'El precio no puede ser negativo').nullable().optional(),
-  sale_price: z.number().min(0, 'El precio de oferta no puede ser negativo').nullable().optional(),
+  discount_percent: z
+    .number()
+    .min(0, 'El descuento no puede ser negativo')
+    .max(95, 'Máximo 95%')
+    .nullable()
+    .optional(),
   stock: z.number().min(0, 'El stock no puede ser negativo').optional(),
   low_stock_threshold: z.number().min(0, 'El umbral no puede ser negativo').optional(),
   wa_template: z.string().optional(),
@@ -62,6 +68,7 @@ export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const currency = useCurrency();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -91,7 +98,7 @@ export default function ProductForm() {
     defaultValues: {
       featured: false,
       price: null,
-      sale_price: null,
+      discount_percent: null,
       stock: 0,
       low_stock_threshold: 5,
       audience_id: null,
@@ -110,13 +117,12 @@ export default function ProductForm() {
   const selectedLengths = watch('length_ids') || [];
   const selectedColors = watch('color_ids') || [];
   const priceVal = watch('price');
-  const salePriceVal = watch('sale_price');
-  const discountPercent =
-    priceVal != null && salePriceVal != null && salePriceVal > 0 && salePriceVal < priceVal
-      ? Math.round(((priceVal - salePriceVal) / priceVal) * 100)
+  const discountVal = watch('discount_percent');
+  // Precio final (preview) = price * (1 - discount/100), redondeado a 2 decimales.
+  const finalPrice =
+    priceVal != null && discountVal != null && discountVal > 0 && discountVal < 100
+      ? Math.round(priceVal * (1 - discountVal / 100) * 100) / 100
       : null;
-  const salePriceInvalid =
-    salePriceVal != null && salePriceVal > 0 && priceVal != null && salePriceVal >= priceVal;
   const nameValue = useWatch({ control, name: 'name' });
 
   // Auto-generar slug desde nombre solo al crear
@@ -178,7 +184,7 @@ export default function ProductForm() {
           setValue('thickness_id', product.thickness_id ?? null);
           setValue('featured', product.featured || false);
           setValue('price', product.price ?? null);
-          setValue('sale_price', product.sale_price ?? null);
+          setValue('discount_percent', product.discount_percent ?? null);
           setValue('stock', product.stock || 0);
           setValue('low_stock_threshold', product.low_stock_threshold || 5);
           setValue('wa_template', product.wa_template || '');
@@ -255,7 +261,7 @@ export default function ProductForm() {
     formData.append('thickness_id', data.thickness_id != null ? String(data.thickness_id) : '');
     formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
     formData.append('price', data.price != null ? String(data.price) : '');
-    formData.append('sale_price', data.sale_price != null ? String(data.sale_price) : '');
+    formData.append('discount_percent', data.discount_percent != null ? String(data.discount_percent) : '');
     formData.append('stock', (data.stock ?? 0).toString());
     formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
 
@@ -474,24 +480,33 @@ export default function ProductForm() {
               helperText="Vacío = se consulta por WhatsApp."
             />
             <FormInput
-              label="Precio de oferta"
+              label="Descuento (%)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
-              {...register('sale_price', {
+              max="95"
+              {...register('discount_percent', {
                 setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
               })}
-              error={errors.sale_price?.message || (salePriceInvalid ? 'Debe ser menor al precio normal' : undefined)}
-              placeholder="Ej: 99.90"
-              helperText="Vacío = sin oferta."
+              error={errors.discount_percent?.message}
+              placeholder="Ej: 15"
+              helperText="Vacío o 0 = sin oferta."
             />
           </div>
-          {discountPercent != null && (
-            <p className="text-sm text-emerald-800">
-              Descuento: <span className="font-semibold">-{discountPercent}%</span>
-              {' · '}Se mostrará la cinta <span className="font-medium">OFERTA</span> en el catálogo.
-            </p>
-          )}
+          {finalPrice != null ? (
+            <div className="flex flex-wrap items-baseline gap-2 text-sm text-emerald-900">
+              <span>Precio final con descuento:</span>
+              <span className="font-semibold text-base">
+                {currency} {Number.isInteger(finalPrice) ? finalPrice : finalPrice.toFixed(2)}
+              </span>
+              <span className="text-neutral-400 line-through">
+                {currency} {priceVal != null && Number.isInteger(priceVal) ? priceVal : priceVal?.toFixed(2)}
+              </span>
+              <span className="text-xs">· Se mostrará la cinta <span className="font-medium">-{discountVal}%</span> en el catálogo.</span>
+            </div>
+          ) : discountVal != null && discountVal > 0 && priceVal == null ? (
+            <p className="text-sm text-amber-700">Pon un precio normal para aplicar el descuento.</p>
+          ) : null}
         </div>
 
         {/* Stock Section */}

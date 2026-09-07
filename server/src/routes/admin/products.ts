@@ -32,6 +32,15 @@ const optionalMoney = () =>
     return isNaN(n) || n < 0 ? null : n;
   }).optional();
 
+// Helper: porcentaje entero opcional desde FormData ('' => null; se clampa 0-95)
+const optionalPercent = () =>
+  z.string().transform(val => {
+    if (val === undefined || val === '' || val === 'null') return null;
+    const n = Math.round(parseFloat(val));
+    if (isNaN(n) || n <= 0) return null;
+    return n > 95 ? 95 : n;
+  }).optional();
+
 const productDataSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(255),
@@ -41,7 +50,7 @@ const productDataSchema = z.object({
   description: z.string().optional(),
   featured: z.string().transform(val => val === 'true').optional(),
   price: optionalMoney(),
-  sale_price: optionalMoney(),
+  discount_percent: optionalPercent(),
   stock: z.string().transform(val => val ? parseInt(val) : 0).optional(),
   low_stock_threshold: z.string().transform(val => val ? parseInt(val) : 5).optional(),
   wa_template: z.string().optional(),
@@ -164,6 +173,16 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
         return isNaN(n) || n < 0 ? null : n;
       }).optional();
 
+    // Helper: porcentaje entero opcional desde FormData ('' => null; ausente => undefined)
+    const optionalPercentOrUndefined = () =>
+      z.string().transform(val => {
+        if (val === undefined) return undefined;
+        if (val === '' || val === 'null') return null;
+        const n = Math.round(parseFloat(val));
+        if (isNaN(n) || n <= 0) return null;
+        return n > 95 ? 95 : n;
+      }).optional();
+
     // Schema for FormData (when images are included)
     const updateFormDataSchema = z.object({
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
@@ -174,7 +193,7 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       description: z.string().optional(),
       featured: z.string().transform(val => val === 'true').optional(),
       price: optionalMoneyOrUndefined(),
-      sale_price: optionalMoneyOrUndefined(),
+      discount_percent: optionalPercentOrUndefined(),
       stock: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       low_stock_threshold: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       wa_template: z.string().optional(),
@@ -204,7 +223,8 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       description: z.string().optional(),
       featured: z.boolean().optional(),
       price: z.number().min(0).nullable().optional(),
-      sale_price: z.number().min(0).nullable().optional(),
+      // Sin restricción de rango aquí: el servicio (sanitizeDiscount) lo clampa a 0-95.
+      discount_percent: z.number().nullable().optional(),
       stock: z.number().int().min(0).optional(),
       low_stock_threshold: z.number().int().min(0).optional(),
       wa_template: z.string().optional(),

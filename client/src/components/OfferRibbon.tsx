@@ -11,9 +11,9 @@ export default function OfferRibbon({
   label?: string;
   size?: 'sm' | 'md';
 }) {
-  const dim = size === 'sm' ? 88 : 116; // lado del cuadrado que ocupa la cinta
+  const dim = size === 'sm' ? 92 : 120; // lado del cuadrado que ocupa la cinta
   const band = size === 'sm' ? 18 : 24; // alto de la banda
-  const fontSize = size === 'sm' ? 9 : 11;
+  const fontSize = size === 'sm' ? 9.5 : 11.5;
 
   return (
     <div
