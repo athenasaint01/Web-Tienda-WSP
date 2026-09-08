@@ -78,7 +78,7 @@ export default function Login() {
                 type="email"
                 id="email"
                 className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900 focus:border-transparent transition-all"
-                placeholder="admin@example.com"
+                placeholder="Correo del administrador"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -114,22 +114,11 @@ export default function Login() {
               {isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
           </form>
-
-          {/* Info de prueba */}
-          <div className="mt-6 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-            <p className="text-xs text-neutral-600 text-center">
-              <strong>Credenciales de prueba:</strong>
-              <br />
-              Email: admin@alahas.com
-              <br />
-              Contraseña: admin123
-            </p>
-          </div>
         </div>
 
         {/* Footer */}
         <p className="text-center mt-6 text-sm text-neutral-600">
-          &copy; 2025 Web Alahas. Panel Administrativo.
+          &copy; {new Date().getFullYear()} Alahas. Panel Administrativo.
         </p>
       </div>
     </div>
