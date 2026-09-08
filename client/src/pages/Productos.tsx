@@ -8,7 +8,7 @@ import { useFilterCatalogs } from "../hooks/useFilterCatalogs";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X, ChevronLeft, ChevronRight } from "lucide-react";
 
-type SortKey = "relevancia" | "nombre-asc" | "nombre-desc";
+type SortKey = "relevancia" | "recent" | "nombre-asc" | "nombre-desc";
 
 export default function Productos() {
   const [params, setParams] = useSearchParams();
@@ -257,7 +257,8 @@ export default function Productos() {
             value={selected.sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
           >
-            <option value="relevancia">Relevancia</option>
+            <option value="relevancia">Orden de la tienda</option>
+            <option value="recent">Más recientes</option>
             <option value="nombre-asc">A–Z</option>
             <option value="nombre-desc">Z–A</option>
           </select>

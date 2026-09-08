@@ -129,8 +129,11 @@ export const getAllProducts = async (
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  // Ordenamiento
-  let orderBy = 'ORDER BY p.featured DESC, p.created_at DESC';
+  // Ordenamiento.
+  // Por defecto ('relevancia'): más antiguo primero -> el primer producto
+  // creado sale arriba y los nuevos se agregan al final. `id` como
+  // desempate para un orden estable si dos productos comparten timestamp.
+  let orderBy = 'ORDER BY p.created_at ASC, p.id ASC';
   switch (sort) {
     case 'nombre-asc':
       orderBy = 'ORDER BY p.name ASC';
@@ -139,7 +142,7 @@ export const getAllProducts = async (
       orderBy = 'ORDER BY p.name DESC';
       break;
     case 'recent':
-      orderBy = 'ORDER BY p.created_at DESC';
+      orderBy = 'ORDER BY p.created_at DESC, p.id DESC';
       break;
   }
 

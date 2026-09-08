@@ -90,6 +90,9 @@ export default function ProductosPage() {
           <table className="w-full">
             <thead className="bg-neutral-50 border-b border-neutral-200">
               <tr>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 w-12">
+                  #
+                </th>
                 <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700 w-20">
                   Imagen
                 </th>
@@ -111,8 +114,11 @@ export default function ProductosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200">
-              {products.map((product) => (
+              {products.map((product, index) => (
                 <tr key={product.id} className="hover:bg-neutral-50">
+                  <td className="px-4 py-4 text-sm text-neutral-400 tabular-nums">
+                    {index + 1}
+                  </td>
                   <td className="px-6 py-4">
                     {product.image_url ? (
                       <img
