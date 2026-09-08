@@ -53,15 +53,16 @@ export default function SearchModal({ open, onClose }: Props) {
             onClick={onClose}
           />
 
-          {/* Panel */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-xl z-[101] px-4"
-          >
-            <div className="bg-white shadow-2xl overflow-hidden">
+          {/* Panel: contenedor fijo que centra con flexbox (no transform,
+              para no chocar con el transform que aplica framer-motion) */}
+          <div className="fixed inset-x-0 top-20 z-[101] flex justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full max-w-xl bg-white shadow-2xl overflow-hidden"
+            >
               {/* Input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-black/8">
                 <Search size={18} className="text-[#4a4438]/50 shrink-0" />
@@ -145,8 +146,8 @@ export default function SearchModal({ open, onClose }: Props) {
                   Escribe para buscar productos
                 </p>
               )}
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
