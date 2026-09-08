@@ -26,9 +26,13 @@ export const getAllProducts = async (
     featured,
     is_active = true,
     sort = 'relevancia',
-    page = 1,
-    limit = 50,
+    page: rawPage = 1,
+    limit: rawLimit = 50,
   } = filters;
+
+  // Saneo de paginación: página >= 1, límite entre 1 y 100.
+  const page = Math.max(1, Math.floor(Number(rawPage) || 1));
+  const limit = Math.min(100, Math.max(1, Math.floor(Number(rawLimit) || 50)));
 
   // Construir WHERE dinámicamente
   const conditions: string[] = [];
