@@ -34,7 +34,7 @@ export default function ProductoDetalle() {
   // Usamos optional chaining para evitar errores cuando product es null
   const { products: relatedRaw } = useProducts({
     categoria: product?.category?.slug || '',
-    limit: 4,
+    limit: 6,
   });
 
   // Registrar una vista de la ficha (una sola vez por producto cargado)
@@ -150,7 +150,7 @@ export default function ProductoDetalle() {
   };
 
   // Filtrar el producto actual de los relacionados
-  const related = relatedRaw.filter((p) => p.id !== product.id).slice(0, 3);
+  const related = relatedRaw.filter((p) => p.id !== product.id).slice(0, 5);
 
   function handleMainMove(e: React.MouseEvent<HTMLImageElement, MouseEvent>) {
     const rect = (e.currentTarget as HTMLImageElement).getBoundingClientRect();
@@ -517,7 +517,7 @@ export default function ProductoDetalle() {
       {related.length ? (
         <section className="mt-12">
           <h2 className="font-display text-xl font-light tracking-wide mb-4">También te puede gustar</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {related.map((r) => (
               <ProductCard key={r.id} p={r} />
             ))}
