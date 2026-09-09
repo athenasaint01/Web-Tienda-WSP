@@ -76,11 +76,9 @@ export default function ProductoDetalle() {
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="flex items-center gap-3">
-          <span className="inline-block h-5 w-5 rounded-full border-2 border-neutral-300 border-t-neutral-600 animate-spin" />
-          <p className="text-neutral-600">Cargando producto...</p>
-        </div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 px-4">
+        <span className="inline-block h-6 w-6 rounded-full border-2 border-neutral-300 border-t-neutral-600 animate-spin" />
+        <p className="text-neutral-600 text-sm">Cargando producto...</p>
       </div>
     );
   }
@@ -88,8 +86,8 @@ export default function ProductoDetalle() {
   // Error or not found state
   if (error || !product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <p className="text-sm text-neutral-600 mb-4">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 px-4 text-center">
+        <p className="text-sm text-neutral-600">
           {error || "Producto no encontrado."}
         </p>
         <Link
