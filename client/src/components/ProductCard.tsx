@@ -42,8 +42,14 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             </div>
           )}
           {p.badge_labels && p.badge_labels.length > 0 && (
-            <div className="absolute bottom-2 right-2 z-10 scale-75 sm:scale-100 origin-bottom-right">
-              <BadgeChips badges={p.badge_labels} size="sm" />
+            <div className="absolute bottom-2 right-2 z-10 origin-bottom-right">
+              {/* móvil: sello pequeño / desktop: sello de card (más legible) */}
+              <div className="scale-75 origin-bottom-right sm:hidden">
+                <BadgeChips badges={p.badge_labels} size="sm" />
+              </div>
+              <div className="hidden sm:block">
+                <BadgeChips badges={p.badge_labels} size="lg-card" />
+              </div>
             </div>
           )}
         </div>
