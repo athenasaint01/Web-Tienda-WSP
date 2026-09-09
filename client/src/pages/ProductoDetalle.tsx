@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import { useProducts } from "../hooks/useProducts";
-import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
 import ProductCard from "../components/ProductCard";
 import { useCurrency, useWhatsAppPhone, formatPrice, getOffer } from "../hooks/useSettings";
 import { trackProductMetric } from "../services/api";
+import { waLink } from "../lib/wa";
 import { useCart } from "../context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
+import { BsWhatsapp } from "react-icons/bs";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
 
 export default function ProductoDetalle() {
@@ -485,13 +486,19 @@ export default function ProductoDetalle() {
 
           <div className="flex flex-wrap gap-3 pt-2">
             {phone && (
-              <WhatsAppButton
-                phone={phone}
-                message={msg}
-                label="Consulta este producto"
+              <a
+                href={waLink(phone, msg)}
+                target="_blank"
+                rel="noreferrer"
                 onClick={() => trackProductMetric(product.id, 'wa_click')}
-                className="mt-1"
-              />
+                aria-label="Consulta este producto por WhatsApp"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium tracking-wide
+                          bg-[#4a4438] text-white hover:bg-[#3a352c]
+                          transition-colors duration-200 focus:outline-none"
+              >
+                <BsWhatsapp className="h-4 w-4 flex-shrink-0" aria-hidden />
+                Consulta este producto
+              </a>
             )}
 
             <Link
