@@ -9,7 +9,7 @@ import { waLink, buildCartMessage } from '../lib/wa';
 import { createOrder } from '../services/api';
 
 export default function CartDrawer() {
-  const { items, isOpen, close, count, itemPrice, total, hasItemsWithoutPrice, setQty, remove, clear } =
+  const { items, isOpen, close, count, itemPrice, total, hasItemsWithoutPrice, setQty, remove, clear, maxQty } =
     useCart();
   // El carrito usa siempre el número configurado, INDEPENDIENTE del toggle
   // "Mostrar botones de WhatsApp" (ese toggle solo afecta el botón flotante
@@ -264,7 +264,8 @@ export default function CartDrawer() {
                             <div className="inline-flex items-center border border-neutral-300 rounded-full">
                               <button
                                 onClick={() => setQty(it.productId, it.qty - 1)}
-                                className="p-1.5 hover:bg-black/5 rounded-l-full transition-colors"
+                                disabled={it.qty <= 1}
+                                className="p-1.5 hover:bg-black/5 rounded-l-full transition-colors disabled:opacity-30"
                                 aria-label="Quitar una unidad"
                               >
                                 <Minus size={13} />
@@ -272,7 +273,8 @@ export default function CartDrawer() {
                               <span className="w-7 text-center text-xs tabular-nums">{it.qty}</span>
                               <button
                                 onClick={() => setQty(it.productId, it.qty + 1)}
-                                className="p-1.5 hover:bg-black/5 rounded-r-full transition-colors"
+                                disabled={it.qty >= maxQty(it)}
+                                className="p-1.5 hover:bg-black/5 rounded-r-full transition-colors disabled:opacity-30"
                                 aria-label="Agregar una unidad"
                               >
                                 <Plus size={13} />
@@ -287,6 +289,12 @@ export default function CartDrawer() {
                               <Trash2 size={15} />
                             </button>
                           </div>
+
+                          {it.stock != null && it.qty >= it.stock && it.stock > 0 && (
+                            <p className="mt-1 text-[11px] text-amber-700">
+                              Máximo disponible: {it.stock}
+                            </p>
+                          )}
                         </div>
                       </li>
                     );

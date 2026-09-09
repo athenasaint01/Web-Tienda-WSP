@@ -62,7 +62,7 @@ export function buildCartMessage(
     lines.push(`Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}`);
     if (hasUnpriced) lines.push('(hay productos por cotizar)');
   } else {
-    lines.push('Quedo atenta/o a la cotización.');
+    lines.push('Quedo atenta/o para realizar mi pedido.');
   }
 
   return lines.join('\n');

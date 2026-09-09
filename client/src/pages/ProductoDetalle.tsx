@@ -116,7 +116,13 @@ export default function ProductoDetalle() {
   const primaryImage =
     (product.images.find((im: any) => im.is_primary) ?? product.images[0])?.image_url;
 
+  // Cuánto ya hay de este producto en el carrito (para no pasarnos del stock al sumar)
+  const inCart = cart.items.find((i) => i.productId === product.id)?.qty ?? 0;
+  const maxAddable = Math.max(0, product.stock - inCart);
+
   const addToCart = () => {
+    if (maxAddable <= 0) return;
+    const toAdd = Math.min(qty, maxAddable);
     cart.add(
       {
         productId: product.id,
@@ -126,8 +132,9 @@ export default function ProductoDetalle() {
         price: product.price ?? null,
         sale_price: product.sale_price ?? null,
         image_url: primaryImage,
+        stock: product.stock,
       },
-      qty
+      toAdd
     );
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1800);
@@ -414,37 +421,55 @@ export default function ProductoDetalle() {
 
           {/* Agregar al carrito */}
           {product.stock > 0 && (
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <div className="inline-flex items-center border border-neutral-300 rounded-full">
+            <div className="space-y-2 pt-1">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="inline-flex items-center border border-neutral-300 rounded-full">
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    disabled={qty <= 1}
+                    className="p-2.5 hover:bg-black/5 rounded-l-full transition-colors disabled:opacity-30"
+                    aria-label="Quitar una unidad"
+                  >
+                    <Minus size={14} />
+                  </button>
+                  <span className="w-9 text-center text-sm tabular-nums">{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQty((q) => Math.min(maxAddable, q + 1))}
+                    disabled={qty >= maxAddable}
+                    className="p-2.5 hover:bg-black/5 rounded-r-full transition-colors disabled:opacity-30"
+                    aria-label="Agregar una unidad"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="p-2.5 hover:bg-black/5 rounded-l-full transition-colors"
-                  aria-label="Quitar una unidad"
+                  onClick={addToCart}
+                  disabled={maxAddable <= 0}
+                  className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium tracking-wide
+                            bg-[#4a4438] text-white hover:bg-[#3a352c]
+                            transition-colors duration-200 focus:outline-none
+                            disabled:opacity-40 disabled:hover:bg-[#4a4438]"
                 >
-                  <Minus size={14} />
-                </button>
-                <span className="w-9 text-center text-sm tabular-nums">{qty}</span>
-                <button
-                  type="button"
-                  onClick={() => setQty((q) => Math.min(99, q + 1))}
-                  className="p-2.5 hover:bg-black/5 rounded-r-full transition-colors"
-                  aria-label="Agregar una unidad"
-                >
-                  <Plus size={14} />
+                  {justAdded ? <Check size={16} /> : <ShoppingBag size={16} />}
+                  {justAdded ? 'Agregado' : 'Agregar al carrito'}
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={addToCart}
-                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium tracking-wide
-                          bg-[#4a4438] text-white hover:bg-[#3a352c]
-                          transition-colors duration-200 focus:outline-none"
-              >
-                {justAdded ? <Check size={16} /> : <ShoppingBag size={16} />}
-                {justAdded ? 'Agregado' : 'Agregar al carrito'}
-              </button>
+              {maxAddable <= 0 ? (
+                <p className="text-xs text-amber-700">
+                  Ya tienes las {product.stock} unidades disponibles en tu selección.
+                </p>
+              ) : maxAddable <= product.low_stock_threshold ? (
+                <p className="text-xs text-neutral-400">
+                  {maxAddable === product.stock
+                    ? `Solo quedan ${product.stock} unidades.`
+                    : `Puedes agregar ${maxAddable} más (${product.stock} en total).`}
+                </p>
+              ) : null}
             </div>
           )}
 

@@ -9,8 +9,20 @@ export type CartItem = {
   price?: number | null;       // precio normal
   sale_price?: number | null;  // precio con descuento (derivado del backend)
   image_url?: string;
+  /**
+   * Stock disponible al momento de agregar (snapshot). Se usa como tope
+   * de cantidad. El backend re-valida el stock real al confirmar el pedido.
+   * undefined = producto sin control de stock -> sin tope (solo MAX_QTY).
+   */
+  stock?: number;
   qty: number;
 };
+
+/** Cantidad máxima permitida para un item, respetando su stock. */
+export function maxQtyFor(item: Pick<CartItem, 'stock'>): number {
+  if (item.stock == null || item.stock <= 0) return MAX_QTY_HARD;
+  return Math.min(MAX_QTY_HARD, item.stock);
+}
 
 type CartContextType = {
   items: CartItem[];
@@ -28,13 +40,15 @@ type CartContextType = {
   add: (item: Omit<CartItem, 'qty'>, qty?: number) => void;
   remove: (productId: number) => void;
   setQty: (productId: number, qty: number) => void;
+  /** Cantidad máxima que admite un item según su stock (snapshot). */
+  maxQty: (item: Pick<CartItem, 'stock'>) => number;
   clear: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'alahas_cart';
-const MAX_QTY = 99;
+const MAX_QTY_HARD = 99;
 
 function readStorage(): CartItem[] {
   try {
@@ -42,10 +56,13 @@ function readStorage(): CartItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    // saneo mínimo
+    // saneo: la cantidad no puede pasar el stock (snapshot) ni MAX_QTY_HARD
     return parsed
       .filter((x) => x && typeof x.productId === 'number' && typeof x.slug === 'string')
-      .map((x) => ({ ...x, qty: Math.min(MAX_QTY, Math.max(1, Number(x.qty) || 1)) }));
+      .map((x) => ({
+        ...x,
+        qty: Math.min(maxQtyFor(x), Math.max(1, Number(x.qty) || 1)),
+      }));
   } catch {
     return [];
   }
@@ -77,13 +94,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
       if (existing) {
+        // Refresca el stock con el snapshot más reciente y respeta el tope.
+        const stock = item.stock ?? existing.stock;
+        const cap = maxQtyFor({ stock });
         return prev.map((i) =>
           i.productId === item.productId
-            ? { ...i, qty: Math.min(MAX_QTY, i.qty + qty) }
+            ? { ...i, stock, qty: Math.min(cap, i.qty + qty) }
             : i
         );
       }
-      return [...prev, { ...item, qty: Math.min(MAX_QTY, Math.max(1, qty)) }];
+      const cap = maxQtyFor(item);
+      return [...prev, { ...item, qty: Math.min(cap, Math.max(1, qty)) }];
     });
     setIsOpen(true);
   }, []);
@@ -96,7 +117,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       if (qty <= 0) return prev.filter((i) => i.productId !== productId);
       return prev.map((i) =>
-        i.productId === productId ? { ...i, qty: Math.min(MAX_QTY, qty) } : i
+        i.productId === productId ? { ...i, qty: Math.min(maxQtyFor(i), qty) } : i
       );
     });
   }, []);
@@ -132,6 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       add,
       remove,
       setQty,
+      maxQty: maxQtyFor,
       clear,
     };
   }, [items, isOpen, itemPrice, add, remove, setQty, clear]);

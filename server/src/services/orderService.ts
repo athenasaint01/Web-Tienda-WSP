@@ -47,7 +47,7 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
     // Traer los productos referenciados para armar los snapshots
     const ids = data.items.map((i) => i.product_id);
     const prodRes = await client.query(
-      `SELECT id, name, slug, price::float8 AS price, discount_percent
+      `SELECT id, name, slug, price::float8 AS price, discount_percent, stock
        FROM products WHERE id = ANY($1)`,
       [ids]
     );
@@ -72,7 +72,7 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
 
     for (const it of data.items) {
       const p = prodMap.get(it.product_id);
-      const qty = Math.max(1, Math.min(99, Math.floor(it.qty)));
+      let qty = Math.max(1, Math.min(99, Math.floor(it.qty)));
       if (!p) {
         // producto no encontrado: se guarda igual con datos mínimos
         itemsToInsert.push({
@@ -86,6 +86,12 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
         hasUnpriced = true;
         continue;
       }
+
+      // Cap por stock real: nunca guardar un pedido con más cantidad que
+      // el stock disponible en la BD (el cliente no es fuente de verdad).
+      const stock = p.stock ?? 0;
+      if (stock > 0 && qty > stock) qty = stock;
+
       const pct = sanitizeDiscount(p.discount_percent);
       const effective = computeSalePrice(p.price, pct) ?? p.price ?? null;
       const lineTotal = effective != null ? Math.round(effective * qty * 100) / 100 : null;
