@@ -4,15 +4,17 @@ import { X, Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { BsWhatsapp } from 'react-icons/bs';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useWhatsAppPhone, useWhatsAppEnabled, useCurrency, formatPrice } from '../hooks/useSettings';
+import { useWhatsAppPhone, useCurrency, formatPrice } from '../hooks/useSettings';
 import { waLink, buildCartMessage } from '../lib/wa';
 import { createOrder } from '../services/api';
 
 export default function CartDrawer() {
   const { items, isOpen, close, count, itemPrice, total, hasItemsWithoutPrice, setQty, remove, clear } =
     useCart();
+  // El carrito usa siempre el número configurado, INDEPENDIENTE del toggle
+  // "Mostrar botones de WhatsApp" (ese toggle solo afecta el botón flotante
+  // y el botón "Consultar" de cada producto).
   const phone = useWhatsAppPhone();
-  const waEnabled = useWhatsAppEnabled();
   const currency = useCurrency();
 
   // Paso del checkout: 'cart' (lista) | 'form' (nombre/teléfono)
@@ -307,7 +309,7 @@ export default function CartDrawer() {
                     </p>
                   )}
 
-                  {waEnabled && phone ? (
+                  {phone ? (
                     <button
                       onClick={() => setStep('form')}
                       className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 text-white py-3 text-sm font-medium hover:brightness-105 transition"
@@ -317,7 +319,7 @@ export default function CartDrawer() {
                     </button>
                   ) : (
                     <p className="text-xs text-center text-neutral-400">
-                      WhatsApp no disponible en este momento.
+                      Aún no hay un número de WhatsApp configurado.
                     </p>
                   )}
 
