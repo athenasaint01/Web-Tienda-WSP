@@ -59,12 +59,13 @@ export const getMaterialBySlug = async (slug: string): Promise<Material | null> 
  */
 export const createMaterial = async (data: MaterialInput): Promise<Material> => {
   const { name, name_short, name_en, slug, description, display_order } = data;
+  const blank = (v?: string) => (v == null || v.trim() === '' ? null : v);
 
   const result = await pool.query(
     `INSERT INTO materials (name, name_short, name_en, slug, description, display_order)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [name, name_short ?? name.slice(0, 24), name_en ?? null, slug, description, display_order ?? 0]
+    [name, blank(name_short) ?? name.slice(0, 24), blank(name_en), slug, blank(description), display_order ?? 0]
   );
 
   return result.rows[0];
@@ -77,20 +78,32 @@ export const updateMaterial = async (
   id: number,
   data: Partial<MaterialInput>
 ): Promise<Material | null> => {
-  const { name, name_short, name_en, slug, description, display_order } = data;
+  // Solo se actualizan las columnas presentes en `data`. Así un campo
+  // enviado vacío ('') se guarda como vacío (permite borrar el sello EN),
+  // y un campo omitido conserva su valor actual.
+  // '' o solo espacios en los campos opcionales -> NULL (mantiene la BD limpia
+  // y el catálogo cae al siguiente nombre disponible).
+  const nullIfBlank = (v: unknown) =>
+    typeof v === 'string' && v.trim() === '' ? null : v ?? null;
+
+  const cols: Record<string, unknown> = {};
+  if ('name' in data) cols.name = data.name;
+  if ('name_short' in data) cols.name_short = nullIfBlank(data.name_short);
+  if ('name_en' in data) cols.name_en = nullIfBlank(data.name_en);
+  if ('slug' in data) cols.slug = data.slug;
+  if ('description' in data) cols.description = nullIfBlank(data.description);
+  if ('display_order' in data) cols.display_order = data.display_order;
+
+  const keys = Object.keys(cols);
+  if (keys.length === 0) return getMaterialById(id);
+
+  const setClauses = keys.map((k, i) => `${k} = $${i + 1}`);
+  setClauses.push('updated_at = CURRENT_TIMESTAMP');
+  const values = keys.map((k) => cols[k]);
 
   const result = await pool.query(
-    `UPDATE materials
-     SET name = COALESCE($1, name),
-         name_short = COALESCE($2, name_short),
-         name_en = COALESCE($3, name_en),
-         slug = COALESCE($4, slug),
-         description = COALESCE($5, description),
-         display_order = COALESCE($6, display_order),
-         updated_at = CURRENT_TIMESTAMP
-     WHERE id = $7
-     RETURNING *`,
-    [name, name_short, name_en, slug, description, display_order, id]
+    `UPDATE materials SET ${setClauses.join(', ')} WHERE id = $${keys.length + 1} RETURNING *`,
+    [...values, id]
   );
 
   return result.rows[0] || null;

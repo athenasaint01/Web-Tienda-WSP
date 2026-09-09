@@ -11,8 +11,11 @@ router.use(authenticateToken, requireAdmin);
 // Schema de validación
 const materialSchema = z.object({
   name: z.string().min(1).max(100),
+  name_short: z.string().max(24).optional(),
+  name_en: z.string().max(60).optional(),
   slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
+  display_order: z.number().int().min(0).optional(),
 });
 
 /**
