@@ -23,6 +23,7 @@ import LargosPage from "./pages/admin/catalogos/LargosPage";
 import ColoresPage from "./pages/admin/catalogos/ColoresPage";
 import ProductosPage from "./pages/admin/productos/ProductosPage";
 import ProductForm from "./pages/admin/productos/ProductForm";
+import PedidosPage from "./pages/admin/pedidos/PedidosPage";
 import PopupsPage from "./pages/admin/popups/PopupsPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 
@@ -51,6 +52,7 @@ export default function App() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="pedidos" element={<PedidosPage />} />
           <Route path="productos" element={<ProductosPage />} />
           <Route path="productos/nuevo" element={<ProductForm />} />
           <Route path="productos/:id/editar" element={<ProductForm />} />

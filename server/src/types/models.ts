@@ -97,6 +97,50 @@ export interface Collection {
   updated_at: Date;
 }
 
+// =============================================
+// PEDIDOS (carrito -> WhatsApp)
+// =============================================
+
+export type OrderStatus = 'pendiente' | 'confirmado' | 'descartado';
+
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  product_id: number | null;
+  product_name: string;
+  product_slug: string | null;
+  qty: number;
+  unit_price: number | null;
+  line_total: number | null;
+}
+
+export interface Order {
+  id: number;
+  customer_name: string;
+  customer_phone: string | null;
+  status: OrderStatus;
+  currency_symbol: string;
+  subtotal: number;
+  has_unpriced: boolean;
+  confirmed_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface OrderWithItems extends Order {
+  items: OrderItem[];
+}
+
+export interface CreateOrderDTO {
+  customer_name: string;
+  customer_phone?: string | null;
+  currency_symbol?: string;
+  items: {
+    product_id: number;
+    qty: number;
+  }[];
+}
+
 export interface Product {
   id: number;
   external_id?: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal } from 'lucide-react';
+import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API = import.meta.env.VITE_API_URL || '/api';
@@ -10,6 +10,7 @@ type Stats = {
   materials: number;
   tags: number;
   popup_active: boolean;
+  pending_orders: number;
 };
 
 export default function Dashboard() {
@@ -25,28 +26,30 @@ export default function Dashboard() {
       fetch(`${API}/materials`, { headers: h }).then(r => r.json()),
       fetch(`${API}/tags`, { headers: h }).then(r => r.json()),
       fetch(`${API}/popup/active`).then(r => r.json()),
-    ]).then(([products, categories, materials, tags, popup]) => {
+      fetch(`${API}/admin/orders/pending-count`, { headers: h }).then(r => r.json()).catch(() => ({})),
+    ]).then(([products, categories, materials, tags, popup, pending]) => {
       setStats({
         products: products.pagination?.total ?? products.data?.length ?? 0,
         categories: categories.data?.length ?? 0,
         materials: materials.data?.length ?? 0,
         tags: tags.data?.length ?? 0,
         popup_active: !!popup.data,
+        pending_orders: pending?.data?.count ?? 0,
       });
     }).catch(() => {});
   }, []);
 
   const statCards = [
+    { icon: ClipboardList, label: 'Pedidos pendientes', value: stats?.pending_orders, color: 'text-amber-600', bg: 'bg-amber-50', link: '/admin/pedidos' },
     { icon: Package, label: 'Productos', value: stats?.products, color: 'text-blue-600', bg: 'bg-blue-50', link: '/admin/productos' },
     { icon: Layers, label: 'Categorías', value: stats?.categories, color: 'text-emerald-600', bg: 'bg-emerald-50', link: '/admin/categorias' },
     { icon: Boxes, label: 'Materiales', value: stats?.materials, color: 'text-purple-600', bg: 'bg-purple-50', link: '/admin/materiales' },
-    { icon: Layers, label: 'Tags', value: stats?.tags, color: 'text-amber-600', bg: 'bg-amber-50', link: '/admin/tags' },
   ];
 
   const quickActions = [
+    { icon: ClipboardList, label: 'Pedidos', desc: 'Confirmar ventas y actualizar stock', link: '/admin/pedidos' },
     { icon: Plus, label: 'Nuevo producto', desc: 'Agregar al catálogo', link: '/admin/productos/nuevo' },
     { icon: SlidersHorizontal, label: 'Atributos', desc: 'Materiales, tallas, colores, públicos...', link: '/admin/atributos' },
-    { icon: Megaphone, label: 'Popups', desc: 'Gestionar banners promocionales', link: '/admin/popups' },
     { icon: Settings, label: 'Configuración', desc: 'Número de WhatsApp y más', link: '/admin/settings' },
     { icon: ExternalLink, label: 'Ver tienda', desc: 'Abrir la tienda en nueva pestaña', link: '/', external: true },
   ];

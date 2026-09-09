@@ -19,6 +19,7 @@ import {
   ArrowLeftRight,
   SlidersHorizontal,
   ChevronDown,
+  ClipboardList,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,6 +32,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+  { icon: ClipboardList, label: 'Pedidos', path: '/admin/pedidos' },
   { icon: Package, label: 'Productos', path: '/admin/productos' },
   { icon: Layers, label: 'Categorías', path: '/admin/categorias' },
   { icon: Images, label: 'Colecciones', path: '/admin/colecciones' },

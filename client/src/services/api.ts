@@ -505,3 +505,77 @@ export const deleteCollection = async (id: number) => {
     headers: getAuthHeaders(),
   });
 };
+
+// =============================================
+// PEDIDOS (carrito -> WhatsApp)
+// =============================================
+
+export type CreateOrderPayload = {
+  customer_name: string;
+  customer_phone?: string | null;
+  currency_symbol?: string;
+  items: { product_id: number; qty: number }[];
+};
+
+/** Público: registra un pedido en estado 'pendiente'. */
+export const createOrder = async (payload: CreateOrderPayload) => {
+  return fetchAPI<ApiResponse<{ id: number }>>('/orders', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+};
+
+export type OrderItem = {
+  id: number;
+  product_id: number | null;
+  product_name: string;
+  product_slug: string | null;
+  qty: number;
+  unit_price: number | null;
+  line_total: number | null;
+};
+
+export type Order = {
+  id: number;
+  customer_name: string;
+  customer_phone: string | null;
+  status: 'pendiente' | 'confirmado' | 'descartado';
+  currency_symbol: string;
+  subtotal: number;
+  has_unpriced: boolean;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  items: OrderItem[];
+};
+
+/** Admin: lista de pedidos (paginada). */
+export const getOrders = async (params: { status?: string; page?: number; limit?: number } = {}) => {
+  const qs = buildQueryString(params);
+  return fetchAPI<PaginatedResponse<Order>>(`/admin/orders${qs}`, {
+    headers: getAuthHeaders(),
+  });
+};
+
+/** Admin: confirma un pedido -> descuenta stock. Devuelve warnings de stock. */
+export const confirmOrder = async (id: number) => {
+  return fetchAPI<ApiResponse<Order> & { warnings?: string[] }>(`/admin/orders/${id}/confirm`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+};
+
+/** Admin: descarta un pedido (no toca stock). */
+export const discardOrder = async (id: number) => {
+  return fetchAPI<ApiResponse<Order>>(`/admin/orders/${id}/discard`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+};
+
+/** Admin: nº de pedidos pendientes (para el dashboard). */
+export const getPendingOrdersCount = async () => {
+  return fetchAPI<ApiResponse<{ count: number }>>('/admin/orders/pending-count', {
+    headers: getAuthHeaders(),
+  });
+};

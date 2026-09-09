@@ -29,6 +29,8 @@ import adminSettingsRouter from "./routes/admin/settings";
 import collectionsRouter from "./routes/collections";
 import popupRouter from "./routes/popup";
 import settingsRouter from "./routes/settings";
+import ordersRouter from "./routes/orders";
+import adminOrdersRouter from "./routes/admin/orders";
 import { testConnection } from "./config/database";
 
 const app = express();
@@ -68,6 +70,7 @@ app.use("/api/colors", colorsRouter);
 app.use("/api/collections", collectionsRouter);
 app.use("/api/popup", popupRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/orders", ordersRouter);
 
 // API Routes - Admin (protegidas con JWT)
 app.use("/api/admin/products", adminProductsRouter);
@@ -82,6 +85,7 @@ app.use("/api/admin/colors", adminColorsRouter);
 app.use("/api/admin/collections", adminCollectionsRouter);
 app.use("/api/admin/popups", adminPopupsRouter);
 app.use("/api/admin/settings", adminSettingsRouter);
+app.use("/api/admin/orders", adminOrdersRouter);
 
 // Health check
 app.get("/api/health", (req, res) => {

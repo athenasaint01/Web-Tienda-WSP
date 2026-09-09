@@ -373,7 +373,7 @@ export const getProductById = async (id: number): Promise<ProductWithDetails | n
 
 // =============================================
 // HELPER: normaliza el porcentaje de descuento a un entero 0-95, o null.
-const sanitizeDiscount = (pct: number | null | undefined): number | null => {
+export const sanitizeDiscount = (pct: number | null | undefined): number | null => {
   if (pct == null || isNaN(pct)) return null;
   const n = Math.round(pct);
   if (n <= 0) return null;
@@ -382,7 +382,7 @@ const sanitizeDiscount = (pct: number | null | undefined): number | null => {
 };
 
 // HELPER: precio de oferta derivado del precio y el % de descuento.
-const computeSalePrice = (
+export const computeSalePrice = (
   price: number | null | undefined,
   discountPercent: number | null | undefined
 ): number | null => {

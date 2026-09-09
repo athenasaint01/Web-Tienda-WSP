@@ -9,33 +9,42 @@ function money(amount: number, symbol: string): string {
   return `${symbol} ${hasDecimals ? amount.toFixed(2) : Math.round(amount)}`;
 }
 
+/** Precio efectivo de un item (sale_price si hay oferta válida, si no price). */
+function unitPrice(it: CartItem): number | null {
+  if (it.sale_price != null && it.price != null && it.sale_price < it.price) return it.sale_price;
+  return it.price ?? null;
+}
+
 /**
- * Arma el mensaje de WhatsApp para un carrito.
- * Incluye cantidades, precio por línea, total estimado y los enlaces.
+ * Mensaje de WhatsApp para un carrito.
+ * Lista numerada con Nombre, cantidad (x1, x2...), precio y URL de cada producto.
  */
 export function buildCartMessage(
   items: CartItem[],
-  opts: { currency: string; siteUrl?: string }
+  opts: { currency: string; customerName?: string; siteUrl?: string }
 ): string {
-  const { currency } = opts;
-  const siteUrl = (opts.siteUrl || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '');
+  const { currency, customerName } = opts;
+  const siteUrl = (
+    opts.siteUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  ).replace(/\/$/, '');
 
-  const lines: string[] = ['Hola! Me interesan estos productos:', ''];
+  const saludo = customerName
+    ? `Hola, soy ${customerName.trim()}. Estoy interesada/o en estos productos:`
+    : 'Hola! Estoy interesada/o en estos productos:';
+
+  const lines: string[] = [saludo, ''];
 
   let total = 0;
   let hasUnpriced = false;
 
-  for (const it of items) {
-    const unit =
-      it.sale_price != null && it.price != null && it.sale_price < it.price
-        ? it.sale_price
-        : it.price ?? null;
-
-    const qtyLabel = it.qty > 1 ? ` (x${it.qty})` : '';
+  items.forEach((it, idx) => {
+    const unit = unitPrice(it);
+    const n = idx + 1;
+    const url = siteUrl ? `${siteUrl}/producto/${it.slug}` : '';
 
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`• ${it.name}${qtyLabel} — a consultar`);
+      lines.push(`${n}. ${it.name} — x${it.qty} — precio a consultar`);
     } else {
       const lineTotal = unit * it.qty;
       total += lineTotal;
@@ -43,23 +52,17 @@ export function buildCartMessage(
       const priceStr = onSale
         ? `${money(lineTotal, currency)} (oferta, antes ${money(it.price! * it.qty, currency)})`
         : money(lineTotal, currency);
-      lines.push(`• ${it.name}${qtyLabel} — ${priceStr}`);
+      lines.push(`${n}. ${it.name} — x${it.qty} — ${priceStr}`);
     }
-  }
+    if (url) lines.push(`   ${url}`);
+  });
 
   lines.push('');
   if (total > 0) {
-    lines.push(`Total${hasUnpriced ? ' parcial' : ''} aprox: ${money(total, currency)}`);
+    lines.push(`Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}`);
     if (hasUnpriced) lines.push('(hay productos por cotizar)');
   } else {
     lines.push('Quedo atenta/o a la cotización.');
-  }
-
-  if (siteUrl) {
-    lines.push('', 'Enlaces:');
-    for (const it of items) {
-      lines.push(`${siteUrl}/producto/${it.slug}`);
-    }
   }
 
   return lines.join('\n');
