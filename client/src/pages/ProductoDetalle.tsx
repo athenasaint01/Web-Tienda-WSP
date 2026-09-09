@@ -6,16 +6,20 @@ import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
 import ProductCard from "../components/ProductCard";
 import { useWhatsAppEnabled, useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
+import { useCart } from "../context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
 
 export default function ProductoDetalle() {
   const { slug } = useParams();
   const { product, loading, error } = useProduct(slug || "");
   const [i, setI] = useState(0);
+  const [qty, setQty] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
   const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
   const waEnabled = useWhatsAppEnabled();
   const currency = useCurrency();
+  const cart = useCart();
 
   // zoom on hover (desktop) / tap-hold (mobile)
   const [origin, setOrigin] = useState<string>("50% 50%");
@@ -108,6 +112,26 @@ export default function ProductoDetalle() {
   const msg =
     product.wa_template ??
     `Hola, me interesa el ${product.name}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug}).`;
+
+  const primaryImage =
+    (product.images.find((im: any) => im.is_primary) ?? product.images[0])?.image_url;
+
+  const addToCart = () => {
+    cart.add(
+      {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        category: typeof product.category === 'string' ? product.category : product.category?.name,
+        price: product.price ?? null,
+        sale_price: product.sale_price ?? null,
+        image_url: primaryImage,
+      },
+      qty
+    );
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1800);
+  };
 
   // Filtrar el producto actual de los relacionados
   const related = relatedRaw.filter((p) => p.id !== product.id).slice(0, 3);
@@ -387,6 +411,42 @@ export default function ProductoDetalle() {
               ))}
             </div>
           ) : null}
+
+          {/* Agregar al carrito */}
+          {product.stock > 0 && (
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <div className="inline-flex items-center border border-neutral-300 rounded-full">
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="p-2.5 hover:bg-black/5 rounded-l-full transition-colors"
+                  aria-label="Quitar una unidad"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="w-9 text-center text-sm tabular-nums">{qty}</span>
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.min(99, q + 1))}
+                  className="p-2.5 hover:bg-black/5 rounded-r-full transition-colors"
+                  aria-label="Agregar una unidad"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={addToCart}
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium tracking-wide
+                          bg-[#4a4438] text-white hover:bg-[#3a352c]
+                          transition-colors duration-200 focus:outline-none"
+              >
+                {justAdded ? <Check size={16} /> : <ShoppingBag size={16} />}
+                {justAdded ? 'Agregado' : 'Agregar al carrito'}
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-3 pt-2">
             {waEnabled && phone && (

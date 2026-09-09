@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Search, User, ShoppingBag } from "lucide-react";
 import SearchModal from "./SearchModal";
+import { useCart } from "../context/CartContext";
 
 type Category = { id: number; name: string; slug: string };
 
@@ -24,6 +25,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const categories = useCategories();
+  const { count: cartCount, open: openCart } = useCart();
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -77,8 +79,13 @@ export default function Header() {
             <button aria-label="Mi cuenta" className={iconCls}>
               <User size={19} />
             </button>
-            <button aria-label="Carrito" className={iconCls}>
+            <button aria-label="Carrito" className={`${iconCls} relative`} onClick={openCart}>
               <ShoppingBag size={19} />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#c4927a] text-white text-[10px] font-medium leading-4 text-center">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </button>
 
             {/* Hamburger solo mobile */}

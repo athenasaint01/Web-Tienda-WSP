@@ -5,6 +5,8 @@ import Header from "./Header";
 import Footer from "./Footer";
 import WhatsAppFloat from "./WhatsAppFloat";
 import PopupBanner from "./PopupBanner";
+import CartDrawer from "./CartDrawer";
+import { CartProvider } from "../context/CartContext";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -30,16 +32,19 @@ function AnnouncementBar() {
 
 export default function Layout() {
   return (
-    <div className="min-h-dvh flex flex-col">
-      <ScrollToTop />
-      <AnnouncementBar />
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
-      <WhatsAppFloat />
-      <PopupBanner />
-    </div>
+    <CartProvider>
+      <div className="min-h-dvh flex flex-col">
+        <ScrollToTop />
+        <AnnouncementBar />
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+        <WhatsAppFloat />
+        <PopupBanner />
+        <CartDrawer />
+      </div>
+    </CartProvider>
   );
 }
