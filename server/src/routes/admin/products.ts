@@ -70,6 +70,21 @@ const productDataSchema = z.object({
 });
 
 /**
+ * GET /api/admin/products/top-consulted?limit=8
+ * Ranking de productos más consultados (clics a WhatsApp + vistas de ficha).
+ */
+router.get('/top-consulted', async (req: AuthRequest, res: Response) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
+    const data = await productService.getTopConsultedProducts(limit);
+    res.json({ ok: true, data });
+  } catch (error: any) {
+    console.error('Error al obtener top consultados:', error);
+    res.status(500).json({ ok: false, error: 'Error al obtener el ranking' });
+  }
+});
+
+/**
  * POST /api/admin/products
  * Crear nuevo producto con imágenes
  */

@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import { useProducts } from "../hooks/useProducts";
 import WhatsAppButton from "../components/WhatsAppButton";
 import BadgeChips from "../components/BadgeChips";
 import ProductCard from "../components/ProductCard";
-import { useWhatsAppEnabled, useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
+import { useCurrency, useWhatsAppPhone, formatPrice, getOffer } from "../hooks/useSettings";
+import { trackProductMetric } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
@@ -16,8 +17,9 @@ export default function ProductoDetalle() {
   const [i, setI] = useState(0);
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
-  const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
-  const waEnabled = useWhatsAppEnabled();
+  // Número vinculado en Configuración (con fallback al .env). El toggle
+  // "Mostrar botones de WhatsApp" ya NO afecta este botón: solo el flotante.
+  const phone = useWhatsAppPhone();
   const currency = useCurrency();
   const cart = useCart();
 
@@ -33,6 +35,14 @@ export default function ProductoDetalle() {
     categoria: product?.category?.slug || '',
     limit: 4,
   });
+
+  // Registrar una vista de la ficha (una sola vez por producto cargado)
+  const viewTrackedFor = useRef<number | null>(null);
+  useEffect(() => {
+    if (!product || viewTrackedFor.current === product.id) return;
+    viewTrackedFor.current = product.id;
+    trackProductMetric(product.id, 'view');
+  }, [product]);
 
   // SEO: título y description dinámicos por producto
   useEffect(() => {
@@ -474,8 +484,14 @@ export default function ProductoDetalle() {
           )}
 
           <div className="flex flex-wrap gap-3 pt-2">
-            {waEnabled && phone && (
-              <WhatsAppButton phone={phone} message={msg} className="mt-1" />
+            {phone && (
+              <WhatsAppButton
+                phone={phone}
+                message={msg}
+                label="Consulta este producto"
+                onClick={() => trackProductMetric(product.id, 'wa_click')}
+                className="mt-1"
+              />
             )}
 
             <Link

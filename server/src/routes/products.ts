@@ -1,9 +1,20 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import * as productService from '../services/productService';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { ProductFilters } from '../types/models';
 
 const router = Router();
+
+// Rate limit del endpoint público de métricas: generoso pero acota el abuso.
+// 120 hits por IP cada 5 min (una persona navegando dispara ~1-2 por ficha).
+const metricLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: 'Demasiadas peticiones' },
+});
 
 // =============================================
 // RUTAS PÚBLICAS
@@ -67,6 +78,28 @@ router.get('/:slug', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error al obtener producto:', error);
     res.status(500).json({ ok: false, error: 'Error al obtener producto' });
+  }
+});
+
+// POST /api/products/:id/metric - Registrar una consulta del producto
+// Body: { kind: 'view' | 'wa_click' }
+//  - 'view'      -> se abrió la ficha del producto
+//  - 'wa_click'  -> se pulsó "Consulta este producto" (abre WhatsApp)
+// Público, best-effort: nunca bloquea la navegación del cliente.
+router.post('/:id/metric', metricLimiter, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const kind = req.body?.kind;
+    if (isNaN(id) || (kind !== 'view' && kind !== 'wa_click')) {
+      res.status(400).json({ ok: false, error: 'Parámetros inválidos' });
+      return;
+    }
+    await productService.incrementProductMetric(id, kind);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error al registrar métrica de producto:', error);
+    // 200 igual: es telemetría, no debe romper nada en el cliente
+    res.json({ ok: false });
   }
 });
 

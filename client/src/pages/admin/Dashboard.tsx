@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList } from 'lucide-react';
+import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getTopConsultedProducts, type TopConsultedProduct } from '../../services/api';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
@@ -15,6 +16,7 @@ type Stats = {
 
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [topConsulted, setTopConsulted] = useState<TopConsultedProduct[] | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -37,6 +39,10 @@ export default function Dashboard() {
         pending_orders: pending?.data?.count ?? 0,
       });
     }).catch(() => {});
+
+    getTopConsultedProducts(8)
+      .then(res => setTopConsulted(res.ok && res.data ? res.data : []))
+      .catch(() => setTopConsulted([]));
   }, []);
 
   const statCards = [
@@ -88,6 +94,65 @@ export default function Dashboard() {
           </span>
         </Link>
       )}
+
+      {/* Top productos consultados */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+            Top productos consultados
+          </h3>
+          <span className="text-xs text-neutral-400">Ordenado por clics a WhatsApp</span>
+        </div>
+
+        <div className="border border-neutral-200 bg-white">
+          {topConsulted === null ? (
+            <p className="text-sm text-neutral-400 px-5 py-6">Cargando…</p>
+          ) : topConsulted.length === 0 ? (
+            <p className="text-sm text-neutral-400 px-5 py-6">
+              Aún no hay consultas registradas. Cuando los clientes vean fichas y pulsen
+              “Consulta este producto”, aparecerán aquí.
+            </p>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {topConsulted.map((p, idx) => (
+                <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+                  <span className="w-5 text-center text-sm font-semibold text-neutral-400 tabular-nums">
+                    {idx + 1}
+                  </span>
+                  <div className="w-10 h-10 shrink-0 bg-neutral-50 overflow-hidden rounded">
+                    {p.image_url && (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Link
+                      to={`/producto/${p.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block text-sm font-medium text-neutral-800 truncate hover:underline"
+                    >
+                      {p.name}
+                    </Link>
+                    {p.stock <= 0 && (
+                      <span className="text-[11px] text-red-600">Agotado</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 text-sm tabular-nums">
+                    <span className="inline-flex items-center gap-1 text-emerald-700" title="Clics en “Consulta este producto”">
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      {p.wa_click_count}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-neutral-400" title="Veces que se abrió la ficha">
+                      <Eye className="w-3.5 h-3.5" />
+                      {p.view_count}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
 
       {/* Accesos rápidos */}
       <div>

@@ -745,3 +745,53 @@ export const hardDeleteProduct = async (id: number): Promise<boolean> => {
   const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
   return result.rowCount !== null && result.rowCount > 0;
 };
+
+// =============================================
+// MÉTRICAS DE CONSULTA
+// =============================================
+export type ProductMetricKind = 'view' | 'wa_click';
+
+/**
+ * Suma 1 al contador indicado del producto. No lanza si el id no existe
+ * (devuelve false); es un endpoint público best-effort.
+ */
+export const incrementProductMetric = async (
+  id: number,
+  kind: ProductMetricKind
+): Promise<boolean> => {
+  const column = kind === 'wa_click' ? 'wa_click_count' : 'view_count';
+  const result = await pool.query(
+    `UPDATE products SET ${column} = ${column} + 1 WHERE id = $1 AND is_active = TRUE RETURNING id`,
+    [id]
+  );
+  return result.rowCount !== null && result.rowCount > 0;
+};
+
+/**
+ * Ranking de productos más consultados. Ordena por clics a WhatsApp
+ * (intención real) y desempata por vistas de ficha.
+ */
+export const getTopConsultedProducts = async (limit = 8) => {
+  const safeLimit = Math.min(50, Math.max(1, Math.floor(limit) || 8));
+  const result = await pool.query(
+    `SELECT
+       p.id, p.name, p.slug, p.view_count, p.wa_click_count, p.stock,
+       (SELECT pi.image_url FROM product_images pi
+         WHERE pi.product_id = p.id
+         ORDER BY pi.is_primary DESC, pi.id ASC LIMIT 1) AS image_url
+     FROM products p
+     WHERE p.is_active = TRUE AND (p.view_count > 0 OR p.wa_click_count > 0)
+     ORDER BY p.wa_click_count DESC, p.view_count DESC, p.name ASC
+     LIMIT $1`,
+    [safeLimit]
+  );
+  return result.rows.map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    slug: r.slug,
+    view_count: r.view_count,
+    wa_click_count: r.wa_click_count,
+    stock: r.stock,
+    image_url: r.image_url ?? null,
+  }));
+};

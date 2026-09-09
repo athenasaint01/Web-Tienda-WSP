@@ -134,6 +134,49 @@ export const getFeaturedProducts = async (): Promise<ProductListItem[]> => {
 };
 
 // =============================================
+// MÉTRICAS DE CONSULTA POR PRODUCTO
+// =============================================
+
+/**
+ * Registra una consulta del producto (best-effort, no lanza).
+ *  - 'view'     -> se abrió la ficha
+ *  - 'wa_click' -> se pulsó "Consulta este producto"
+ */
+export const trackProductMetric = async (
+  productId: number,
+  kind: 'view' | 'wa_click'
+): Promise<void> => {
+  try {
+    await fetch(`${API_BASE_URL}/products/${productId}/metric`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind }),
+      keepalive: true, // permite que salga aunque se navegue fuera de la página
+    });
+  } catch {
+    /* telemetría: si falla, no pasa nada */
+  }
+};
+
+export type TopConsultedProduct = {
+  id: number;
+  name: string;
+  slug: string;
+  view_count: number;
+  wa_click_count: number;
+  stock: number;
+  image_url: string | null;
+};
+
+/** Admin: ranking de productos más consultados. */
+export const getTopConsultedProducts = async (limit = 8) => {
+  return fetchAPI<ApiResponse<TopConsultedProduct[]>>(
+    `/admin/products/top-consulted?limit=${limit}`,
+    { headers: getAuthHeaders() }
+  );
+};
+
+// =============================================
 // HEALTH CHECK
 // =============================================
 
