@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye } from 'lucide-react';
+import { useEffect, useState, lazy, Suspense } from 'react';
+import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye, BarChart3, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getTopConsultedProducts, type TopConsultedProduct } from '../../services/api';
+
+// El gráfico (recharts) se carga solo cuando el admin abre esta vista.
+const TopConsultedChart = lazy(() => import('../../components/admin/TopConsultedChart'));
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
@@ -17,6 +20,7 @@ type Stats = {
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [topConsulted, setTopConsulted] = useState<TopConsultedProduct[] | null>(null);
+  const [topView, setTopView] = useState<'chart' | 'list'>('chart');
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -101,7 +105,29 @@ export default function Dashboard() {
           <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
             Top productos consultados
           </h3>
-          <span className="text-xs text-neutral-400">Ordenado por clics a WhatsApp</span>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline text-xs text-neutral-400">
+              Ordenado por clics a WhatsApp
+            </span>
+            {topConsulted && topConsulted.length > 0 && (
+              <div className="inline-flex rounded-lg border border-neutral-200 overflow-hidden">
+                <button
+                  onClick={() => setTopView('chart')}
+                  className={`p-1.5 transition-colors ${topView === 'chart' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-50'}`}
+                  title="Ver gráfico"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setTopView('list')}
+                  className={`p-1.5 transition-colors ${topView === 'list' ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-50'}`}
+                  title="Ver lista"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="border border-neutral-200 bg-white">
@@ -112,6 +138,22 @@ export default function Dashboard() {
               Aún no hay consultas registradas. Cuando los clientes vean fichas y pulsen
               “Consulta este producto”, aparecerán aquí.
             </p>
+          ) : topView === 'chart' ? (
+            <div className="p-4">
+              <Suspense
+                fallback={<p className="text-sm text-neutral-400 py-8 text-center">Cargando gráfico…</p>}
+              >
+                <TopConsultedChart data={topConsulted} />
+              </Suspense>
+              <div className="flex items-center gap-4 justify-center mt-2 text-xs text-neutral-400">
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm bg-emerald-600" /> Consultas (clic WhatsApp)
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-3 h-3 rounded-sm bg-neutral-300" /> Vistas de ficha
+                </span>
+              </div>
+            </div>
           ) : (
             <ul className="divide-y divide-neutral-100">
               {topConsulted.map((p, idx) => (
