@@ -365,7 +365,7 @@ export interface ProductFilters {
   q?: string; // búsqueda
   featured?: boolean;
   is_active?: boolean;
-  sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent';
+  sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent' | 'precio-asc' | 'precio-desc';
   page?: number;
   limit?: number;
 }

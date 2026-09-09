@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as api from '../../../services/api';
+import type { ProductFilters } from '../../../types/api';
 import { useCurrency, formatPrice, getOffer } from '../../../hooks/useSettings';
 
 type Product = {
@@ -14,12 +15,23 @@ type Product = {
   price?: number | null;
   discount_percent?: number | null;
   sale_price?: number | null;
+  stock?: number;
   image_url?: string;
 };
 
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+type SortKey = NonNullable<ProductFilters['sort']>;
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'relevancia', label: 'Orden de catálogo' },
+  { value: 'recent', label: 'Más recientes' },
+  { value: 'nombre-asc', label: 'Nombre (A–Z)' },
+  { value: 'nombre-desc', label: 'Nombre (Z–A)' },
+  { value: 'precio-asc', label: 'Precio (menor a mayor)' },
+  { value: 'precio-desc', label: 'Precio (mayor a menor)' },
+];
 
 export default function ProductosPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,22 +41,60 @@ export default function ProductosPage() {
   const [limit, setLimit] = useState(25);
   const currency = useCurrency();
 
+  // Filtros
+  const [categories, setCategories] = useState<api.CategoryLite[]>([]);
+  const [categoria, setCategoria] = useState('');           // slug ('' = todas)
+  const [sort, setSort] = useState<SortKey>('relevancia');
+  const [searchInput, setSearchInput] = useState('');       // lo que se teclea
+  const [q, setQ] = useState('');                           // valor con debounce que se envía
+
+  // Debounce del buscador
+  const debRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    window.clearTimeout(debRef.current);
+    debRef.current = window.setTimeout(() => setQ(searchInput.trim()), 300);
+    return () => window.clearTimeout(debRef.current);
+  }, [searchInput]);
+
+  useEffect(() => {
+    api.getCategories().then(setCategories).catch(() => {});
+  }, []);
+
+  // Volver a la página 1 cuando cambia un filtro
+  useEffect(() => {
+    setPage(1);
+  }, [categoria, sort, q, limit]);
+
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.getProducts({ page, limit });
-      setProducts(response.data);
+      const response = await api.getProducts({
+        page,
+        limit,
+        sort,
+        categoria: categoria || undefined,
+        q: q || undefined,
+      });
+      setProducts(response.data as Product[]);
       setPagination(response.pagination);
     } catch {
       toast.error('Error al cargar productos');
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, sort, categoria, q]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  const hasFilters = categoria !== '' || q !== '' || sort !== 'relevancia';
+  const clearFilters = () => {
+    setCategoria('');
+    setSort('relevancia');
+    setSearchInput('');
+    setQ('');
+  };
 
   const handleDelete = async (product: Product) => {
     if (!confirm(`¿Eliminar el producto "${product.name}"?`)) return;
@@ -89,6 +139,61 @@ export default function ProductosPage() {
         </Link>
       </div>
 
+      {/* Barra de filtros */}
+      <div className="bg-white border border-neutral-200 rounded-lg p-3 mb-4 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Buscar por nombre o descripción…"
+            className="w-full border border-neutral-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-neutral-900"
+          />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          Categoría
+          <select
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="border border-neutral-300 rounded-lg px-2 py-2 bg-white text-sm focus:outline-none focus:border-neutral-900"
+          >
+            <option value="">Todas</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          Ordenar
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className="border border-neutral-300 rounded-lg px-2 py-2 bg-white text-sm focus:outline-none focus:border-neutral-900"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {hasFilters && (
+          <button
+            onClick={clearFilters}
+            className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-800 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Limpiar
+          </button>
+        )}
+      </div>
+
       {/* Barra: total + selector de tamaño de página */}
       {!loading && pagination && pagination.total > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3 text-sm text-neutral-500">
@@ -122,18 +227,32 @@ export default function ProductosPage() {
         </div>
       ) : products.length === 0 ? (
         <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
-          <p className="text-neutral-600">No hay productos creados</p>
-          <Link
-            to="/admin/productos/nuevo"
-            className="mt-4 text-neutral-900 hover:underline inline-block"
-          >
-            Crear el primer producto
-          </Link>
+          {hasFilters ? (
+            <>
+              <p className="text-neutral-600">Ningún producto coincide con los filtros</p>
+              <button
+                onClick={clearFilters}
+                className="mt-4 text-neutral-900 hover:underline inline-block"
+              >
+                Limpiar filtros
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-neutral-600">No hay productos creados</p>
+              <Link
+                to="/admin/productos/nuevo"
+                className="mt-4 text-neutral-900 hover:underline inline-block"
+              >
+                Crear el primer producto
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <>
           <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden overflow-x-auto">
-            <table className="w-full min-w-[720px]">
+            <table className="w-full min-w-[820px]">
               <thead className="bg-neutral-50 border-b border-neutral-200">
                 <tr>
                   <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-700 w-12">#</th>
@@ -141,6 +260,7 @@ export default function ProductosPage() {
                   <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">Nombre</th>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">Categoría</th>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">Precio</th>
+                  <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">Stock</th>
                   <th className="text-left px-6 py-3 text-sm font-semibold text-neutral-700">Destacado</th>
                   <th className="text-right px-6 py-3 text-sm font-semibold text-neutral-700">Acciones</th>
                 </tr>
@@ -193,6 +313,19 @@ export default function ProductosPage() {
                           <span className="text-neutral-400">—</span>
                         );
                       })()}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {product.stock == null ? (
+                        <span className="text-neutral-400">—</span>
+                      ) : product.stock <= 0 ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Agotado
+                        </span>
+                      ) : product.stock <= 5 ? (
+                        <span className="text-amber-600 font-medium tabular-nums">{product.stock}</span>
+                      ) : (
+                        <span className="text-neutral-700 tabular-nums">{product.stock}</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {product.featured ? (

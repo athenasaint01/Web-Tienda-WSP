@@ -148,6 +148,13 @@ export const getAllProducts = async (
     case 'recent':
       orderBy = 'ORDER BY p.created_at DESC, p.id DESC';
       break;
+    case 'precio-asc':
+      // El precio efectivo (con descuento) manda; NULLS al final.
+      orderBy = 'ORDER BY COALESCE(p.sale_price, p.price) ASC NULLS LAST, p.id ASC';
+      break;
+    case 'precio-desc':
+      orderBy = 'ORDER BY COALESCE(p.sale_price, p.price) DESC NULLS LAST, p.id ASC';
+      break;
   }
 
   // Paginación

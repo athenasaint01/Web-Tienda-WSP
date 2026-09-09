@@ -227,6 +227,9 @@ export const getLengths = () => getCatalog<import('../types/api').Length>('lengt
 export const getColors = () => getCatalog<import('../types/api').Color>('colors');
 export const getMaterials = () => getCatalog<import('../types/api').Material>('materials');
 
+export type CategoryLite = { id: number; name: string; slug: string };
+export const getCategories = () => getCatalog<CategoryLite>('categories');
+
 // =============================================
 // CATEGORÍAS, MATERIALES Y TAGS
 // =============================================

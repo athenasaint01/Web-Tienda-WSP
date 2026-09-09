@@ -180,7 +180,7 @@ export type ProductFilters = {
   color?: string | string[];
   q?: string;
   featured?: boolean;
-  sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent';
+  sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent' | 'precio-asc' | 'precio-desc';
   page?: number;
   limit?: number;
 }
