@@ -29,10 +29,10 @@ export function buildCartMessage(
   ).replace(/\/$/, '');
 
   const saludo = customerName
-    ? `Hola, soy ${customerName.trim()}. Estoy interesada/o en estos productos:`
-    : 'Hola! Estoy interesada/o en estos productos:';
+    ? `¡Hola! 👋 Soy ${customerName.trim()}, me interesan estos productos:`
+    : '¡Hola! 👋 Me interesan estos productos:';
 
-  const lines: string[] = [saludo, ''];
+  const lines: string[] = [saludo, '', '🛍️ *Mi selección*'];
 
   let total = 0;
   let hasUnpriced = false;
@@ -44,26 +44,27 @@ export function buildCartMessage(
 
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`${n}. ${it.name} — x${it.qty} — precio a consultar`);
+      lines.push(`${n}. ${it.name} — x${it.qty} — 💬 precio a consultar`);
     } else {
       const lineTotal = unit * it.qty;
       total += lineTotal;
       const onSale = it.sale_price != null && it.price != null && it.sale_price < it.price;
       const priceStr = onSale
-        ? `${money(lineTotal, currency)} (oferta, antes ${money(it.price! * it.qty, currency)})`
+        ? `${money(lineTotal, currency)} 🏷️ _(oferta, antes ${money(it.price! * it.qty, currency)})_`
         : money(lineTotal, currency);
       lines.push(`${n}. ${it.name} — x${it.qty} — ${priceStr}`);
     }
-    if (url) lines.push(`   ${url}`);
+    if (url) lines.push(`   🔗 ${url}`);
   });
 
   lines.push('');
   if (total > 0) {
-    lines.push(`Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}`);
-    if (hasUnpriced) lines.push('(hay productos por cotizar)');
+    lines.push(`💰 *Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}*`);
+    if (hasUnpriced) lines.push('_(hay productos por cotizar)_');
   } else {
-    lines.push('Quedo atenta/o para realizar mi pedido.');
+    lines.push('Quedo atenta/o para realizar mi pedido. 🙌');
   }
+  lines.push('', '¡Gracias! ✨');
 
   return lines.join('\n');
 }
