@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import FiltersSidebar, { type FilterKey } from "../components/FiltersSidebar";
@@ -15,31 +15,37 @@ export default function Productos() {
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Paginación responsiva: 6 en mobile, 12 en desktop
-  const [limit, setLimit] = useState(12);
+  // Paginación responsiva: 6 en mobile, 12 en desktop.
+  // Solo reacciona a resize; NO depende de `params` para no pisar la
+  // navegación de páginas.
+  const [limit, setLimit] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches ? 6 : 12
+  );
 
   useEffect(() => {
-    const updateLimit = () => {
-      // Usar el breakpoint md de Tailwind (768px)
-      const isMobile = window.matchMedia('(max-width: 767px)').matches;
-      const newLimit = isMobile ? 6 : 12;
-
-      // Si el límite cambió, resetear a página 1
-      if (newLimit !== limit) {
-        setLimit(newLimit);
-        const currentPage = parseInt(params.get("page") ?? "1");
-        if (currentPage > 1) {
-          const next = new URLSearchParams(params);
-          next.set("page", "1");
-          setParams(next, { replace: true });
-        }
-      }
+    const onResize = () => {
+      const newLimit = window.matchMedia('(max-width: 767px)').matches ? 6 : 12;
+      setLimit((prev) => (prev === newLimit ? prev : newLimit));
     };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
-    updateLimit();
-    window.addEventListener('resize', updateLimit);
-    return () => window.removeEventListener('resize', updateLimit);
-  }, [limit, params, setParams]);
+  // Si el límite cambió (se redimensionó / rotó el móvil), volver a la
+  // página 1 — para evitar quedar en una página que ya no existe.
+  const prevLimitRef = useRef(limit);
+  useEffect(() => {
+    if (prevLimitRef.current === limit) return;
+    prevLimitRef.current = limit;
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        next.set('page', '1');
+        return next;
+      },
+      { replace: true }
+    );
+  }, [limit, setParams]);
 
   // SEO: título dinámico según categoría activa
   useEffect(() => {

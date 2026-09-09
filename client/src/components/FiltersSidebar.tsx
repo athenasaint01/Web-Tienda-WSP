@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 
 export type FilterKey = "categoria" | "material" | "tags" | "publico" | "grosor" | "color";
 
@@ -88,10 +88,22 @@ function FiltersSidebarBase({
   // input controlado + debounce
   const [q, setQ] = useState(selected.q);
   useEffect(() => setQ(selected.q), [selected.q]);
+
+  // `onSearch` puede cambiar de identidad en cada render del padre; lo guardamos
+  // en un ref para que el efecto de debounce NO se re-dispare por eso (si lo
+  // hiciera, volvería a llamar onSearch("") y resetearía la página del catálogo).
+  const onSearchRef = useRef(onSearch);
   useEffect(() => {
-    const id = window.setTimeout(() => onSearch(q.trim()), 250);
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  useEffect(() => {
+    // No disparar si el valor ya coincide con el de la URL (evita el no-op
+    // que ocurre al montar o al navegar de página).
+    if (q.trim() === selected.q.trim()) return;
+    const id = window.setTimeout(() => onSearchRef.current(q.trim()), 250);
     return () => window.clearTimeout(id);
-  }, [q, onSearch]);
+  }, [q, selected.q]);
 
   const content = (
     <>
