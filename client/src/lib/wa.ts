@@ -45,33 +45,34 @@ export function buildCartMessage(
 
     const itemName = it.name.trim();
     const variantLabel = it.variantLabel?.trim();
-    const nameWithVariant = variantLabel ? `${itemName} (${variantLabel})` : itemName;
     const sku = it.variantSku?.trim() || it.sku?.trim();
-    const skuStr = sku ? ` _(SKU: ${sku})_` : '';
+
+    lines.push(`${n}. *${itemName}*`);
+    if (variantLabel) lines.push(`   Talla/Color/Largo: ${variantLabel}`);
+    if (sku) lines.push(`   SKU: ${sku}`);
 
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`${n}. *${nameWithVariant}*${skuStr} — x${it.qty} — _precio a consultar_`);
+      lines.push(`   Cantidad: ${it.qty} | _precio a consultar_`);
     } else {
-      const lineTotal = unit * it.qty;
-      total += lineTotal;
+      total += unit * it.qty;
       const onSale = it.sale_price != null && it.price != null && it.sale_price < it.price;
       const priceStr = onSale
-        ? `${money(lineTotal, currency)} _(oferta, antes ~${money(it.price! * it.qty, currency)}~)_`
-        : money(lineTotal, currency);
-      lines.push(`${n}. *${nameWithVariant}*${skuStr} — x${it.qty} — ${priceStr}`);
+        ? `${money(unit, currency)} _(oferta, antes ~${money(it.price!, currency)}~)_`
+        : money(unit, currency);
+      lines.push(`   Cantidad: ${it.qty} | ${priceStr}`);
       // Precio "original" de este item: el normal (price) si existe, si
       // no el efectivo (para no restar de más cuando no hay oferta).
       originalTotal += (it.price ?? unit) * it.qty;
     }
     if (url) lines.push(`   ${url}`);
+    lines.push('');
   });
 
   total = Math.round(total * 100) / 100;
   originalTotal = Math.round(originalTotal * 100) / 100;
   const savings = Math.max(0, Math.round((originalTotal - total) * 100) / 100);
 
-  lines.push('');
   if (total > 0) {
     if (savings > 0) {
       lines.push(`Precio original: ~${money(originalTotal, currency)}~`);
