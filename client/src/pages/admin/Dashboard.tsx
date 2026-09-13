@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye, BarChart3, List, TrendingUp } from 'lucide-react';
+import { Package, Layers, Boxes, Megaphone, ClipboardList, MessageCircle, Eye, BarChart3, List, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getTopConsultedProducts, getSalesSummary, type TopConsultedProduct, type SalesSummaryPoint } from '../../services/api';
 import { useCurrency, formatPrice } from '../../hooks/useSettings';
@@ -62,14 +62,6 @@ export default function Dashboard() {
     { icon: Package, label: 'Productos', value: stats?.products, color: 'text-blue-600', bg: 'bg-blue-50', link: '/admin/productos' },
     { icon: Layers, label: 'Categorías', value: stats?.categories, color: 'text-emerald-600', bg: 'bg-emerald-50', link: '/admin/categorias' },
     { icon: Boxes, label: 'Materiales', value: stats?.materials, color: 'text-purple-600', bg: 'bg-purple-50', link: '/admin/materiales' },
-  ];
-
-  const quickActions = [
-    { icon: ClipboardList, label: 'Pedidos', desc: 'Confirmar ventas y actualizar stock', link: '/admin/pedidos' },
-    { icon: Plus, label: 'Nuevo producto', desc: 'Agregar al catálogo', link: '/admin/productos/nuevo' },
-    { icon: SlidersHorizontal, label: 'Atributos', desc: 'Materiales, tallas, colores, públicos...', link: '/admin/atributos' },
-    { icon: Settings, label: 'Configuración', desc: 'Número de WhatsApp y más', link: '/admin/settings' },
-    { icon: ExternalLink, label: 'Ver tienda', desc: 'Abrir la tienda en nueva pestaña', link: '/', external: true },
   ];
 
   return (
@@ -249,42 +241,6 @@ export default function Dashboard() {
                 </li>
               ))}
             </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Accesos rápidos */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-3">Accesos rápidos</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {quickActions.map(({ icon: Icon, label, desc, link, external }) =>
-            external ? (
-              <a
-                key={label}
-                href={link}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-start gap-3 border border-neutral-200 bg-white p-4 hover:border-neutral-400 hover:bg-neutral-50 transition"
-              >
-                <Icon className="w-5 h-5 text-neutral-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-neutral-800">{label}</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">{desc}</p>
-                </div>
-              </a>
-            ) : (
-              <Link
-                key={label}
-                to={link}
-                className="flex items-start gap-3 border border-neutral-200 bg-white p-4 hover:border-neutral-400 hover:bg-neutral-50 transition"
-              >
-                <Icon className="w-5 h-5 text-neutral-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-neutral-800">{label}</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">{desc}</p>
-                </div>
-              </Link>
-            )
           )}
         </div>
       </div>
