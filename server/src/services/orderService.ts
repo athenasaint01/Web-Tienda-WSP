@@ -345,3 +345,37 @@ export const countPending = async (): Promise<number> => {
   const res = await pool.query(`SELECT COUNT(*) FROM orders WHERE status = 'pendiente'`);
   return parseInt(res.rows[0].count);
 };
+
+// =============================================
+// RESUMEN DE VENTAS POR DÍA (para el dashboard)
+// Solo pedidos confirmados = ventas reales; se agrupa por día de
+// created_at en los últimos N días, rellenando con 0 los días sin
+// pedidos para que el gráfico no tenga huecos.
+// =============================================
+export const getSalesSummary = async (
+  days: number = 14
+): Promise<{ date: string; total: number; count: number }[]> => {
+  const safeDays = Math.min(90, Math.max(1, Math.floor(days) || 14));
+
+  const res = await pool.query(
+    `SELECT
+       to_char(d::date, 'YYYY-MM-DD') AS date,
+       COALESCE(SUM(o.subtotal), 0)::float8 AS total,
+       COUNT(o.id)::int AS count
+     FROM generate_series(
+       CURRENT_DATE - ($1::int - 1), CURRENT_DATE, INTERVAL '1 day'
+     ) AS d
+     LEFT JOIN orders o
+       ON o.status = 'confirmado'
+       AND o.created_at::date = d::date
+     GROUP BY d
+     ORDER BY d ASC`,
+    [safeDays]
+  );
+
+  return res.rows.map((r: any) => ({
+    date: r.date,
+    total: r.total,
+    count: r.count,
+  }));
+};

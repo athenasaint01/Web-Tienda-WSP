@@ -176,6 +176,20 @@ export const getTopConsultedProducts = async (limit = 8) => {
   );
 };
 
+export type SalesSummaryPoint = {
+  date: string;   // 'YYYY-MM-DD'
+  total: number;  // suma de subtotal de pedidos confirmados ese día
+  count: number;  // cantidad de pedidos confirmados ese día
+};
+
+/** Admin: ventas confirmadas por día (últimos N días, con huecos en 0). */
+export const getSalesSummary = async (days = 14) => {
+  return fetchAPI<ApiResponse<SalesSummaryPoint[]>>(
+    `/admin/orders/sales-summary?days=${days}`,
+    { headers: getAuthHeaders() }
+  );
+};
+
 // =============================================
 // HEALTH CHECK
 // =============================================

@@ -1,10 +1,12 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye, BarChart3, List } from 'lucide-react';
+import { Package, Layers, Boxes, Megaphone, Settings, Plus, ExternalLink, SlidersHorizontal, ClipboardList, MessageCircle, Eye, BarChart3, List, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getTopConsultedProducts, type TopConsultedProduct } from '../../services/api';
+import { getTopConsultedProducts, getSalesSummary, type TopConsultedProduct, type SalesSummaryPoint } from '../../services/api';
+import { useCurrency, formatPrice } from '../../hooks/useSettings';
 
-// El gráfico (recharts) se carga solo cuando el admin abre esta vista.
+// Los gráficos (recharts) se cargan solo cuando el admin abre esta vista.
 const TopConsultedChart = lazy(() => import('../../components/admin/TopConsultedChart'));
+const SalesChart = lazy(() => import('../../components/admin/SalesChart'));
 
 const API = import.meta.env.VITE_API_URL || '/api';
 
@@ -21,6 +23,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [topConsulted, setTopConsulted] = useState<TopConsultedProduct[] | null>(null);
   const [topView, setTopView] = useState<'chart' | 'list'>('chart');
+  const [sales, setSales] = useState<SalesSummaryPoint[] | null>(null);
+  const currency = useCurrency();
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -47,6 +51,10 @@ export default function Dashboard() {
     getTopConsultedProducts(8)
       .then(res => setTopConsulted(res.ok && res.data ? res.data : []))
       .catch(() => setTopConsulted([]));
+
+    getSalesSummary(14)
+      .then(res => setSales(res.ok && res.data ? res.data : []))
+      .catch(() => setSales([]));
   }, []);
 
   const statCards = [
@@ -98,6 +106,46 @@ export default function Dashboard() {
           </span>
         </Link>
       )}
+
+      {/* Ventas de los últimos 14 días */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+            Ventas — últimos 14 días
+          </h3>
+          <span className="text-xs text-neutral-400">Solo pedidos confirmados</span>
+        </div>
+
+        <div className="border border-neutral-200 bg-white p-4">
+          {sales === null ? (
+            <p className="text-sm text-neutral-400 py-6 text-center">Cargando…</p>
+          ) : sales.every((p) => p.count === 0) ? (
+            <p className="text-sm text-neutral-400 py-6 text-center">
+              Aún no hay ventas confirmadas en este período.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-6 mb-2 px-1">
+                <div>
+                  <p className="text-2xl font-bold text-neutral-900">
+                    {formatPrice(sales.reduce((s, p) => s + p.total, 0), currency)}
+                  </p>
+                  <p className="text-xs text-neutral-400">Total vendido</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-neutral-900">
+                    {sales.reduce((s, p) => s + p.count, 0)}
+                  </p>
+                  <p className="text-xs text-neutral-400">Pedidos confirmados</p>
+                </div>
+              </div>
+              <Suspense fallback={<p className="text-sm text-neutral-400 py-8 text-center">Cargando gráfico…</p>}>
+                <SalesChart data={sales} currency={currency} />
+              </Suspense>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Top productos consultados */}
       <div className="mb-8">
@@ -188,6 +236,15 @@ export default function Dashboard() {
                       <Eye className="w-3.5 h-3.5" />
                       {p.view_count}
                     </span>
+                    {p.view_count > 0 && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 w-14 justify-center"
+                        title="Consultas ÷ vistas: qué tan seguido una vista termina en clic a WhatsApp"
+                      >
+                        <TrendingUp className="w-3 h-3" />
+                        {Math.round((p.wa_click_count / p.view_count) * 100)}%
+                      </span>
+                    )}
                   </div>
                 </li>
               ))}

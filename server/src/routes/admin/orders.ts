@@ -34,6 +34,18 @@ router.get('/pending-count', async (_req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /api/admin/orders/sales-summary?days=14 — ventas confirmadas por día
+router.get('/sales-summary', async (req: AuthRequest, res: Response) => {
+  try {
+    const days = req.query.days ? parseInt(req.query.days as string) : 14;
+    const data = await orderService.getSalesSummary(days);
+    res.json({ ok: true, data });
+  } catch (error: any) {
+    console.error('Error al obtener resumen de ventas:', error);
+    res.status(500).json({ ok: false, error: 'Error al obtener resumen de ventas' });
+  }
+});
+
 // POST /api/admin/orders/:id/confirm — descuenta stock
 router.post('/:id/confirm', async (req: AuthRequest, res: Response) => {
   try {
