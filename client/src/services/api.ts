@@ -647,6 +647,10 @@ export type OrderItem = {
   qty: number;
   unit_price: number | null;
   line_total: number | null;
+  variant_id?: number | null;
+  variant_sku?: string | null;
+  variant_label?: string | null;
+  manual_price?: boolean;
 };
 
 export type Order = {
@@ -657,6 +661,7 @@ export type Order = {
   currency_symbol: string;
   subtotal: number;
   has_unpriced: boolean;
+  source: 'web' | 'manual';
   confirmed_at: string | null;
   created_at: string;
   updated_at: string;
@@ -668,6 +673,27 @@ export const getOrders = async (params: { status?: string; page?: number; limit?
   const qs = buildQueryString(params);
   return fetchAPI<PaginatedResponse<Order>>(`/admin/orders${qs}`, {
     headers: getAuthHeaders(),
+  });
+};
+
+export type CreateManualOrderPayload = {
+  customer_name: string;
+  customer_phone?: string | null;
+  currency_symbol?: string;
+  items: {
+    product_id: number;
+    qty: number;
+    variant_id?: number;
+    unit_price?: number | null; // precio especial forzado por el admin
+  }[];
+};
+
+/** Admin: registra un pedido manual (sin pasar por el carrito web). */
+export const createManualOrder = async (payload: CreateManualOrderPayload) => {
+  return fetchAPI<ApiResponse<Order>>('/admin/orders', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
   });
 };
 

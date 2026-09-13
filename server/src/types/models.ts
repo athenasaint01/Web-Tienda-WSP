@@ -102,6 +102,7 @@ export interface Collection {
 // =============================================
 
 export type OrderStatus = 'pendiente' | 'confirmado' | 'descartado';
+export type OrderSource = 'web' | 'manual';
 
 export interface OrderItem {
   id: number;
@@ -116,6 +117,9 @@ export interface OrderItem {
   variant_id?: number | null;
   variant_sku?: string | null;
   variant_label?: string | null; // ej: "Dorado · Talla 7"
+  // TRUE si el admin forzó un precio distinto al de catálogo/variante
+  // (pedido manual con precio especial). Solo informativo/histórico.
+  manual_price?: boolean;
 }
 
 export interface Order {
@@ -126,6 +130,7 @@ export interface Order {
   currency_symbol: string;
   subtotal: number;
   has_unpriced: boolean;
+  source: OrderSource;
   confirmed_at: Date | null;
   created_at: Date;
   updated_at: Date;
@@ -143,6 +148,23 @@ export interface CreateOrderDTO {
     product_id: number;
     qty: number;
     variant_id?: number;
+  }[];
+}
+
+// Pedido registrado directamente por el admin (sin pasar por el carrito
+// web). A diferencia de CreateOrderDTO, cada item puede traer un precio
+// forzado (unit_price) que sobreescribe el de catálogo/variante -- solo
+// válido aquí porque quien lo pone es el admin autenticado, no un
+// visitante anónimo.
+export interface CreateManualOrderDTO {
+  customer_name: string;
+  customer_phone?: string | null;
+  currency_symbol?: string;
+  items: {
+    product_id: number;
+    qty: number;
+    variant_id?: number;
+    unit_price?: number | null; // si viene, reemplaza el precio calculado
   }[];
 }
 

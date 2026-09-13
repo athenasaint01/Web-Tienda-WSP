@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import * as api from '../../../services/api';
 import type { Order } from '../../../services/api';
+import ManualOrderModal from './ManualOrderModal';
 
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
 
@@ -36,6 +37,7 @@ export default function PedidosPage() {
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [acting, setActing] = useState<number | null>(null);
+  const [showManualModal, setShowManualModal] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -105,12 +107,30 @@ export default function PedidosPage() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-neutral-900">Pedidos</h1>
-        <p className="text-neutral-600 mt-1">
-          Pedidos generados desde el carrito. Confirma los que se concretaron para descontar stock.
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Pedidos</h1>
+          <p className="text-neutral-600 mt-1">
+            Pedidos generados desde el carrito. Confirma los que se concretaron para descontar stock.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowManualModal(true)}
+          className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium"
+        >
+          <Plus className="w-4 h-4" />
+          Registrar pedido manual
+        </button>
       </div>
+
+      {showManualModal && (
+        <ManualOrderModal
+          onClose={(created) => {
+            setShowManualModal(false);
+            if (created) load();
+          }}
+        />
+      )}
 
       {/* Tabs de estado */}
       <div className="flex flex-wrap gap-1 mb-4 border-b border-neutral-200">
@@ -158,6 +178,11 @@ export default function PedidosPage() {
                         >
                           {o.status}
                         </span>
+                        {o.source === 'manual' && (
+                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            Manual
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-neutral-500 mt-0.5">
                         {fmtDate(o.created_at)}
@@ -198,12 +223,23 @@ export default function PedidosPage() {
                                 ) : (
                                   <span className="text-neutral-500">{it.product_name}</span>
                                 )}
+                                {it.variant_label && (
+                                  <span className="block text-xs text-neutral-400">{it.variant_label}</span>
+                                )}
                               </td>
                               <td className="py-2 px-3 text-neutral-500 tabular-nums text-right">×{it.qty}</td>
                               <td className="py-2 pl-3 text-neutral-700 tabular-nums text-right">
                                 {it.line_total != null
                                   ? `${o.currency_symbol} ${it.line_total}`
                                   : 'a consultar'}
+                                {it.manual_price && (
+                                  <span
+                                    className="ml-1.5 text-[10px] font-semibold uppercase text-purple-600"
+                                    title="Precio especial fijado manualmente"
+                                  >
+                                    especial
+                                  </span>
+                                )}
                               </td>
                             </tr>
                           ))}

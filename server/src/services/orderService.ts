@@ -2,6 +2,7 @@ import pool from '../config/database';
 import { sanitizeDiscount, computeSalePrice } from './productService';
 import type {
   CreateOrderDTO,
+  CreateManualOrderDTO,
   Order,
   OrderWithItems,
   OrderStatus,
@@ -19,6 +20,7 @@ const rowToOrder = (r: any): Order => ({
   currency_symbol: r.currency_symbol,
   subtotal: r.subtotal != null ? parseFloat(r.subtotal) : 0,
   has_unpriced: r.has_unpriced,
+  source: r.source ?? 'web',
   confirmed_at: r.confirmed_at,
   created_at: r.created_at,
   updated_at: r.updated_at,
@@ -36,6 +38,7 @@ const rowToItem = (r: any) => ({
   variant_id: r.variant_id ?? null,
   variant_sku: r.variant_sku ?? null,
   variant_label: r.variant_label ?? null,
+  manual_price: r.manual_price ?? false,
 });
 
 // =============================================
@@ -174,6 +177,160 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
         [
           order.id, it.product_id, it.product_name, it.product_slug, it.qty, it.unit_price, it.line_total,
           it.variant_id, it.variant_sku, it.variant_label,
+        ]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    const itemsRes = await pool.query(
+      'SELECT * FROM order_items WHERE order_id = $1 ORDER BY id',
+      [order.id]
+    );
+    return { ...rowToOrder(order), items: itemsRes.rows.map(rowToItem) };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
+// =============================================
+// CREAR PEDIDO MANUAL (admin). Estado inicial: pendiente.
+// A diferencia de createOrder (público), cada item puede traer un precio
+// forzado que sobreescribe el de catálogo/variante -- solo seguro aquí
+// porque quien lo define es el admin autenticado, nunca el cliente.
+// Reusa el mismo cap de stock, resolución de variante y estructura de
+// tablas que el pedido web; queda marcado con source='manual'.
+// =============================================
+export const createManualOrder = async (data: CreateManualOrderDTO): Promise<OrderWithItems> => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const ids = data.items.map((i) => i.product_id);
+    const prodRes = await client.query(
+      `SELECT id, name, slug, price::float8 AS price, discount_percent, stock
+       FROM products WHERE id = ANY($1)`,
+      [ids]
+    );
+    const prodMap = new Map<number, any>(prodRes.rows.map((p: any) => [p.id, p]));
+
+    const variantIds = data.items.map((i) => i.variant_id).filter((x): x is number => x != null);
+    let variantMap = new Map<number, any>();
+    if (variantIds.length > 0) {
+      const varRes = await client.query(
+        `SELECT
+           pv.id, pv.product_id, pv.sku, pv.price::float8 AS price, pv.discount_percent, pv.stock,
+           co.name AS color_name, s.label AS size_label, l.label AS length_label
+         FROM product_variants pv
+         LEFT JOIN colors  co ON co.id = pv.color_id
+         LEFT JOIN sizes   s  ON s.id  = pv.size_id
+         LEFT JOIN lengths l  ON l.id  = pv.length_id
+         WHERE pv.id = ANY($1) AND pv.is_active = TRUE`,
+        [variantIds]
+      );
+      variantMap = new Map(varRes.rows.map((v: any) => [v.id, v]));
+    }
+
+    const curRes = await client.query(`SELECT value FROM settings WHERE key = 'currency_symbol'`);
+    const currencySymbol = data.currency_symbol || curRes.rows[0]?.value || 'S/';
+
+    let subtotal = 0;
+    let hasUnpriced = false;
+    const itemsToInsert: Array<{
+      product_id: number | null;
+      product_name: string;
+      product_slug: string | null;
+      qty: number;
+      unit_price: number | null;
+      line_total: number | null;
+      variant_id: number | null;
+      variant_sku: string | null;
+      variant_label: string | null;
+      manual_price: boolean;
+    }> = [];
+
+    for (const it of data.items) {
+      const p = prodMap.get(it.product_id);
+      if (!p) {
+        throw new Error(`Producto #${it.product_id} no encontrado`);
+      }
+
+      const variant = it.variant_id != null ? variantMap.get(it.variant_id) : null;
+      if (it.variant_id != null && !variant) {
+        throw new Error(`La variante seleccionada de "${p.name}" ya no está disponible`);
+      }
+
+      // Cap por stock real, igual criterio que el pedido web: nunca se
+      // registra más cantidad que el stock disponible.
+      let qty = Math.max(1, Math.min(99, Math.floor(it.qty)));
+      const stock = variant ? (variant.stock ?? 0) : (p.stock ?? 0);
+      if (stock > 0 && qty > stock) qty = stock;
+
+      // Precio: si el admin forzó uno, se usa tal cual (sin descuento
+      // adicional -- el override YA es el precio final que se cobra).
+      // Si no, se calcula igual que en el carrito web.
+      const hasManualPrice = it.unit_price != null && it.unit_price >= 0;
+      let effective: number | null;
+      if (hasManualPrice) {
+        effective = Math.round(it.unit_price! * 100) / 100;
+      } else {
+        const price = variant ? variant.price : p.price;
+        const pct = sanitizeDiscount(variant ? variant.discount_percent : p.discount_percent);
+        effective = computeSalePrice(price, pct) ?? price ?? null;
+      }
+
+      const lineTotal = effective != null ? Math.round(effective * qty * 100) / 100 : null;
+      if (effective == null) hasUnpriced = true;
+      else subtotal += lineTotal!;
+
+      const variantLabel = variant
+        ? [variant.color_name, variant.size_label, variant.length_label]
+            .filter(Boolean)
+            .map((s: string) => s.trim())
+            .join(' · ')
+        : null;
+
+      itemsToInsert.push({
+        product_id: p.id,
+        product_name: p.name.trim(),
+        product_slug: p.slug.trim(),
+        qty,
+        unit_price: effective,
+        line_total: lineTotal,
+        variant_id: variant ? variant.id : null,
+        variant_sku: variant ? variant.sku?.trim() : null,
+        variant_label: variantLabel || null,
+        manual_price: hasManualPrice,
+      });
+    }
+
+    subtotal = Math.round(subtotal * 100) / 100;
+
+    const orderRes = await client.query(
+      `INSERT INTO orders (customer_name, customer_phone, currency_symbol, subtotal, has_unpriced, source)
+       VALUES ($1, $2, $3, $4, $5, 'manual')
+       RETURNING *`,
+      [
+        data.customer_name.trim().slice(0, 120),
+        data.customer_phone ? data.customer_phone.replace(/\D/g, '').slice(0, 30) || null : null,
+        currencySymbol,
+        subtotal,
+        hasUnpriced,
+      ]
+    );
+    const order = orderRes.rows[0];
+
+    for (const it of itemsToInsert) {
+      await client.query(
+        `INSERT INTO order_items
+           (order_id, product_id, product_name, product_slug, qty, unit_price, line_total, variant_id, variant_sku, variant_label, manual_price)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          order.id, it.product_id, it.product_name, it.product_slug, it.qty, it.unit_price, it.line_total,
+          it.variant_id, it.variant_sku, it.variant_label, it.manual_price,
         ]
       );
     }
