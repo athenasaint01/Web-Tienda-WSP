@@ -47,7 +47,7 @@ export default function Header() {
 
           {/* Logo */}
           <Link to="/" onClick={scrollToTop} className="flex items-center shrink-0 relative z-[60]">
-            <img src="/brand/logo-main.webp" alt="Alaha's" className="h-10 w-auto" />
+            <img src="/brand/logo-alahas.webp" alt="Alaha's" className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation — centrado */}
