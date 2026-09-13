@@ -131,18 +131,21 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
       else subtotal += lineTotal!;
 
       const variantLabel = variant
-        ? [variant.color_name, variant.size_label, variant.length_label].filter(Boolean).join(' · ')
+        ? [variant.color_name, variant.size_label, variant.length_label]
+            .filter(Boolean)
+            .map((s: string) => s.trim())
+            .join(' · ')
         : null;
 
       itemsToInsert.push({
         product_id: p.id,
-        product_name: p.name,
-        product_slug: p.slug,
+        product_name: p.name.trim(),
+        product_slug: p.slug.trim(),
         qty,
         unit_price: effective,
         line_total: lineTotal,
         variant_id: variant ? variant.id : null,
-        variant_sku: variant ? variant.sku : null,
+        variant_sku: variant ? variant.sku?.trim() : null,
         variant_label: variantLabel || null,
       });
     }

@@ -157,6 +157,7 @@ export default function ProductoDetalle() {
         product.variant_uses_length ? resolvedVariant.length?.label : null,
       ]
         .filter(Boolean)
+        .map((s) => String(s).trim())
         .join(' · ')
     : '';
 
@@ -171,9 +172,10 @@ export default function ProductoDetalle() {
   const displayPrice = offer ? offer.salePrice : effectivePrice;
   const priceLabel = displayPrice != null ? formatPrice(displayPrice, currency) : "";
 
-  const msg =
-    product.wa_template ??
-    `Hola, me interesa el ${product.name}${variantLabel ? ` (${variantLabel})` : ''}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug}).`;
+  const msg = (
+    product.wa_template?.trim() ||
+    `Hola, me interesa el ${product.name.trim()}${variantLabel ? ` (${variantLabel})` : ''}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug.trim()}).`
+  );
 
   const primaryImage =
     (product.images.find((im: any) => im.is_primary) ?? product.images[0])?.image_url;
@@ -198,9 +200,9 @@ export default function ProductoDetalle() {
     cart.add(
       {
         productId: product.id,
-        slug: product.slug,
-        name: product.name,
-        category: typeof product.category === 'string' ? product.category : product.category?.name,
+        slug: product.slug.trim(),
+        name: product.name.trim(),
+        category: (typeof product.category === 'string' ? product.category : product.category?.name)?.trim(),
         price: effectivePrice,
         sale_price: effectiveSalePrice,
         image_url: primaryImage,

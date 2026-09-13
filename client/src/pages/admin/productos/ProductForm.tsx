@@ -357,8 +357,8 @@ export default function ProductForm() {
   const buildProductFormData = (data: ProductFormData): FormData => {
     const formData = new FormData();
 
-    formData.append('name', data.name);
-    formData.append('slug', data.slug);
+    formData.append('name', data.name.trim());
+    formData.append('slug', data.slug.trim());
     formData.append('category_id', data.category_id.toString());
     formData.append('audience_id', data.audience_id != null ? String(data.audience_id) : '');
     formData.append('thickness_id', data.thickness_id != null ? String(data.thickness_id) : '');
@@ -368,8 +368,8 @@ export default function ProductForm() {
     formData.append('stock', (data.stock ?? 0).toString());
     formData.append('low_stock_threshold', (data.low_stock_threshold ?? 5).toString());
 
-    if (data.description) formData.append('description', data.description);
-    if (data.wa_template) formData.append('wa_template', data.wa_template);
+    if (data.description) formData.append('description', data.description.trim());
+    if (data.wa_template?.trim()) formData.append('wa_template', data.wa_template.trim());
     // Si viene vacío no se manda: el backend genera uno al crear y no toca
     // el existente al editar (nunca se "borra" el SKU con un valor vacío).
     if (data.sku?.trim()) formData.append('sku', data.sku.trim());

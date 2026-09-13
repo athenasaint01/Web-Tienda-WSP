@@ -40,9 +40,11 @@ export function buildCartMessage(
   items.forEach((it, idx) => {
     const unit = unitPrice(it);
     const n = idx + 1;
-    const url = siteUrl ? `${siteUrl}/producto/${it.slug}` : '';
+    const url = siteUrl ? `${siteUrl}/producto/${it.slug.trim()}` : '';
 
-    const nameWithVariant = it.variantLabel ? `${it.name} (${it.variantLabel})` : it.name;
+    const itemName = it.name.trim();
+    const variantLabel = it.variantLabel?.trim();
+    const nameWithVariant = variantLabel ? `${itemName} (${variantLabel})` : itemName;
 
     if (unit == null) {
       hasUnpriced = true;
