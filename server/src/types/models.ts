@@ -112,6 +112,10 @@ export interface OrderItem {
   qty: number;
   unit_price: number | null;
   line_total: number | null;
+  // Snapshot de la variante elegida (si el producto tenía variantes).
+  variant_id?: number | null;
+  variant_sku?: string | null;
+  variant_label?: string | null; // ej: "Dorado · Talla 7"
 }
 
 export interface Order {
@@ -138,6 +142,7 @@ export interface CreateOrderDTO {
   items: {
     product_id: number;
     qty: number;
+    variant_id?: number;
   }[];
 }
 
@@ -160,8 +165,39 @@ export interface Product {
   wa_template?: string;
   is_active: boolean;
   badge_labels: string[];
+  has_variants: boolean;
+  variant_uses_color: boolean;
+  variant_uses_size: boolean;
+  variant_uses_length: boolean;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ProductVariant {
+  id: number;
+  product_id: number;
+  sku?: string | null;
+  color_id?: number | null;
+  size_id?: number | null;
+  length_id?: number | null;
+  price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // DERIVADO, mismo criterio que Product.sale_price
+  stock: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  display_order: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Variante enriquecida con los objetos de catálogo, para mostrar en la UI
+// (nombre/hex del color, label de la talla/largo) sin que el cliente
+// tenga que resolverlos por su cuenta a partir de los ids.
+export interface ProductVariantWithAttrs extends ProductVariant {
+  color?: Color | null;
+  size?: Size | null;
+  length?: Length | null;
 }
 
 export interface ProductImage {
@@ -215,6 +251,7 @@ export interface ProductWithDetails extends Product {
   sizes: Size[];
   lengths: Length[];
   colors: Color[];
+  variants: ProductVariantWithAttrs[];
 }
 
 export interface ProductListItem {
@@ -238,6 +275,7 @@ export interface ProductListItem {
   audience?: string | null;
   thickness?: string | null;
   colors: string[];
+  has_variants?: boolean;
 }
 
 // =============================================
@@ -270,6 +308,11 @@ export interface CreateProductDTO {
   size_ids?: number[];
   length_ids?: number[];
   color_ids?: number[];
+  has_variants?: boolean;
+  variant_uses_color?: boolean;
+  variant_uses_size?: boolean;
+  variant_uses_length?: boolean;
+  variants?: VariantInputDTO[];
 }
 
 export interface UpdateProductDTO {
@@ -294,6 +337,27 @@ export interface UpdateProductDTO {
   size_ids?: number[];
   length_ids?: number[];
   color_ids?: number[];
+  has_variants?: boolean;
+  variant_uses_color?: boolean;
+  variant_uses_size?: boolean;
+  variant_uses_length?: boolean;
+  variants?: VariantInputDTO[];
+}
+
+// Una fila de variante tal como llega del formulario admin. `id` presente
+// = actualizar la variante existente; ausente = crear una nueva.
+export interface VariantInputDTO {
+  id?: number;
+  sku?: string | null;
+  color_id?: number | null;
+  size_id?: number | null;
+  length_id?: number | null;
+  price?: number | null;
+  discount_percent?: number | null;
+  stock: number;
+  low_stock_threshold?: number;
+  is_active?: boolean;
+  display_order?: number;
 }
 
 export interface CreateCategoryDTO {

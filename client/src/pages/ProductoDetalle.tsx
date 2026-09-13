@@ -18,6 +18,12 @@ export default function ProductoDetalle() {
   const [i, setI] = useState(0);
   const [qty, setQty] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
+
+  // Selección de variante (solo relevante si product.has_variants).
+  // null = "no elegido todavía" en ese eje.
+  const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
+  const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
+  const [selectedLengthId, setSelectedLengthId] = useState<number | null>(null);
   // Número vinculado en Configuración (con fallback al .env). El toggle
   // "Mostrar botones de WhatsApp" ya NO afecta este botón: solo el flotante.
   const phone = useWhatsAppPhone();
@@ -44,6 +50,15 @@ export default function ProductoDetalle() {
     viewTrackedFor.current = product.id;
     trackProductMetric(product.id, 'view');
   }, [product]);
+
+  // Al cambiar de producto (navegación entre fichas), reiniciar la
+  // selección de variante y la cantidad.
+  useEffect(() => {
+    setSelectedColorId(null);
+    setSelectedSizeId(null);
+    setSelectedLengthId(null);
+    setQty(1);
+  }, [slug]);
 
   // SEO: título y description dinámicos por producto
   useEffect(() => {
@@ -113,21 +128,69 @@ export default function ProductoDetalle() {
   const next = () => setI((curr) => (curr + 1) % count);
   const prev = () => setI((curr) => (curr - 1 + count) % count);
 
-  const offer = getOffer(product.price, product.sale_price);
+  // Variante resuelta: la fila de product.variants cuya combinación
+  // coincide con la selección actual EN LOS EJES ACTIVOS (los ejes que
+  // el producto no usa para variantes se ignoran en la comparación).
+  // Con has_variants=false, resolvedVariant es siempre undefined y todo
+  // el resto de esta página se comporta exactamente igual que antes.
+  const resolvedVariant = product.has_variants
+    ? product.variants?.find((v) => {
+        if (product.variant_uses_color && v.color_id !== selectedColorId) return false;
+        if (product.variant_uses_size && v.size_id !== selectedSizeId) return false;
+        if (product.variant_uses_length && v.length_id !== selectedLengthId) return false;
+        return true;
+      })
+    : undefined;
+
+  // Selección incompleta = el producto tiene variantes pero falta elegir
+  // alguno de los ejes activos.
+  const variantSelectionIncomplete =
+    !!product.has_variants &&
+    ((product.variant_uses_color && selectedColorId == null) ||
+      (product.variant_uses_size && selectedSizeId == null) ||
+      (product.variant_uses_length && selectedLengthId == null));
+
+  const variantLabel = resolvedVariant
+    ? [
+        product.variant_uses_color ? resolvedVariant.color?.name : null,
+        product.variant_uses_size ? resolvedVariant.size?.label : null,
+        product.variant_uses_length ? resolvedVariant.length?.label : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+
+  // Precio/stock efectivos: de la variante resuelta si el producto usa
+  // variantes, si no del producto (comportamiento de siempre).
+  const effectivePrice = product.has_variants ? resolvedVariant?.price ?? null : product.price;
+  const effectiveSalePrice = product.has_variants ? resolvedVariant?.sale_price ?? null : product.sale_price;
+  const effectiveStock = product.has_variants ? resolvedVariant?.stock ?? 0 : product.stock;
+
+  const offer = getOffer(effectivePrice, effectiveSalePrice);
   // Precio que se muestra "grande" y el que va al mensaje de WhatsApp.
-  const displayPrice = offer ? offer.salePrice : product.price;
+  const displayPrice = offer ? offer.salePrice : effectivePrice;
   const priceLabel = displayPrice != null ? formatPrice(displayPrice, currency) : "";
 
   const msg =
     product.wa_template ??
-    `Hola, me interesa el ${product.name}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug}).`;
+    `Hola, me interesa el ${product.name}${variantLabel ? ` (${variantLabel})` : ''}${priceLabel ? ` (${priceLabel})` : ""} (${product.slug}).`;
 
   const primaryImage =
     (product.images.find((im: any) => im.is_primary) ?? product.images[0])?.image_url;
 
-  // Cuánto ya hay de este producto en el carrito (para no pasarnos del stock al sumar)
-  const inCart = cart.items.find((i) => i.productId === product.id)?.qty ?? 0;
-  const maxAddable = Math.max(0, product.stock - inCart);
+  // Cuánto ya hay de esta MISMA línea (producto + variante) en el carrito,
+  // para no pasarnos del stock al sumar.
+  const inCart =
+    cart.items.find(
+      (i) => i.productId === product.id && (i.variantId ?? null) === (resolvedVariant?.id ?? null)
+    )?.qty ?? 0;
+  const maxAddable = product.has_variants && !resolvedVariant ? 0 : Math.max(0, effectiveStock - inCart);
+
+  // El badge/aviso "Agotado" solo se muestra cuando ya sabemos con certeza
+  // que no hay stock: producto simple sin stock, o variante ya elegida y
+  // sin stock. Mientras el producto tenga variantes y no se haya elegido
+  // combinación, no se afirma nada sobre disponibilidad todavía.
+  const isOutOfStock = product.has_variants ? !!resolvedVariant && effectiveStock <= 0 : effectiveStock <= 0;
 
   const addToCart = () => {
     if (maxAddable <= 0) return;
@@ -138,10 +201,13 @@ export default function ProductoDetalle() {
         slug: product.slug,
         name: product.name,
         category: typeof product.category === 'string' ? product.category : product.category?.name,
-        price: product.price ?? null,
-        sale_price: product.sale_price ?? null,
+        price: effectivePrice,
+        sale_price: effectiveSalePrice,
         image_url: primaryImage,
-        stock: product.stock,
+        stock: effectiveStock,
+        ...(resolvedVariant
+          ? { variantId: resolvedVariant.id, variantSku: resolvedVariant.sku, variantLabel }
+          : {}),
       },
       toAdd
     );
@@ -189,7 +255,7 @@ export default function ProductoDetalle() {
         </AnimatePresence>
 
         {/* Badge AGOTADO */}
-        {product.stock <= 0 && (
+        {isOutOfStock && (
           <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow z-30">
             AGOTADO
           </div>
@@ -249,7 +315,7 @@ export default function ProductoDetalle() {
           </div>
 
           <div className="overflow-hidden border border-black/10 relative bg-white">
-            {product.stock <= 0 && (
+            {isOutOfStock && (
               <div className="absolute top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-30">AGOTADO</div>
             )}
             {count > 1 && (
@@ -319,15 +385,20 @@ export default function ProductoDetalle() {
 
           {/* Indicador de stock */}
           <div className="text-sm">
-            {product.stock <= 0 ? (
+            {product.has_variants && variantSelectionIncomplete ? (
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-neutral-300 text-neutral-500 tracking-wide text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 shrink-0" />
+                Elige las opciones para ver disponibilidad
+              </div>
+            ) : isOutOfStock ? (
               <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-red-200 text-red-600 tracking-wide text-xs font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
                 Agotado
               </div>
-            ) : product.stock <= product.low_stock_threshold ? (
+            ) : effectiveStock <= product.low_stock_threshold ? (
               <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-amber-300 text-amber-700 tracking-wide text-xs font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                Últimas {product.stock} unidades
+                Últimas {effectiveStock} unidades
               </div>
             ) : (
               <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-amber-800/25 text-amber-800 tracking-wide text-xs font-medium">
@@ -378,14 +449,14 @@ export default function ProductoDetalle() {
               </div>
             )}
 
-            {product.sizes?.length ? (
+            {product.sizes?.length && !product.variant_uses_size ? (
               <div className="sm:col-span-2">
                 <dt className="font-medium inline">Tallas: </dt>
                 <dd className="inline">{product.sizes.map((s: any) => s.label).join(' · ')}</dd>
               </div>
             ) : null}
 
-            {product.lengths?.length ? (
+            {product.lengths?.length && !product.variant_uses_length ? (
               <div className="sm:col-span-2">
                 <dt className="font-medium inline">Largos: </dt>
                 <dd className="inline">{product.lengths.map((l: any) => l.label).join(' · ')}</dd>
@@ -393,24 +464,102 @@ export default function ProductoDetalle() {
             ) : null}
           </dl>
 
-          {/* Colores disponibles */}
+          {/* Selector de talla (interactivo solo si el producto usa
+              variantes por talla; si no, es informativo, arriba) */}
+          {product.variant_uses_size && product.sizes?.length ? (
+            <div className="text-sm">
+              <span className="font-medium">Talla: </span>
+              <span className="inline-flex flex-wrap items-center gap-2 align-middle mt-1.5">
+                {product.sizes.map((s: any) => {
+                  const active = selectedSizeId === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setSelectedSizeId(active ? null : s.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        active
+                          ? 'border-[#4a4438] bg-[#4a4438] text-white'
+                          : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          {/* Selector de largo (interactivo solo si el producto usa
+              variantes por largo) */}
+          {product.variant_uses_length && product.lengths?.length ? (
+            <div className="text-sm">
+              <span className="font-medium">Largo: </span>
+              <span className="inline-flex flex-wrap items-center gap-2 align-middle mt-1.5">
+                {product.lengths.map((l: any) => {
+                  const active = selectedLengthId === l.id;
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => setSelectedLengthId(active ? null : l.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        active
+                          ? 'border-[#4a4438] bg-[#4a4438] text-white'
+                          : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
+                      }`}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          {/* Colores disponibles: selector interactivo si el producto usa
+              variantes por color; si no, solo informativo como siempre. */}
           {product.colors?.length ? (
             <div className="text-sm">
-              <span className="font-medium">Colores: </span>
-              <span className="inline-flex flex-wrap items-center gap-2 align-middle">
-                {product.colors.map((c: any) => (
-                  <span key={c.id} className="inline-flex items-center gap-1.5">
-                    <span
-                      className="inline-block w-3.5 h-3.5 rounded-full border border-black/20"
-                      style={
-                        c.hex
-                          ? { background: c.hex }
-                          : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }
-                      }
-                    />
-                    {c.name}
-                  </span>
-                ))}
+              <span className="font-medium">Color{product.variant_uses_color ? '' : 'es'}: </span>
+              <span className="inline-flex flex-wrap items-center gap-2 align-middle mt-1.5">
+                {product.colors.map((c: any) =>
+                  product.variant_uses_color ? (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setSelectedColorId(selectedColorId === c.id ? null : c.id)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        selectedColorId === c.id
+                          ? 'border-[#4a4438] bg-[#4a4438] text-white'
+                          : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500'
+                      }`}
+                    >
+                      <span
+                        className="inline-block w-3.5 h-3.5 rounded-full border border-black/20"
+                        style={
+                          c.hex
+                            ? { background: c.hex }
+                            : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }
+                        }
+                      />
+                      {c.name}
+                    </button>
+                  ) : (
+                    <span key={c.id} className="inline-flex items-center gap-1.5">
+                      <span
+                        className="inline-block w-3.5 h-3.5 rounded-full border border-black/20"
+                        style={
+                          c.hex
+                            ? { background: c.hex }
+                            : { background: 'conic-gradient(red, orange, yellow, green, blue, violet, red)' }
+                        }
+                      />
+                      {c.name}
+                    </span>
+                  )
+                )}
               </span>
             </div>
           ) : null}
@@ -429,7 +578,7 @@ export default function ProductoDetalle() {
           ) : null}
 
           {/* Agregar al carrito */}
-          {product.stock > 0 && (
+          {(product.has_variants || effectiveStock > 0) && (
             <div className="space-y-2 pt-1">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="inline-flex items-center border border-neutral-300 rounded-full">
@@ -468,15 +617,25 @@ export default function ProductoDetalle() {
                 </button>
               </div>
 
-              {maxAddable <= 0 ? (
+              {variantSelectionIncomplete ? (
+                <p className="text-xs text-neutral-500">
+                  Elige {[
+                    product.variant_uses_color && 'color',
+                    product.variant_uses_size && 'talla',
+                    product.variant_uses_length && 'largo',
+                  ].filter(Boolean).join(' y ')} para continuar.
+                </p>
+              ) : product.has_variants && !resolvedVariant ? (
+                <p className="text-xs text-red-600">Esa combinación no está disponible.</p>
+              ) : maxAddable <= 0 ? (
                 <p className="text-xs text-amber-700">
-                  Ya tienes las {product.stock} unidades disponibles en tu selección.
+                  Ya tienes las {effectiveStock} unidades disponibles en tu selección.
                 </p>
               ) : maxAddable <= product.low_stock_threshold ? (
                 <p className="text-xs text-neutral-400">
-                  {maxAddable === product.stock
-                    ? `Solo quedan ${product.stock} unidades.`
-                    : `Puedes agregar ${maxAddable} más (${product.stock} en total).`}
+                  {maxAddable === effectiveStock
+                    ? `Solo quedan ${effectiveStock} unidades.`
+                    : `Puedes agregar ${maxAddable} más (${effectiveStock} en total).`}
                 </p>
               ) : null}
             </div>

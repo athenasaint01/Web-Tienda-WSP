@@ -51,7 +51,7 @@ export default function CartDrawer() {
           customer_name: name.trim(),
           customer_phone: customerPhone.trim() || null,
           currency_symbol: currency,
-          items: items.map((i) => ({ product_id: i.productId, qty: i.qty })),
+          items: items.map((i) => ({ product_id: i.productId, qty: i.qty, variant_id: i.variantId })),
         });
       } catch (e) {
         console.warn('No se pudo registrar el pedido, se continúa a WhatsApp:', e);
@@ -178,9 +178,11 @@ export default function CartDrawer() {
                   {/* mini resumen */}
                   <div className="border-t border-black/10 pt-3 text-xs text-neutral-500 space-y-1">
                     {items.map((it) => (
-                      <div key={it.productId} className="flex justify-between gap-2">
+                      <div key={`${it.productId}-${it.variantId ?? 'x'}`} className="flex justify-between gap-2">
                         <span className="truncate">
-                          {it.name} <span className="text-neutral-400">×{it.qty}</span>
+                          {it.name}
+                          {it.variantLabel && <span className="text-neutral-400"> ({it.variantLabel})</span>}
+                          {' '}<span className="text-neutral-400">×{it.qty}</span>
                         </span>
                         <span className="shrink-0">
                           {itemPrice(it) != null
@@ -216,7 +218,7 @@ export default function CartDrawer() {
                     const onSale =
                       it.sale_price != null && it.price != null && it.sale_price < it.price;
                     return (
-                      <li key={it.productId} className="flex gap-3 p-4">
+                      <li key={`${it.productId}-${it.variantId ?? 'x'}`} className="flex gap-3 p-4">
                         <Link
                           to={`/producto/${it.slug}`}
                           onClick={handleClose}
@@ -239,6 +241,9 @@ export default function CartDrawer() {
                           >
                             {it.name}
                           </Link>
+                          {it.variantLabel && (
+                            <p className="text-[11px] text-neutral-500 truncate">{it.variantLabel}</p>
+                          )}
 
                           <div className="mt-1 text-xs">
                             {unit == null ? (
@@ -263,7 +268,7 @@ export default function CartDrawer() {
                           <div className="mt-2 flex items-center justify-between">
                             <div className="inline-flex items-center border border-neutral-300 rounded-full">
                               <button
-                                onClick={() => setQty(it.productId, it.qty - 1)}
+                                onClick={() => setQty(it.productId, it.qty - 1, it.variantId)}
                                 disabled={it.qty <= 1}
                                 className="p-1.5 hover:bg-black/5 rounded-l-full transition-colors disabled:opacity-30"
                                 aria-label="Quitar una unidad"
@@ -272,7 +277,7 @@ export default function CartDrawer() {
                               </button>
                               <span className="w-7 text-center text-xs tabular-nums">{it.qty}</span>
                               <button
-                                onClick={() => setQty(it.productId, it.qty + 1)}
+                                onClick={() => setQty(it.productId, it.qty + 1, it.variantId)}
                                 disabled={it.qty >= maxQty(it)}
                                 className="p-1.5 hover:bg-black/5 rounded-r-full transition-colors disabled:opacity-30"
                                 aria-label="Agregar una unidad"
@@ -282,7 +287,7 @@ export default function CartDrawer() {
                             </div>
 
                             <button
-                              onClick={() => remove(it.productId)}
+                              onClick={() => remove(it.productId, it.variantId)}
                               className="p-1.5 text-neutral-400 hover:text-red-600 transition-colors"
                               aria-label="Eliminar del carrito"
                             >

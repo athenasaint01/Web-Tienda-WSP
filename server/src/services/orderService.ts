@@ -33,6 +33,9 @@ const rowToItem = (r: any) => ({
   qty: r.qty,
   unit_price: r.unit_price != null ? parseFloat(r.unit_price) : null,
   line_total: r.line_total != null ? parseFloat(r.line_total) : null,
+  variant_id: r.variant_id ?? null,
+  variant_sku: r.variant_sku ?? null,
+  variant_label: r.variant_label ?? null,
 });
 
 // =============================================
@@ -53,6 +56,25 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
     );
     const prodMap = new Map<number, any>(prodRes.rows.map((p: any) => [p.id, p]));
 
+    // Traer las variantes referenciadas (si algún item trae variant_id),
+    // con su combinación resuelta para el snapshot legible (variant_label).
+    const variantIds = data.items.map((i) => i.variant_id).filter((x): x is number => x != null);
+    let variantMap = new Map<number, any>();
+    if (variantIds.length > 0) {
+      const varRes = await client.query(
+        `SELECT
+           pv.id, pv.product_id, pv.sku, pv.price::float8 AS price, pv.discount_percent, pv.stock,
+           co.name AS color_name, s.label AS size_label, l.label AS length_label
+         FROM product_variants pv
+         LEFT JOIN colors  co ON co.id = pv.color_id
+         LEFT JOIN sizes   s  ON s.id  = pv.size_id
+         LEFT JOIN lengths l  ON l.id  = pv.length_id
+         WHERE pv.id = ANY($1) AND pv.is_active = TRUE`,
+        [variantIds]
+      );
+      variantMap = new Map(varRes.rows.map((v: any) => [v.id, v]));
+    }
+
     // símbolo de moneda actual
     const curRes = await client.query(
       `SELECT value FROM settings WHERE key = 'currency_symbol'`
@@ -68,6 +90,9 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
       qty: number;
       unit_price: number | null;
       line_total: number | null;
+      variant_id: number | null;
+      variant_sku: string | null;
+      variant_label: string | null;
     }> = [];
 
     for (const it of data.items) {
@@ -82,21 +107,32 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
           qty,
           unit_price: null,
           line_total: null,
+          variant_id: null,
+          variant_sku: null,
+          variant_label: null,
         });
         hasUnpriced = true;
         continue;
       }
 
-      // Cap por stock real: nunca guardar un pedido con más cantidad que
-      // el stock disponible en la BD (el cliente no es fuente de verdad).
-      const stock = p.stock ?? 0;
+      // Si el item trae una variante válida, el precio/stock/tope se
+      // resuelven desde la VARIANTE (no del producto padre) — cada
+      // combinación tiene su propio precio, descuento y stock.
+      const variant = it.variant_id != null ? variantMap.get(it.variant_id) : null;
+
+      const stock = variant ? (variant.stock ?? 0) : (p.stock ?? 0);
       if (stock > 0 && qty > stock) qty = stock;
 
-      const pct = sanitizeDiscount(p.discount_percent);
-      const effective = computeSalePrice(p.price, pct) ?? p.price ?? null;
+      const price = variant ? variant.price : p.price;
+      const pct = sanitizeDiscount(variant ? variant.discount_percent : p.discount_percent);
+      const effective = computeSalePrice(price, pct) ?? price ?? null;
       const lineTotal = effective != null ? Math.round(effective * qty * 100) / 100 : null;
       if (effective == null) hasUnpriced = true;
       else subtotal += lineTotal!;
+
+      const variantLabel = variant
+        ? [variant.color_name, variant.size_label, variant.length_label].filter(Boolean).join(' · ')
+        : null;
 
       itemsToInsert.push({
         product_id: p.id,
@@ -105,6 +141,9 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
         qty,
         unit_price: effective,
         line_total: lineTotal,
+        variant_id: variant ? variant.id : null,
+        variant_sku: variant ? variant.sku : null,
+        variant_label: variantLabel || null,
       });
     }
 
@@ -126,9 +165,13 @@ export const createOrder = async (data: CreateOrderDTO): Promise<OrderWithItems>
 
     for (const it of itemsToInsert) {
       await client.query(
-        `INSERT INTO order_items (order_id, product_id, product_name, product_slug, qty, unit_price, line_total)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [order.id, it.product_id, it.product_name, it.product_slug, it.qty, it.unit_price, it.line_total]
+        `INSERT INTO order_items
+           (order_id, product_id, product_name, product_slug, qty, unit_price, line_total, variant_id, variant_sku, variant_label)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          order.id, it.product_id, it.product_name, it.product_slug, it.qty, it.unit_price, it.line_total,
+          it.variant_id, it.variant_sku, it.variant_label,
+        ]
       );
     }
 
@@ -218,6 +261,27 @@ export const confirmOrder = async (
     const stockWarnings: string[] = [];
 
     for (const it of itemsRes.rows) {
+      if (it.variant_id != null) {
+        // Item con variante: el stock a descontar es el de la VARIANTE,
+        // no el del producto padre (cada combinación tiene su propio
+        // inventario independiente).
+        const varRes = await client.query(
+          'SELECT stock FROM product_variants WHERE id = $1 FOR UPDATE',
+          [it.variant_id]
+        );
+        if (varRes.rows.length === 0) continue; // variante borrada: no hay stock que tocar
+
+        const current = varRes.rows[0].stock ?? 0;
+        const nuevo = current - it.qty;
+        if (nuevo < 0) {
+          stockWarnings.push(
+            `${it.product_name}${it.variant_label ? ` (${it.variant_label})` : ''}: stock quedó en ${nuevo} (había ${current}, se pidieron ${it.qty})`
+          );
+        }
+        await client.query('UPDATE product_variants SET stock = $1 WHERE id = $2', [nuevo, it.variant_id]);
+        continue;
+      }
+
       if (it.product_id == null) continue; // producto borrado: no hay stock que tocar
 
       const prodRes = await client.query(

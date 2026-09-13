@@ -74,6 +74,27 @@ export type ProductColor = Color & { product_is_primary?: boolean };
 // Referencia ligera {name, slug} usada en listados
 export type AttrRef = { name: string; slug: string };
 
+// Una variante de producto (precio/descuento/stock propios por combinación
+// de color/talla/largo), con los objetos de catálogo ya resueltos.
+export type ProductVariant = {
+  id: number;
+  product_id: number;
+  sku?: string | null;
+  color_id?: number | null;
+  size_id?: number | null;
+  length_id?: number | null;
+  price?: number | null;
+  discount_percent?: number | null;
+  sale_price?: number | null; // derivado
+  stock: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  display_order: number;
+  color?: Color | null;
+  size?: Size | null;
+  length?: Length | null;
+}
+
 export type Collection = {
   id: number;
   category_id: number;
@@ -139,6 +160,7 @@ export type ProductListItem = {
   thickness?: (AttrRef & { level?: number }) | null;
   colors: Array<{ name: string; slug: string; hex?: string | null }>;
   badge_labels?: string[];
+  has_variants?: boolean;
 }
 
 // Producto completo (vista detalle)
@@ -168,6 +190,11 @@ export type ProductDetail = {
   lengths: Length[];
   colors: ProductColor[];
   badge_labels?: string[];
+  has_variants: boolean;
+  variant_uses_color: boolean;
+  variant_uses_size: boolean;
+  variant_uses_length: boolean;
+  variants: ProductVariant[];
   created_at: string;
   updated_at: string;
 }

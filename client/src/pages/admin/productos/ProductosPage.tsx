@@ -18,6 +18,7 @@ type Product = {
   sale_price?: number | null;
   stock?: number;
   image_url?: string;
+  has_variants?: boolean;
 };
 
 type Pagination = { page: number; limit: number; total: number; totalPages: number };
@@ -291,7 +292,9 @@ export default function ProductosPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600">{product.category}</td>
                     <td className="px-6 py-4 text-sm text-neutral-700">
-                      {(() => {
+                      {product.has_variants ? (
+                        <span className="text-xs text-neutral-500 italic">Con variantes</span>
+                      ) : (() => {
                         const offer = getOffer(product.price, product.sale_price);
                         if (offer) {
                           return (
@@ -316,7 +319,9 @@ export default function ProductosPage() {
                       })()}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      {product.stock == null ? (
+                      {product.has_variants ? (
+                        <span className="text-xs text-neutral-400">Por variante</span>
+                      ) : product.stock == null ? (
                         <span className="text-neutral-400">—</span>
                       ) : product.stock <= 0 ? (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">

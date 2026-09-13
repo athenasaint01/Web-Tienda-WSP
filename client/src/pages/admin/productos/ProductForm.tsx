@@ -65,6 +65,24 @@ type Size = { id: number; label: string };
 type Length = { id: number; label: string };
 type Color = { id: number; name: string; hex?: string | null };
 
+// Una fila de la tabla editable de variantes. `id` presente = ya existe en
+// BD (se actualiza); ausente = nueva (se crea al guardar).
+type VariantRow = {
+  id?: number;
+  color_id?: number | null;
+  size_id?: number | null;
+  length_id?: number | null;
+  sku?: string | null;
+  price?: number | null;
+  discount_percent?: number | null;
+  stock: number;
+  low_stock_threshold?: number;
+  is_active: boolean;
+};
+
+const comboKey = (v: Pick<VariantRow, 'color_id' | 'size_id' | 'length_id'>) =>
+  `${v.color_id ?? ''}|${v.size_id ?? ''}|${v.length_id ?? ''}`;
+
 export default function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,6 +102,14 @@ export default function ProductForm() {
   const [badgeLabels, setBadgeLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(isEditing);
   const [copied, setCopied] = useState(false);
+
+  // Variantes (precio/descuento/stock propios por color/talla/largo).
+  // Estado local aparte del form validado, mismo criterio que badgeLabels.
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variantUsesColor, setVariantUsesColor] = useState(false);
+  const [variantUsesSize, setVariantUsesSize] = useState(false);
+  const [variantUsesLength, setVariantUsesLength] = useState(false);
+  const [variantRows, setVariantRows] = useState<VariantRow[]>([]);
 
   const slugTouched = useRef(false);
 
@@ -125,6 +151,63 @@ export default function ProductForm() {
       ? Math.round(priceVal * (1 - discountVal / 100) * 100) / 100
       : null;
   const nameValue = useWatch({ control, name: 'name' });
+
+  // Genera el producto cartesiano de los ejes de variante activos, usando
+  // los colores/tallas/largos ya seleccionados arriba. Hace MERGE sobre
+  // variantRows existente (por combinación) en vez de reemplazar todo, así
+  // no se pierden precios/stock ya tecleados si se agrega un color más y
+  // se regenera.
+  const generateVariantCombos = () => {
+    const colorAxis: (number | null)[] = variantUsesColor && selectedColors.length ? selectedColors : [null];
+    const sizeAxis: (number | null)[] = variantUsesSize && selectedSizes.length ? selectedSizes : [null];
+    const lengthAxis: (number | null)[] = variantUsesLength && selectedLengths.length ? selectedLengths : [null];
+
+    if (!variantUsesColor && !variantUsesSize && !variantUsesLength) {
+      toast.error('Activa al menos un eje (color, talla o largo) para generar combinaciones');
+      return;
+    }
+
+    const existingByKey = new Map(variantRows.map((r) => [comboKey(r), r]));
+    const nextRows: VariantRow[] = [];
+
+    for (const color_id of colorAxis) {
+      for (const size_id of sizeAxis) {
+        for (const length_id of lengthAxis) {
+          const key = comboKey({ color_id, size_id, length_id });
+          const existing = existingByKey.get(key);
+          nextRows.push(
+            existing || {
+              color_id,
+              size_id,
+              length_id,
+              price: null,
+              discount_percent: null,
+              stock: 0,
+              low_stock_threshold: 5,
+              is_active: true,
+            }
+          );
+        }
+      }
+    }
+    setVariantRows(nextRows);
+  };
+
+  const updateVariantRow = (index: number, patch: Partial<VariantRow>) => {
+    setVariantRows((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+  };
+
+  const removeVariantRow = (index: number) => {
+    setVariantRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const variantLabel = (v: VariantRow) => {
+    const parts: string[] = [];
+    if (v.color_id != null) parts.push(colors.find((c) => c.id === v.color_id)?.name ?? `#${v.color_id}`);
+    if (v.size_id != null) parts.push(sizes.find((s) => s.id === v.size_id)?.label ?? `#${v.size_id}`);
+    if (v.length_id != null) parts.push(lengths.find((l) => l.id === v.length_id)?.label ?? `#${v.length_id}`);
+    return parts.join(' · ') || 'Combinación';
+  };
 
   // Auto-generar slug desde nombre solo al crear
   useEffect(() => {
@@ -196,6 +279,24 @@ export default function ProductForm() {
           setValue('length_ids', product.lengths?.map((l: any) => l.id) || []);
           setValue('color_ids', product.colors?.map((c: any) => c.id) || []);
           setBadgeLabels(product.badge_labels || []);
+          setHasVariants(product.has_variants || false);
+          setVariantUsesColor(product.variant_uses_color || false);
+          setVariantUsesSize(product.variant_uses_size || false);
+          setVariantUsesLength(product.variant_uses_length || false);
+          setVariantRows(
+            (product.variants || []).map((v: any) => ({
+              id: v.id,
+              color_id: v.color_id ?? null,
+              size_id: v.size_id ?? null,
+              length_id: v.length_id ?? null,
+              sku: v.sku ?? null,
+              price: v.price ?? null,
+              discount_percent: v.discount_percent ?? null,
+              stock: v.stock ?? 0,
+              low_stock_threshold: v.low_stock_threshold ?? 5,
+              is_active: v.is_active ?? true,
+            }))
+          );
           // Cargar imágenes existentes como URLs
           if (product.images && product.images.length > 0) {
             setImages(product.images.map((img: any) => img.image_url));
@@ -280,10 +381,32 @@ export default function ProductForm() {
     formData.append('color_ids', JSON.stringify(data.color_ids ?? []));
     formData.append('badge_labels', JSON.stringify(badgeLabels));
 
+    formData.append('has_variants', hasVariants ? 'true' : 'false');
+    formData.append('variant_uses_color', variantUsesColor ? 'true' : 'false');
+    formData.append('variant_uses_size', variantUsesSize ? 'true' : 'false');
+    formData.append('variant_uses_length', variantUsesLength ? 'true' : 'false');
+    // Se manda siempre (incluso []) cuando has_variants está activo, para
+    // que el backend pueda desactivar filas que ya no vienen en la lista.
+    if (hasVariants) {
+      formData.append('variants', JSON.stringify(variantRows.map((v) => ({ ...v, stock: v.stock ?? 0 }))));
+    }
+
     return formData;
   };
 
   const onSubmit = async (data: ProductFormData) => {
+    if (hasVariants) {
+      if (variantRows.length === 0) {
+        toast.error('Activaste variantes pero no generaste ninguna combinación');
+        return;
+      }
+      const invalidStock = variantRows.some((v) => v.stock == null || v.stock < 0);
+      if (invalidStock) {
+        toast.error('Cada variante necesita un stock válido (0 o más)');
+        return;
+      }
+    }
+
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       const token = localStorage.getItem('auth_token');
@@ -689,6 +812,160 @@ export default function ProductForm() {
           </div>
           {colors.length === 0 && (
             <p className="text-sm text-neutral-500">No hay colores en el catálogo.</p>
+          )}
+        </div>
+
+        {/* Variantes: precio/descuento/stock propios por color/talla/largo */}
+        <div className="space-y-4 border-t border-neutral-200 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-900">Variantes</h2>
+            <p className="text-xs text-neutral-500 mt-1">
+              Útil para productos como una "pulsera reloj" que viene en varios colores/tamaños,
+              donde cada combinación tiene su propio precio, descuento y stock.
+            </p>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+            <input
+              type="checkbox"
+              checked={hasVariants}
+              onChange={(e) => setHasVariants(e.target.checked)}
+              className="w-4 h-4 rounded border-neutral-300"
+            />
+            Este producto tiene variantes con precio/stock propio
+          </label>
+
+          {hasVariants && (
+            <>
+              {(priceVal != null || (watch('stock') ?? 0) > 0) && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                  El precio y stock del producto (arriba) se ignoran mientras esté activado este modo —
+                  el precio y stock reales los define cada variante.
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={variantUsesColor}
+                    onChange={(e) => setVariantUsesColor(e.target.checked)}
+                    disabled={selectedColors.length === 0}
+                    className="w-4 h-4 rounded border-neutral-300"
+                  />
+                  Usar Color {selectedColors.length === 0 && <span className="text-neutral-400">(selecciona colores arriba)</span>}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={variantUsesSize}
+                    onChange={(e) => setVariantUsesSize(e.target.checked)}
+                    disabled={selectedSizes.length === 0}
+                    className="w-4 h-4 rounded border-neutral-300"
+                  />
+                  Usar Talla {selectedSizes.length === 0 && <span className="text-neutral-400">(selecciona tallas arriba)</span>}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={variantUsesLength}
+                    onChange={(e) => setVariantUsesLength(e.target.checked)}
+                    disabled={selectedLengths.length === 0}
+                    className="w-4 h-4 rounded border-neutral-300"
+                  />
+                  Usar Largo {selectedLengths.length === 0 && <span className="text-neutral-400">(selecciona largos arriba)</span>}
+                </label>
+              </div>
+
+              <button
+                type="button"
+                onClick={generateVariantCombos}
+                className="px-3 py-1.5 text-sm font-medium bg-neutral-900 text-white rounded-md hover:bg-neutral-800 transition-colors"
+              >
+                Generar combinaciones
+              </button>
+
+              {variantRows.length > 0 && (
+                <div className="overflow-x-auto border border-neutral-200 rounded-lg">
+                  <table className="w-full min-w-[720px] text-sm">
+                    <thead className="bg-neutral-50 border-b border-neutral-200">
+                      <tr>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600">Combinación</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600">SKU</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-24">Precio</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-20">Desc. %</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-20">Stock</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-16">Activa</th>
+                        <th className="w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-100">
+                      {variantRows.map((v, i) => (
+                        <tr key={comboKey(v)} className={v.is_active ? '' : 'opacity-50'}>
+                          <td className="px-3 py-2 text-neutral-700 whitespace-nowrap">{variantLabel(v)}</td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="text"
+                              value={v.sku ?? ''}
+                              onChange={(e) => updateVariantRow(i, { sku: e.target.value || null })}
+                              placeholder="Auto"
+                              className="w-44 border border-neutral-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-neutral-900"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={v.price ?? ''}
+                              onChange={(e) => updateVariantRow(i, { price: e.target.value === '' ? null : Number(e.target.value) })}
+                              className="w-20 border border-neutral-300 rounded px-2 py-1 focus:outline-none focus:border-neutral-900"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="number"
+                              min={0}
+                              max={95}
+                              value={v.discount_percent ?? ''}
+                              onChange={(e) => updateVariantRow(i, { discount_percent: e.target.value === '' ? null : Number(e.target.value) })}
+                              className="w-16 border border-neutral-300 rounded px-2 py-1 focus:outline-none focus:border-neutral-900"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="number"
+                              min={0}
+                              value={v.stock}
+                              onChange={(e) => updateVariantRow(i, { stock: Number(e.target.value) || 0 })}
+                              className="w-16 border border-neutral-300 rounded px-2 py-1 focus:outline-none focus:border-neutral-900"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="checkbox"
+                              checked={v.is_active}
+                              onChange={(e) => updateVariantRow(i, { is_active: e.target.checked })}
+                              className="w-4 h-4 rounded border-neutral-300"
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              type="button"
+                              onClick={() => removeVariantRow(i)}
+                              className="text-neutral-400 hover:text-red-600 text-xs"
+                              title="Quitar de la lista (si ya existe en BD, se desactivará al guardar)"
+                            >
+                              ✕
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </div>
 

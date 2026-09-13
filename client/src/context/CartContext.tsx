@@ -15,6 +15,18 @@ export type CartItem = {
    * undefined = producto sin control de stock -> sin tope (solo MAX_QTY).
    */
   stock?: number;
+  /**
+   * Presente solo si el producto tiene variantes (color/talla/largo con
+   * precio/stock propios). Dos líneas con el mismo productId pero distinto
+   * variantId son items DISTINTOS del carrito (ej. el mismo anillo en dos
+   * tallas) — cada una con su propia cantidad y su propio tope de stock.
+   * Carritos guardados antes de esta versión no tienen este campo: se
+   * tratan como "sin variante", que es el comportamiento correcto para
+   * productos simples.
+   */
+  variantId?: number;
+  variantSku?: string | null;
+  variantLabel?: string | null; // ej: "Dorado · Talla 7"
   qty: number;
 };
 
@@ -22,6 +34,15 @@ export type CartItem = {
 export function maxQtyFor(item: Pick<CartItem, 'stock'>): number {
   if (item.stock == null || item.stock <= 0) return MAX_QTY_HARD;
   return Math.min(MAX_QTY_HARD, item.stock);
+}
+
+/**
+ * Dos items son la "misma línea" del carrito si son el mismo producto Y
+ * la misma variante (o ambos sin variante). Reemplaza la comparación
+ * antigua de solo `productId`, que asumía 1 línea por producto.
+ */
+function sameLine(a: Pick<CartItem, 'productId' | 'variantId'>, b: Pick<CartItem, 'productId' | 'variantId'>): boolean {
+  return a.productId === b.productId && (a.variantId ?? null) === (b.variantId ?? null);
 }
 
 type CartContextType = {
@@ -38,8 +59,8 @@ type CartContextType = {
   close: () => void;
   toggle: () => void;
   add: (item: Omit<CartItem, 'qty'>, qty?: number) => void;
-  remove: (productId: number) => void;
-  setQty: (productId: number, qty: number) => void;
+  remove: (productId: number, variantId?: number) => void;
+  setQty: (productId: number, qty: number, variantId?: number) => void;
   /** Cantidad máxima que admite un item según su stock (snapshot). */
   maxQty: (item: Pick<CartItem, 'stock'>) => number;
   clear: () => void;
@@ -92,15 +113,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback((item: Omit<CartItem, 'qty'>, qty = 1) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      const existing = prev.find((i) => sameLine(i, item));
       if (existing) {
         // Refresca el stock con el snapshot más reciente y respeta el tope.
         const stock = item.stock ?? existing.stock;
         const cap = maxQtyFor({ stock });
         return prev.map((i) =>
-          i.productId === item.productId
-            ? { ...i, stock, qty: Math.min(cap, i.qty + qty) }
-            : i
+          sameLine(i, item) ? { ...i, stock, qty: Math.min(cap, i.qty + qty) } : i
         );
       }
       const cap = maxQtyFor(item);
@@ -109,15 +128,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsOpen(true);
   }, []);
 
-  const remove = useCallback((productId: number) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const remove = useCallback((productId: number, variantId?: number) => {
+    setItems((prev) => prev.filter((i) => !sameLine(i, { productId, variantId })));
   }, []);
 
-  const setQty = useCallback((productId: number, qty: number) => {
+  const setQty = useCallback((productId: number, qty: number, variantId?: number) => {
     setItems((prev) => {
-      if (qty <= 0) return prev.filter((i) => i.productId !== productId);
+      if (qty <= 0) return prev.filter((i) => !sameLine(i, { productId, variantId }));
       return prev.map((i) =>
-        i.productId === productId ? { ...i, qty: Math.min(maxQtyFor(i), qty) } : i
+        sameLine(i, { productId, variantId }) ? { ...i, qty: Math.min(maxQtyFor(i), qty) } : i
       );
     });
   }, []);

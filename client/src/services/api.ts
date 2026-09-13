@@ -414,9 +414,24 @@ export const deleteTag = async (id: number) => {
 // ADMIN - PRODUCTOS
 // =============================================
 
+export type VariantInputData = {
+  id?: number;
+  sku?: string | null;
+  color_id?: number | null;
+  size_id?: number | null;
+  length_id?: number | null;
+  price?: number | null;
+  discount_percent?: number | null;
+  stock: number;
+  low_stock_threshold?: number;
+  is_active?: boolean;
+  display_order?: number;
+};
+
 export type ProductData = {
   slug: string;
   name: string;
+  sku?: string;
   category_id: number;
   audience_id?: number | null;
   thickness_id?: number | null;
@@ -435,6 +450,11 @@ export type ProductData = {
   size_ids?: number[];
   length_ids?: number[];
   color_ids?: number[];
+  has_variants?: boolean;
+  variant_uses_color?: boolean;
+  variant_uses_size?: boolean;
+  variant_uses_length?: boolean;
+  variants?: VariantInputData[];
 };
 
 export const createProduct = async (data: ProductData) => {
@@ -455,6 +475,40 @@ export const updateProduct = async (id: number, data: Partial<ProductData>) => {
 
 export const deleteProduct = async (id: number) => {
   return fetchAPI(`/admin/products/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+};
+
+// Variantes sueltas (acciones puntuales sin reenviar todo el producto).
+// El guardado masivo desde el formulario usa `variants` embebido en
+// createProduct/updateProduct de arriba.
+export const getProductVariants = async (productId: number) => {
+  return fetchAPI(`/admin/products/${productId}/variants`, { headers: getAuthHeaders() });
+};
+
+export const createProductVariant = async (productId: number, data: VariantInputData) => {
+  return fetchAPI(`/admin/products/${productId}/variants`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateProductVariant = async (
+  productId: number,
+  variantId: number,
+  data: Partial<VariantInputData>
+) => {
+  return fetchAPI(`/admin/products/${productId}/variants/${variantId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteProductVariant = async (productId: number, variantId: number) => {
+  return fetchAPI(`/admin/products/${productId}/variants/${variantId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -560,7 +614,7 @@ export type CreateOrderPayload = {
   customer_name: string;
   customer_phone?: string | null;
   currency_symbol?: string;
-  items: { product_id: number; qty: number }[];
+  items: { product_id: number; qty: number; variant_id?: number }[];
 };
 
 /** Público: registra un pedido en estado 'pendiente'. */

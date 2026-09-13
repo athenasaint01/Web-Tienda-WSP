@@ -42,9 +42,11 @@ export function buildCartMessage(
     const n = idx + 1;
     const url = siteUrl ? `${siteUrl}/producto/${it.slug}` : '';
 
+    const nameWithVariant = it.variantLabel ? `${it.name} (${it.variantLabel})` : it.name;
+
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`${n}. *${it.name}* — x${it.qty} — _precio a consultar_`);
+      lines.push(`${n}. *${nameWithVariant}* — x${it.qty} — _precio a consultar_`);
     } else {
       const lineTotal = unit * it.qty;
       total += lineTotal;
@@ -52,7 +54,7 @@ export function buildCartMessage(
       const priceStr = onSale
         ? `${money(lineTotal, currency)} _(oferta, antes ~${money(it.price! * it.qty, currency)}~)_`
         : money(lineTotal, currency);
-      lines.push(`${n}. *${it.name}* — x${it.qty} — ${priceStr}`);
+      lines.push(`${n}. *${nameWithVariant}* — x${it.qty} — ${priceStr}`);
     }
     if (url) lines.push(`   ${url}`);
   });

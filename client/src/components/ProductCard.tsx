@@ -63,6 +63,8 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
             </p>
           ) : p.price != null ? (
             <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
+          ) : p.has_variants ? (
+            <p className="text-xs text-neutral-500 mt-1">Varios colores/tallas</p>
           ) : null}
           {p.colors && p.colors.length > 0 && (
             <div className="flex items-center gap-1 mt-1.5">

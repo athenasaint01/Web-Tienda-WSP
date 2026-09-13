@@ -7,6 +7,9 @@ import {
   UpdateProductDTO,
   ProductFilters,
   PaginatedResponse,
+  ProductVariant,
+  ProductVariantWithAttrs,
+  VariantInputDTO,
 } from '../types/models';
 
 // =============================================
@@ -204,7 +207,8 @@ export const getAllProducts = async (
          WHERE pc.product_id = p.id),
         '[]'
       ) as colors,
-      COALESCE(p.badge_labels, '{}') as badge_labels
+      COALESCE(p.badge_labels, '{}') as badge_labels,
+      p.has_variants
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ${whereClause}
@@ -270,13 +274,20 @@ export const getProductBySlug = async (slug: string): Promise<ProductWithDetails
 
   const product = result.rows[0];
 
-  return hydrateProductRelations(product);
+  return hydrateProductRelations(product, { includeInactiveVariants: false });
 };
 
 // =============================================
 // HELPER: cargar todas las relaciones de un producto
 // =============================================
-const hydrateProductRelations = async (product: any): Promise<ProductWithDetails> => {
+// `includeInactiveVariants`: el admin necesita ver también las variantes
+// desactivadas (para poder reactivarlas); el catálogo público solo debe
+// ver las activas. Default false = comportamiento público/seguro.
+const hydrateProductRelations = async (
+  product: any,
+  opts: { includeInactiveVariants?: boolean } = {}
+): Promise<ProductWithDetails> => {
+  const { includeInactiveVariants = false } = opts;
   const [
     imagesResult,
     materialsResult,
@@ -286,6 +297,7 @@ const hydrateProductRelations = async (product: any): Promise<ProductWithDetails
     sizesResult,
     lengthsResult,
     colorsResult,
+    variantsResult,
   ] = await Promise.all([
     pool.query(
       `SELECT * FROM product_images WHERE product_id = $1 ORDER BY display_order, is_primary DESC`,
@@ -332,11 +344,39 @@ const hydrateProductRelations = async (product: any): Promise<ProductWithDetails
        ORDER BY pc.is_primary DESC, co.display_order`,
       [product.id]
     ),
+    product.has_variants
+      ? pool.query(
+          `SELECT
+             pv.*,
+             row_to_json(co.*) AS color,
+             row_to_json(s.*)  AS size,
+             row_to_json(l.*)  AS length
+           FROM product_variants pv
+           LEFT JOIN colors  co ON co.id = pv.color_id
+           LEFT JOIN sizes   s  ON s.id  = pv.size_id
+           LEFT JOIN lengths l  ON l.id  = pv.length_id
+           WHERE pv.product_id = $1 ${includeInactiveVariants ? '' : 'AND pv.is_active = TRUE'}
+           ORDER BY pv.display_order, pv.id`,
+          [product.id]
+        )
+      : Promise.resolve({ rows: [] as any[] }),
   ]);
 
   // pg devuelve NUMERIC como string -> normalizar a number | null
   const price = product.price != null ? parseFloat(product.price) : null;
   const discountPercent = sanitizeDiscount(product.discount_percent);
+
+  // Variantes: normalizar NUMERIC->number igual que se hace con el producto.
+  const variants = variantsResult.rows.map((v: any) => {
+    const vPrice = v.price != null ? parseFloat(v.price) : null;
+    const vDiscount = sanitizeDiscount(v.discount_percent);
+    return {
+      ...v,
+      price: vPrice,
+      discount_percent: vDiscount,
+      sale_price: computeSalePrice(vPrice, vDiscount),
+    };
+  });
 
   return {
     ...product,
@@ -352,6 +392,7 @@ const hydrateProductRelations = async (product: any): Promise<ProductWithDetails
     sizes: sizesResult.rows,
     lengths: lengthsResult.rows,
     colors: colorsResult.rows,
+    variants,
   };
 };
 
@@ -376,7 +417,9 @@ export const getProductById = async (id: number): Promise<ProductWithDetails | n
 
   const product = result.rows[0];
 
-  return hydrateProductRelations(product);
+  // Vista admin: incluye también las variantes desactivadas (para poder
+  // reactivarlas desde el formulario).
+  return hydrateProductRelations(product, { includeInactiveVariants: true });
 };
 
 // =============================================
@@ -407,6 +450,263 @@ export const generateProductSku = async (client: { query: typeof pool.query } = 
 };
 
 // =============================================
+// VARIANTES DE PRODUCTO (precio/descuento/stock propios por combinación
+// de color/talla/largo)
+// =============================================
+
+// HELPER: SKU de variante determinístico a partir del SKU del producto
+// y los slugs/códigos de su combinación. Ej: 'ALH-000004-DOR-T7'.
+// Puro (no toca la BD) para poder probarlo y reutilizarlo fácil.
+export const generateVariantSku = (
+  productSku: string,
+  combo: { colorSlug?: string | null; sizeCode?: string | null; lengthCode?: string | null }
+): string => {
+  const parts: string[] = [];
+  if (combo.colorSlug) parts.push(combo.colorSlug.replace(/-/g, '').slice(0, 3).toUpperCase());
+  if (combo.sizeCode) parts.push(combo.sizeCode.replace(/[^0-9A-Za-z]/g, '').toUpperCase());
+  if (combo.lengthCode) parts.push(combo.lengthCode.replace(/[^0-9A-Za-z]/g, '').toUpperCase());
+  return parts.length ? `${productSku}-${parts.join('-')}` : productSku;
+};
+
+// Normaliza una fila de product_variants (NUMERIC -> number, deriva sale_price).
+const normalizeVariantRow = (v: any): ProductVariant => {
+  const price = v.price != null ? parseFloat(v.price) : null;
+  const discountPercent = sanitizeDiscount(v.discount_percent);
+  return {
+    ...v,
+    price,
+    discount_percent: discountPercent,
+    sale_price: computeSalePrice(price, discountPercent),
+  };
+};
+
+/**
+ * Lista las variantes de un producto (con sus atributos de catálogo
+ * resueltos). `includeInactive` para el admin; el público solo ve activas.
+ */
+export const listProductVariants = async (
+  productId: number,
+  opts: { includeInactive?: boolean } = {}
+): Promise<ProductVariantWithAttrs[]> => {
+  const { includeInactive = false } = opts;
+  const result = await pool.query(
+    `SELECT
+       pv.*,
+       row_to_json(co.*) AS color,
+       row_to_json(s.*)  AS size,
+       row_to_json(l.*)  AS length
+     FROM product_variants pv
+     LEFT JOIN colors  co ON co.id = pv.color_id
+     LEFT JOIN sizes   s  ON s.id  = pv.size_id
+     LEFT JOIN lengths l  ON l.id  = pv.length_id
+     WHERE pv.product_id = $1 ${includeInactive ? '' : 'AND pv.is_active = TRUE'}
+     ORDER BY pv.display_order, pv.id`,
+    [productId]
+  );
+  return result.rows.map(normalizeVariantRow) as ProductVariantWithAttrs[];
+};
+
+export const getVariantById = async (variantId: number): Promise<ProductVariant | null> => {
+  const result = await pool.query('SELECT * FROM product_variants WHERE id = $1', [variantId]);
+  return result.rows[0] ? normalizeVariantRow(result.rows[0]) : null;
+};
+
+/**
+ * Reemplaza el conjunto de variantes de un producto dentro de una
+ * transacción existente. NO usa el patrón "delete-all-then-reinsert" de
+ * los demás pivots N:M: una variante tiene stock/precio reales y un `id`
+ * estable al que pueden apuntar pedidos ya confirmados
+ * (order_items.variant_id) — recrearla con un id nuevo rompería esa
+ * trazabilidad en silencio. En su lugar:
+ *   - variantes del payload con `id` existente -> UPDATE
+ *   - variantes del payload sin `id` -> INSERT
+ *   - variantes en BD que ya NO vienen en el payload -> se DESACTIVAN
+ *     (is_active = false), nunca se borran duro.
+ */
+const replaceProductVariants = async (
+  client: { query: typeof pool.query },
+  productId: number,
+  productSku: string,
+  variants: VariantInputDTO[]
+): Promise<void> => {
+  const existing = await client.query(
+    'SELECT id FROM product_variants WHERE product_id = $1',
+    [productId]
+  );
+  const existingIds = new Set(existing.rows.map((r: any) => r.id));
+  const keepIds = new Set(variants.filter((v) => v.id != null).map((v) => v.id));
+
+  const toDeactivate = [...existingIds].filter((id) => !keepIds.has(id));
+  if (toDeactivate.length > 0) {
+    await client.query(
+      'UPDATE product_variants SET is_active = FALSE WHERE id = ANY($1)',
+      [toDeactivate]
+    );
+  }
+
+  // Resolver en batch los slugs/códigos de color/talla/largo usados en el
+  // payload, para poder generar el sufijo del SKU sin una query por fila.
+  const colorIds = [...new Set(variants.map((v) => v.color_id).filter((x): x is number => x != null))];
+  const sizeIds = [...new Set(variants.map((v) => v.size_id).filter((x): x is number => x != null))];
+  const lengthIds = [...new Set(variants.map((v) => v.length_id).filter((x): x is number => x != null))];
+
+  const [colorRows, sizeRows, lengthRows] = await Promise.all([
+    colorIds.length ? client.query('SELECT id, slug FROM colors WHERE id = ANY($1)', [colorIds]) : Promise.resolve({ rows: [] as any[] }),
+    sizeIds.length ? client.query('SELECT id, code FROM sizes WHERE id = ANY($1)', [sizeIds]) : Promise.resolve({ rows: [] as any[] }),
+    lengthIds.length ? client.query('SELECT id, code FROM lengths WHERE id = ANY($1)', [lengthIds]) : Promise.resolve({ rows: [] as any[] }),
+  ]);
+  const colorSlugById = new Map(colorRows.rows.map((r: any) => [r.id, r.slug]));
+  const sizeCodeById = new Map(sizeRows.rows.map((r: any) => [r.id, r.code]));
+  const lengthCodeById = new Map(lengthRows.rows.map((r: any) => [r.id, r.code]));
+
+  for (const v of variants) {
+    const discountPct = sanitizeDiscount(v.discount_percent);
+    const salePrice = computeSalePrice(v.price ?? null, discountPct);
+    const sku =
+      v.sku?.trim() ||
+      generateVariantSku(productSku, {
+        colorSlug: v.color_id != null ? colorSlugById.get(v.color_id) : null,
+        sizeCode: v.size_id != null ? sizeCodeById.get(v.size_id) : null,
+        lengthCode: v.length_id != null ? lengthCodeById.get(v.length_id) : null,
+      });
+
+    if (v.id != null && existingIds.has(v.id)) {
+      await client.query(
+        `UPDATE product_variants
+         SET color_id = $1, size_id = $2, length_id = $3, price = $4, discount_percent = $5,
+             sale_price = $6, stock = $7, low_stock_threshold = $8, is_active = $9,
+             display_order = $10, sku = $11, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $12 AND product_id = $13`,
+        [
+          v.color_id ?? null, v.size_id ?? null, v.length_id ?? null, v.price ?? null,
+          discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5, v.is_active ?? true,
+          v.display_order ?? 0, sku, v.id, productId,
+        ]
+      );
+    } else {
+      await client.query(
+        `INSERT INTO product_variants
+           (product_id, sku, color_id, size_id, length_id, price, discount_percent,
+            sale_price, stock, low_stock_threshold, is_active, display_order)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+        [
+          productId, sku, v.color_id ?? null, v.size_id ?? null, v.length_id ?? null,
+          v.price ?? null, discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5,
+          v.is_active ?? true, v.display_order ?? 0,
+        ]
+      );
+    }
+  }
+};
+
+/**
+ * Admin: crear una variante suelta (acción puntual desde la tabla editable,
+ * sin reenviar todo el producto). INSERT directo de una sola fila — no usa
+ * replaceProductVariants, que está pensado para el guardado masivo del
+ * formulario completo (ese sí decide qué desactivar comparando contra
+ * TODAS las variantes existentes; aquí solo agregamos una más).
+ */
+export const createProductVariant = async (
+  productId: number,
+  data: VariantInputDTO
+): Promise<ProductVariant> => {
+  const productRes = await pool.query('SELECT sku FROM products WHERE id = $1', [productId]);
+  if (productRes.rows.length === 0) throw new Error('Producto no encontrado');
+  const productSku = productRes.rows[0].sku || 'ALH-000000';
+
+  const discountPct = sanitizeDiscount(data.discount_percent);
+  const salePrice = computeSalePrice(data.price ?? null, discountPct);
+  let sku = data.sku?.trim() || null;
+  if (!sku) {
+    const [colorRow, sizeRow, lengthRow] = await Promise.all([
+      data.color_id != null ? pool.query('SELECT slug FROM colors WHERE id = $1', [data.color_id]) : Promise.resolve({ rows: [] as any[] }),
+      data.size_id != null ? pool.query('SELECT code FROM sizes WHERE id = $1', [data.size_id]) : Promise.resolve({ rows: [] as any[] }),
+      data.length_id != null ? pool.query('SELECT code FROM lengths WHERE id = $1', [data.length_id]) : Promise.resolve({ rows: [] as any[] }),
+    ]);
+    sku = generateVariantSku(productSku, {
+      colorSlug: colorRow.rows[0]?.slug ?? null,
+      sizeCode: sizeRow.rows[0]?.code ?? null,
+      lengthCode: lengthRow.rows[0]?.code ?? null,
+    });
+  }
+
+  const result = await pool.query(
+    `INSERT INTO product_variants
+       (product_id, sku, color_id, size_id, length_id, price, discount_percent,
+        sale_price, stock, low_stock_threshold, is_active, display_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+     RETURNING *`,
+    [
+      productId, sku, data.color_id ?? null, data.size_id ?? null, data.length_id ?? null,
+      data.price ?? null, discountPct, salePrice, data.stock, data.low_stock_threshold ?? 5,
+      data.is_active ?? true, data.display_order ?? 0,
+    ]
+  );
+  return normalizeVariantRow(result.rows[0]);
+};
+
+/** Admin: actualizar una variante suelta. */
+export const updateProductVariant = async (
+  variantId: number,
+  data: Partial<VariantInputDTO>
+): Promise<ProductVariant | null> => {
+  const current = await getVariantById(variantId);
+  if (!current) return null;
+
+  const price = data.price !== undefined ? data.price : current.price;
+  const discountPct = sanitizeDiscount(data.discount_percent !== undefined ? data.discount_percent : current.discount_percent);
+  const salePrice = computeSalePrice(price ?? null, discountPct);
+
+  const fields: string[] = [];
+  const values: any[] = [];
+  let n = 1;
+  const set = (col: string, val: any) => {
+    fields.push(`${col} = $${n++}`);
+    values.push(val);
+  };
+
+  if (data.sku !== undefined) set('sku', data.sku?.trim() || null);
+  if (data.color_id !== undefined) set('color_id', data.color_id);
+  if (data.size_id !== undefined) set('size_id', data.size_id);
+  if (data.length_id !== undefined) set('length_id', data.length_id);
+  if (data.price !== undefined) set('price', data.price);
+  // Si cambia el precio o el % de descuento, recalcular ambos derivados
+  // (discount_percent normalizado + sale_price) juntos para que nunca
+  // queden inconsistentes entre sí.
+  if (data.price !== undefined || data.discount_percent !== undefined) {
+    set('discount_percent', discountPct);
+    set('sale_price', salePrice);
+  }
+  if (data.stock !== undefined) set('stock', data.stock);
+  if (data.low_stock_threshold !== undefined) set('low_stock_threshold', data.low_stock_threshold);
+  if (data.is_active !== undefined) set('is_active', data.is_active);
+  if (data.display_order !== undefined) set('display_order', data.display_order);
+
+  if (fields.length === 0) return current;
+
+  values.push(variantId);
+  const result = await pool.query(
+    `UPDATE product_variants SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = $${n} RETURNING *`,
+    values
+  );
+  return result.rows[0] ? normalizeVariantRow(result.rows[0]) : null;
+};
+
+/**
+ * Admin: eliminar una variante permanentemente. Solo si ningún pedido la
+ * referencia (order_items.variant_id) — si hay historial, se rechaza y
+ * se sugiere desactivar en su lugar (is_active = false vía update).
+ */
+export const deleteProductVariant = async (variantId: number): Promise<void> => {
+  const used = await pool.query('SELECT 1 FROM order_items WHERE variant_id = $1 LIMIT 1', [variantId]);
+  if (used.rows.length > 0) {
+    throw new Error('No se puede eliminar: esta variante tiene pedidos asociados. Desactívala en su lugar.');
+  }
+  const result = await pool.query('DELETE FROM product_variants WHERE id = $1 RETURNING id', [variantId]);
+  if (result.rowCount === 0) throw new Error('Variante no encontrada');
+};
+
+// =============================================
 // CREAR PRODUCTO
 // =============================================
 export const createProduct = async (data: CreateProductDTO): Promise<Product> => {
@@ -424,8 +724,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (sku, slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `INSERT INTO products (sku, slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels, has_variants, variant_uses_color, variant_uses_size, variant_uses_length)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
        RETURNING *`,
       [
         sku,
@@ -443,6 +743,10 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.low_stock_threshold !== undefined ? data.low_stock_threshold : 5,
         data.wa_template,
         data.badge_labels || [],
+        data.has_variants || false,
+        data.variant_uses_color || false,
+        data.variant_uses_size || false,
+        data.variant_uses_length || false,
       ]
     );
 
@@ -510,6 +814,11 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
       }
     }
 
+    // 8. Agregar variantes (solo si el producto usa variantes)
+    if (data.has_variants && data.variants && data.variants.length > 0) {
+      await replaceProductVariants(client, product.id, sku, data.variants);
+    }
+
     await client.query('COMMIT');
     return product;
   } catch (error) {
@@ -530,7 +839,7 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
     await client.query('BEGIN');
 
     // Separar campos de producto de las relaciones
-    const { material_ids, tag_ids, size_ids, length_ids, color_ids, ...productData } = data;
+    const { material_ids, tag_ids, size_ids, length_ids, color_ids, variants, ...productData } = data;
 
     // Normalizar slug si está presente
     if (productData.slug) {
@@ -651,6 +960,15 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
           [id, ...color_ids]
         );
       }
+    }
+
+    // Actualizar variantes si se proporcionaron. Igual criterio que los
+    // demás arrays: undefined = no tocar; [] = desactivar todas (nunca
+    // se borran duro solo por guardar el form con la lista vacía).
+    if (variants !== undefined) {
+      const skuRow = await client.query('SELECT sku FROM products WHERE id = $1', [id]);
+      const productSku = skuRow.rows[0]?.sku || 'ALH-000000';
+      await replaceProductVariants(client, id, productSku, variants);
     }
 
     await client.query('COMMIT');

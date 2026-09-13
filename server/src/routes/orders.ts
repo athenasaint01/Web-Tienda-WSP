@@ -23,6 +23,7 @@ const createOrderSchema = z.object({
       z.object({
         product_id: z.number().int().positive(),
         qty: z.number().int().min(1).max(99),
+        variant_id: z.number().int().positive().optional(),
       })
     )
     .min(1, 'El pedido no tiene productos')

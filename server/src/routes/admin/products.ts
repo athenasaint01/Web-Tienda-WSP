@@ -41,6 +41,36 @@ const optionalPercent = () =>
     return n > 95 ? 95 : n;
   }).optional();
 
+// Una fila de variante tal como la manda el formulario admin (JSON dentro
+// de un string de FormData, o JSON nativo en el PUT sin imágenes).
+const variantInputSchema = z.object({
+  id: z.number().int().positive().optional(),
+  sku: z.string().max(40).nullable().optional(),
+  color_id: z.number().int().positive().nullable().optional(),
+  size_id: z.number().int().positive().nullable().optional(),
+  length_id: z.number().int().positive().nullable().optional(),
+  price: z.number().min(0).nullable().optional(),
+  discount_percent: z.number().nullable().optional(),
+  stock: z.number().int().min(0),
+  low_stock_threshold: z.number().int().min(0).optional(),
+  is_active: z.boolean().optional(),
+  display_order: z.number().int().min(0).optional(),
+});
+
+// Helper: array de variantes que llega como string JSON en FormData.
+const variantsJsonArray = () =>
+  z.string().transform(val => {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return [];
+    }
+  }).pipe(z.array(variantInputSchema)).optional();
+
+// Helper: booleano opcional desde FormData ('true'/'false' => boolean)
+const optionalBoolFromString = () =>
+  z.string().transform(val => val === 'true').optional();
+
 const productDataSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(255),
@@ -68,6 +98,11 @@ const productDataSchema = z.object({
       return [];
     }
   }).optional(),
+  has_variants: optionalBoolFromString(),
+  variant_uses_color: optionalBoolFromString(),
+  variant_uses_size: optionalBoolFromString(),
+  variant_uses_length: optionalBoolFromString(),
+  variants: variantsJsonArray(),
 });
 
 /**
@@ -239,6 +274,11 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
           return [];
         }
       }).optional(),
+      has_variants: optionalBoolFromString(),
+      variant_uses_color: optionalBoolFromString(),
+      variant_uses_size: optionalBoolFromString(),
+      variant_uses_length: optionalBoolFromString(),
+      variants: variantsJsonArray(),
     });
 
     // Schema for JSON (when no images)
@@ -264,6 +304,11 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       length_ids: z.array(z.number().int().positive()).optional(),
       color_ids: z.array(z.number().int().positive()).optional(),
       badge_labels: z.array(z.string()).optional(),
+      has_variants: z.boolean().optional(),
+      variant_uses_color: z.boolean().optional(),
+      variant_uses_size: z.boolean().optional(),
+      variant_uses_length: z.boolean().optional(),
+      variants: z.array(variantInputSchema).optional(),
     });
 
     // Determine if this is FormData or JSON.
@@ -501,6 +546,120 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
   } catch (error: any) {
     console.error('Error al eliminar producto:', error);
     res.status(500).json({ ok: false, error: error.message || 'Error al eliminar producto' });
+  }
+});
+
+// =============================================
+// VARIANTES (acciones puntuales sin reenviar todo el producto).
+// El guardado masivo desde el formulario de producto usa el array
+// `variants` embebido en POST/PUT de arriba; estos endpoints son para
+// editar/agregar/quitar una fila suelta desde la tabla editable.
+// =============================================
+
+/**
+ * GET /api/admin/products/:id/variants
+ * Lista las variantes de un producto (incluye inactivas, vista admin).
+ */
+router.get('/:id/variants', async (req: AuthRequest, res: Response) => {
+  try {
+    const productId = parseInt(req.params.id);
+    if (isNaN(productId)) {
+      res.status(400).json({ ok: false, error: 'ID inválido' });
+      return;
+    }
+    const variants = await productService.listProductVariants(productId, { includeInactive: true });
+    res.json({ ok: true, data: variants });
+  } catch (error: any) {
+    console.error('Error al listar variantes:', error);
+    res.status(500).json({ ok: false, error: error.message || 'Error al listar variantes' });
+  }
+});
+
+/**
+ * POST /api/admin/products/:id/variants
+ * Crea una variante suelta para el producto.
+ */
+router.post('/:id/variants', async (req: AuthRequest, res: Response) => {
+  try {
+    const productId = parseInt(req.params.id);
+    if (isNaN(productId)) {
+      res.status(400).json({ ok: false, error: 'ID inválido' });
+      return;
+    }
+    const validation = variantInputSchema.safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ ok: false, error: 'Datos inválidos', errors: validation.error.flatten().fieldErrors });
+      return;
+    }
+    const variant = await productService.createProductVariant(productId, validation.data);
+    res.status(201).json({ ok: true, data: variant });
+  } catch (error: any) {
+    console.error('Error al crear variante:', error);
+    if (error.code === '23505' && error.constraint === 'idx_product_variants_sku_unique') {
+      res.status(409).json({ ok: false, error: 'El SKU de la variante ya está en uso.' });
+      return;
+    }
+    if (error.code === '23505' && error.constraint === 'idx_product_variants_combo') {
+      res.status(409).json({ ok: false, error: 'Ya existe una variante con esa combinación de color/talla/largo.' });
+      return;
+    }
+    res.status(500).json({ ok: false, error: error.message || 'Error al crear variante' });
+  }
+});
+
+/**
+ * PUT /api/admin/products/:id/variants/:variantId
+ * Actualiza una variante suelta.
+ */
+router.put('/:id/variants/:variantId', async (req: AuthRequest, res: Response) => {
+  try {
+    const variantId = parseInt(req.params.variantId);
+    if (isNaN(variantId)) {
+      res.status(400).json({ ok: false, error: 'ID inválido' });
+      return;
+    }
+    const validation = variantInputSchema.partial().safeParse(req.body);
+    if (!validation.success) {
+      res.status(400).json({ ok: false, error: 'Datos inválidos', errors: validation.error.flatten().fieldErrors });
+      return;
+    }
+    const variant = await productService.updateProductVariant(variantId, validation.data);
+    if (!variant) {
+      res.status(404).json({ ok: false, error: 'Variante no encontrada' });
+      return;
+    }
+    res.json({ ok: true, data: variant });
+  } catch (error: any) {
+    console.error('Error al actualizar variante:', error);
+    if (error.code === '23505' && error.constraint === 'idx_product_variants_sku_unique') {
+      res.status(409).json({ ok: false, error: 'El SKU de la variante ya está en uso.' });
+      return;
+    }
+    if (error.code === '23505' && error.constraint === 'idx_product_variants_combo') {
+      res.status(409).json({ ok: false, error: 'Ya existe una variante con esa combinación de color/talla/largo.' });
+      return;
+    }
+    res.status(500).json({ ok: false, error: error.message || 'Error al actualizar variante' });
+  }
+});
+
+/**
+ * DELETE /api/admin/products/:id/variants/:variantId
+ * Elimina una variante permanentemente (solo si no tiene pedidos asociados;
+ * si tiene, se rechaza y se sugiere desactivarla con PUT is_active=false).
+ */
+router.delete('/:id/variants/:variantId', async (req: AuthRequest, res: Response) => {
+  try {
+    const variantId = parseInt(req.params.variantId);
+    if (isNaN(variantId)) {
+      res.status(400).json({ ok: false, error: 'ID inválido' });
+      return;
+    }
+    await productService.deleteProductVariant(variantId);
+    res.json({ ok: true, message: 'Variante eliminada' });
+  } catch (error: any) {
+    console.error('Error al eliminar variante:', error);
+    res.status(400).json({ ok: false, error: error.message || 'Error al eliminar variante' });
   }
 });
 
