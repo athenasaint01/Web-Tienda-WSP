@@ -202,6 +202,7 @@ export default function ProductoDetalle() {
         productId: product.id,
         slug: product.slug.trim(),
         name: product.name.trim(),
+        sku: product.sku,
         category: (typeof product.category === 'string' ? product.category : product.category?.name)?.trim(),
         price: effectivePrice,
         sale_price: effectiveSalePrice,

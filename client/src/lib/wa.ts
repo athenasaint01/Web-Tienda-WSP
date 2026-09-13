@@ -46,10 +46,12 @@ export function buildCartMessage(
     const itemName = it.name.trim();
     const variantLabel = it.variantLabel?.trim();
     const nameWithVariant = variantLabel ? `${itemName} (${variantLabel})` : itemName;
+    const sku = it.variantSku?.trim() || it.sku?.trim();
+    const skuStr = sku ? ` _(SKU: ${sku})_` : '';
 
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`${n}. *${nameWithVariant}* — x${it.qty} — _precio a consultar_`);
+      lines.push(`${n}. *${nameWithVariant}*${skuStr} — x${it.qty} — _precio a consultar_`);
     } else {
       const lineTotal = unit * it.qty;
       total += lineTotal;
@@ -57,7 +59,7 @@ export function buildCartMessage(
       const priceStr = onSale
         ? `${money(lineTotal, currency)} _(oferta, antes ~${money(it.price! * it.qty, currency)}~)_`
         : money(lineTotal, currency);
-      lines.push(`${n}. *${nameWithVariant}* — x${it.qty} — ${priceStr}`);
+      lines.push(`${n}. *${nameWithVariant}*${skuStr} — x${it.qty} — ${priceStr}`);
       // Precio "original" de este item: el normal (price) si existe, si
       // no el efectivo (para no restar de más cuando no hay oferta).
       originalTotal += (it.price ?? unit) * it.qty;
@@ -76,7 +78,7 @@ export function buildCartMessage(
     }
     lines.push(`*Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}*`);
     if (savings > 0) {
-      lines.push(`*Ahorras: ${money(savings, currency)}* 🎉`);
+      lines.push(`*Ahorras: ${money(savings, currency)}*`);
     }
     if (hasUnpriced) lines.push('_(hay productos por cotizar)_');
   }

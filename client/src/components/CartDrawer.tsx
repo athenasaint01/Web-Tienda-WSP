@@ -211,7 +211,9 @@ export default function CartDrawer() {
                       </div>
                     )}
                     <div className="flex justify-between pt-1 font-medium text-neutral-800">
-                      <span>Total{hasItemsWithoutPrice ? ' parcial' : ''}</span>
+                      <span>
+                        Total{hasItemsWithoutPrice ? ' parcial' : totalSavings > 0 ? ' con descuento' : ''}
+                      </span>
                       <span>{total > 0 ? formatPrice(total, currency) : '—'}</span>
                     </div>
                     {totalSavings > 0 && (
@@ -341,7 +343,7 @@ export default function CartDrawer() {
                   )}
                   <div className="flex items-baseline justify-between text-sm">
                     <span className="text-neutral-500">
-                      Total{hasItemsWithoutPrice ? ' parcial' : ' estimado'}
+                      Total{hasItemsWithoutPrice ? ' parcial' : totalSavings > 0 ? ' con descuento' : ' estimado'}
                     </span>
                     <span className="font-display text-xl font-light">
                       {total > 0 ? formatPrice(total, currency) : '—'}

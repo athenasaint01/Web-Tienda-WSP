@@ -5,6 +5,7 @@ export type CartItem = {
   productId: number;
   slug: string;
   name: string;
+  sku?: string | null;
   category?: string;
   price?: number | null;       // precio normal
   sale_price?: number | null;  // precio con descuento (derivado del backend)
