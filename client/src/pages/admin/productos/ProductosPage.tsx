@@ -313,13 +313,15 @@ export default function ProductosPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600">{product.category}</td>
                     <td className="px-6 py-4 text-sm text-neutral-700">
-                      {product.has_variants ? (
-                        <span className="text-xs text-neutral-500 italic">Con variantes</span>
-                      ) : (() => {
+                      {(() => {
                         const offer = getOffer(product.price, product.sale_price);
+                        const prefix = product.has_variants ? (
+                          <span className="text-xs text-neutral-400 mr-1">Desde</span>
+                        ) : null;
                         if (offer) {
                           return (
                             <span className="flex items-baseline gap-1.5">
+                              {prefix}
                               <span className="font-medium text-[#c4927a]">
                                 {formatPrice(offer.salePrice, currency)}
                               </span>
@@ -332,8 +334,16 @@ export default function ProductosPage() {
                             </span>
                           );
                         }
-                        return product.price != null ? (
-                          formatPrice(product.price, currency)
+                        if (product.price != null) {
+                          return (
+                            <span className="flex items-baseline gap-1.5">
+                              {prefix}
+                              {formatPrice(product.price, currency)}
+                            </span>
+                          );
+                        }
+                        return product.has_variants ? (
+                          <span className="text-xs text-neutral-500 italic">Con variantes</span>
                         ) : (
                           <span className="text-neutral-400">—</span>
                         );

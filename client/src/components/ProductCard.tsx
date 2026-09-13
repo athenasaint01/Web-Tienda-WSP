@@ -58,11 +58,15 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
           <p className="text-[10px] text-neutral-400 uppercase tracking-widest mt-0.5">{p.category}</p>
           {offer ? (
             <p className="mt-1 flex items-baseline gap-1.5">
+              {p.has_variants && <span className="text-xs text-neutral-400">Desde</span>}
               <span className="text-sm font-medium text-[#c4927a]">{formatPrice(offer.salePrice, currency)}</span>
               <span className="text-xs text-neutral-400 line-through">{formatPrice(offer.price, currency)}</span>
             </p>
           ) : p.price != null ? (
-            <p className="text-sm font-medium text-neutral-800 mt-1">{formatPrice(p.price, currency)}</p>
+            <p className="mt-1 flex items-baseline gap-1.5">
+              {p.has_variants && <span className="text-xs text-neutral-400">Desde</span>}
+              <span className="text-sm font-medium text-neutral-800">{formatPrice(p.price, currency)}</span>
+            </p>
           ) : p.has_variants ? (
             <p className="text-xs text-neutral-500 mt-1">Varios colores/tallas</p>
           ) : null}

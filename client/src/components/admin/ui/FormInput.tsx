@@ -20,7 +20,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         </label>
         <input
           ref={ref}
-          className={`w-full px-4 py-2.5 border rounded-lg transition-all focus:ring-2 focus:ring-neutral-900 focus:border-transparent ${
+          className={`w-full px-4 py-2.5 border rounded-lg transition-all focus:ring-2 focus:ring-neutral-900 focus:border-transparent disabled:bg-neutral-100 disabled:text-neutral-400 disabled:cursor-not-allowed ${
             error
               ? 'border-red-500 focus:ring-red-500'
               : 'border-neutral-300'

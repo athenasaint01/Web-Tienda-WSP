@@ -606,18 +606,25 @@ export default function ProductForm() {
         {/* Precio */}
         <div className="space-y-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
           <h3 className="text-sm font-semibold text-emerald-900">Precio</h3>
+          {hasVariants && (
+            <p className="text-xs text-emerald-800 bg-emerald-100 border border-emerald-300 rounded px-3 py-2">
+              Este producto usa variantes: el precio y descuento se toman automáticamente de la
+              variante más barata (se actualiza solo al guardar). Desactiva "Variantes" para editar estos campos a mano.
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
             <FormInput
               label="Precio normal"
               type="number"
               step="0.01"
               min="0"
+              disabled={hasVariants}
               {...register('price', {
                 setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
               })}
               error={errors.price?.message}
               placeholder="Ej: 129.90"
-              helperText="Vacío = se consulta por WhatsApp."
+              helperText={hasVariants ? 'Se calcula automáticamente desde las variantes.' : 'Vacío = se consulta por WhatsApp.'}
             />
             <FormInput
               label="Descuento (%)"
@@ -625,12 +632,13 @@ export default function ProductForm() {
               step="1"
               min="0"
               max="95"
+              disabled={hasVariants}
               {...register('discount_percent', {
                 setValueAs: (v) => (v === '' || v == null ? null : Number(v)),
               })}
               error={errors.discount_percent?.message}
               placeholder="Ej: 15"
-              helperText="Vacío o 0 = sin oferta."
+              helperText={hasVariants ? 'Se calcula automáticamente desde las variantes.' : 'Vacío o 0 = sin oferta.'}
             />
           </div>
           {finalPrice != null ? (

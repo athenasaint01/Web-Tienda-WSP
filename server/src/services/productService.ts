@@ -600,6 +600,45 @@ const replaceProductVariants = async (
 };
 
 /**
+ * Cuando el producto usa variantes, el campo "precio normal" (price/
+ * discount_percent/sale_price a nivel producto) deja de mostrarse al
+ * cliente en la ficha -- pero sigue siendo útil como referencia "desde
+ * $X" en el catálogo y el listado admin, donde no hay selector de
+ * variante. Esta función lo mantiene sincronizado con la variante ACTIVA
+ * más barata (por sale_price si tiene oferta, si no por price), copiando
+ * también su % de descuento para que ambos números sean coherentes entre
+ * sí. Se llama siempre después de guardar las variantes de un producto.
+ * Si el producto no usa variantes o no tiene ninguna activa con precio,
+ * no toca nada (deja lo que el admin haya puesto a mano).
+ */
+const syncPriceFromVariants = async (
+  client: { query: typeof pool.query },
+  productId: number
+): Promise<void> => {
+  const prodRes = await client.query('SELECT has_variants FROM products WHERE id = $1', [productId]);
+  if (!prodRes.rows[0]?.has_variants) return;
+
+  const cheapest = await client.query(
+    `SELECT price::float8 AS price, discount_percent, sale_price::float8 AS sale_price
+     FROM product_variants
+     WHERE product_id = $1 AND is_active = TRUE AND price IS NOT NULL
+     ORDER BY COALESCE(sale_price, price) ASC
+     LIMIT 1`,
+    [productId]
+  );
+  if (cheapest.rows.length === 0) return; // ninguna variante con precio -> no hay nada que copiar
+
+  const v = cheapest.rows[0];
+  const discountPct = sanitizeDiscount(v.discount_percent);
+  const salePrice = computeSalePrice(v.price, discountPct);
+
+  await client.query(
+    'UPDATE products SET price = $1, discount_percent = $2, sale_price = $3 WHERE id = $4',
+    [v.price, discountPct, salePrice, productId]
+  );
+};
+
+/**
  * Admin: crear una variante suelta (acción puntual desde la tabla editable,
  * sin reenviar todo el producto). INSERT directo de una sola fila — no usa
  * replaceProductVariants, que está pensado para el guardado masivo del
@@ -817,9 +856,17 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
     // 8. Agregar variantes (solo si el producto usa variantes)
     if (data.has_variants && data.variants && data.variants.length > 0) {
       await replaceProductVariants(client, product.id, sku, data.variants);
+      await syncPriceFromVariants(client, product.id);
     }
 
     await client.query('COMMIT');
+
+    // Si hubo variantes, el precio/descuento del producto pudo cambiar
+    // (ver syncPriceFromVariants) -- se relee para devolver el valor real.
+    if (data.has_variants && data.variants && data.variants.length > 0) {
+      const fresh = await pool.query('SELECT * FROM products WHERE id = $1', [product.id]);
+      return fresh.rows[0] || product;
+    }
     return product;
   } catch (error) {
     await client.query('ROLLBACK');
@@ -969,6 +1016,14 @@ export const updateProduct = async (id: number, data: UpdateProductDTO): Promise
       const skuRow = await client.query('SELECT sku FROM products WHERE id = $1', [id]);
       const productSku = skuRow.rows[0]?.sku || 'ALH-000000';
       await replaceProductVariants(client, id, productSku, variants);
+    }
+
+    // Mantener el precio "normal" sincronizado con la variante activa
+    // más barata -- se recalcula si se tocaron variantes o si recién se
+    // activó/desactivó el modo (para no dejar un precio de variante
+    // "pegado" si el admin vuelve a producto simple).
+    if (variants !== undefined || productData.has_variants !== undefined) {
+      await syncPriceFromVariants(client, id);
     }
 
     await client.query('COMMIT');
