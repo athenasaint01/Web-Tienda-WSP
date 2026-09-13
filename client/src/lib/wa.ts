@@ -53,14 +53,14 @@ export function buildCartMessage(
 
     if (unit == null) {
       hasUnpriced = true;
-      lines.push(`   Cantidad: ${it.qty} | _precio a consultar_`);
+      lines.push(`   Cantidad: ${it.qty} | Precio: _a consultar_`);
     } else {
       total += unit * it.qty;
       const onSale = it.sale_price != null && it.price != null && it.sale_price < it.price;
       const priceStr = onSale
         ? `${money(unit, currency)} _(oferta, antes ~${money(it.price!, currency)}~)_`
         : money(unit, currency);
-      lines.push(`   Cantidad: ${it.qty} | ${priceStr}`);
+      lines.push(`   Cantidad: ${it.qty} | Precio: ${priceStr}`);
       // Precio "original" de este item: el normal (price) si existe, si
       // no el efectivo (para no restar de más cuando no hay oferta).
       originalTotal += (it.price ?? unit) * it.qty;
