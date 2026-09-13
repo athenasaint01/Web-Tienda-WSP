@@ -9,6 +9,7 @@ import { useCurrency, formatPrice, getOffer } from '../../../hooks/useSettings';
 type Product = {
   id: number;
   name: string;
+  sku?: string | null;
   slug: string;
   category: string;
   featured: boolean;
@@ -286,7 +287,7 @@ export default function ProductosPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-neutral-900">{product.name}</p>
-                      <p className="text-xs text-neutral-500">{product.slug}</p>
+                      <p className="text-xs text-neutral-500">{product.sku ?? '—'} · {product.slug}</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-neutral-600">{product.category}</td>
                     <td className="px-6 py-4 text-sm text-neutral-700">

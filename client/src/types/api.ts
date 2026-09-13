@@ -119,6 +119,7 @@ export type ProductImage = {
 // Producto en listado (vista simplificada)
 export type ProductListItem = {
   id: number;
+  sku?: string | null;
   slug: string;
   name: string;
   category: string;
@@ -143,6 +144,7 @@ export type ProductListItem = {
 // Producto completo (vista detalle)
 export type ProductDetail = {
   id: number;
+  sku?: string | null;
   slug: string;
   name: string;
   description?: string;

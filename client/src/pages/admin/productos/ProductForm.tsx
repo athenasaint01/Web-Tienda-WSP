@@ -31,6 +31,7 @@ const BADGE_OPTIONS = Object.entries(BADGE_MAP).map(([key, val]) => ({
 const productSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(200),
   slug: z.string().min(1, 'El slug es requerido').max(200).regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
+  sku: z.string().max(40, 'Máximo 40 caracteres').optional(),
   description: z.string().optional(),
   category_id: z.number({ message: 'La categoría es requerida' }),
   audience_id: z.number().nullable().optional(),
@@ -178,6 +179,7 @@ export default function ProductForm() {
           const product = productRes.data;
           setValue('name', product.name);
           setValue('slug', product.slug);
+          setValue('sku', product.sku || '');
           setValue('description', product.description || '');
           setValue('category_id', product.category_id);
           setValue('audience_id', product.audience_id ?? null);
@@ -267,6 +269,9 @@ export default function ProductForm() {
 
     if (data.description) formData.append('description', data.description);
     if (data.wa_template) formData.append('wa_template', data.wa_template);
+    // Si viene vacío no se manda: el backend genera uno al crear y no toca
+    // el existente al editar (nunca se "borra" el SKU con un valor vacío).
+    if (data.sku?.trim()) formData.append('sku', data.sku.trim());
 
     formData.append('material_ids', JSON.stringify(data.material_ids ?? []));
     formData.append('tag_ids', JSON.stringify(data.tag_ids ?? []));
@@ -394,6 +399,18 @@ export default function ProductForm() {
             helperText="Solo minúsculas, números y guiones. Ej: collar-oro-minimalista"
             placeholder="collar-oro-minimalista"
             required
+          />
+
+          <FormInput
+            label="SKU"
+            {...register('sku')}
+            error={errors.sku?.message}
+            helperText={
+              isEditing
+                ? 'Código de identificación e inventario. Puedes editarlo.'
+                : 'Se genera automáticamente al crear el producto. Puedes fijar uno propio.'
+            }
+            placeholder={isEditing ? undefined : 'Se generará automáticamente'}
           />
 
           <FormTextarea

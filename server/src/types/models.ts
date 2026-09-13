@@ -144,6 +144,7 @@ export interface CreateOrderDTO {
 export interface Product {
   id: number;
   external_id?: string;
+  sku?: string | null;
   slug: string;
   name: string;
   category_id: number;
@@ -218,6 +219,7 @@ export interface ProductWithDetails extends Product {
 
 export interface ProductListItem {
   id: number;
+  sku?: string | null;
   slug: string;
   name: string;
   category: string;
@@ -245,6 +247,7 @@ export interface ProductListItem {
 export interface CreateProductDTO {
   slug: string;
   name: string;
+  sku?: string;
   category_id: number;
   audience_id?: number | null;
   thickness_id?: number | null;
@@ -272,6 +275,7 @@ export interface CreateProductDTO {
 export interface UpdateProductDTO {
   slug?: string;
   name?: string;
+  sku?: string;
   category_id?: number;
   audience_id?: number | null;
   thickness_id?: number | null;

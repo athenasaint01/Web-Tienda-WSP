@@ -44,6 +44,7 @@ const optionalPercent = () =>
 const productDataSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/),
   name: z.string().min(1).max(255),
+  sku: z.string().trim().max(40).optional(),
   category_id: z.string().transform(val => parseInt(val)),
   audience_id: optionalFk(),
   thickness_id: optionalFk(),
@@ -143,6 +144,10 @@ router.post('/', upload.array('images', 6), async (req: AuthRequest, res: Respon
       res.status(409).json({ ok: false, error: 'El slug ya está en uso. Cambia el nombre o edita el slug manualmente.' });
       return;
     }
+    if (error.code === '23505' && error.constraint === 'idx_products_sku_unique') {
+      res.status(409).json({ ok: false, error: 'El SKU ya está en uso. Cambia el SKU manualmente.' });
+      return;
+    }
     res.status(500).json({ ok: false, error: error.message || 'Error al crear producto' });
   }
 });
@@ -198,10 +203,18 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
         return n > 95 ? 95 : n;
       }).optional();
 
+    // Helper: SKU opcional desde FormData ('' => undefined, nunca se "borra" el SKU)
+    const optionalSkuOrUndefined = () =>
+      z.string().transform(val => {
+        const trimmed = val?.trim();
+        return trimmed ? trimmed.slice(0, 40) : undefined;
+      }).optional();
+
     // Schema for FormData (when images are included)
     const updateFormDataSchema = z.object({
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
       name: z.string().min(1).max(255).optional(),
+      sku: optionalSkuOrUndefined(),
       category_id: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       audience_id: optionalFkOrUndefined(),
       thickness_id: optionalFkOrUndefined(),
@@ -232,6 +245,7 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
     const updateJsonSchema = z.object({
       slug: z.string().min(1).max(150).regex(/^[a-z0-9-]+$/).optional(),
       name: z.string().min(1).max(255).optional(),
+      sku: z.string().trim().max(40).optional().transform(val => (val ? val : undefined)),
       category_id: z.number().int().positive().optional(),
       audience_id: z.number().int().positive().nullable().optional(),
       thickness_id: z.number().int().positive().nullable().optional(),
@@ -325,6 +339,10 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
     console.error('Error al actualizar producto:', error);
     if (error.code === '23505' && error.constraint === 'products_slug_key') {
       res.status(409).json({ ok: false, error: 'El slug ya está en uso por otro producto. Cambia el slug manualmente.' });
+      return;
+    }
+    if (error.code === '23505' && error.constraint === 'idx_products_sku_unique') {
+      res.status(409).json({ ok: false, error: 'El SKU ya está en uso por otro producto. Cambia el SKU manualmente.' });
       return;
     }
     res.status(500).json({ ok: false, error: error.message || 'Error al actualizar producto' });

@@ -165,6 +165,7 @@ export const getAllProducts = async (
   const query = `
     SELECT
       p.id,
+      p.sku,
       p.slug,
       p.name,
       c.name as category,
@@ -397,6 +398,14 @@ export const computeSalePrice = (
   return Math.round(price * (1 - discountPercent / 100) * 100) / 100;
 };
 
+// HELPER: siguiente SKU autogenerado ('ALH-000001', 'ALH-000002', ...).
+// Usa una secuencia propia (product_sku_seq) para pedir "el siguiente" de
+// forma atómica, sin condición de carrera entre creaciones concurrentes.
+export const generateProductSku = async (client: { query: typeof pool.query } = pool): Promise<string> => {
+  const { rows } = await client.query(`SELECT nextval('product_sku_seq') AS n`);
+  return `ALH-${String(rows[0].n).padStart(6, '0')}`;
+};
+
 // =============================================
 // CREAR PRODUCTO
 // =============================================
@@ -411,13 +420,15 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
     const price = data.price ?? null;
     const discountPercent = sanitizeDiscount(data.discount_percent);
     const salePrice = computeSalePrice(price, discountPercent);
+    const sku = data.sku?.trim() || (await generateProductSku(client));
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      `INSERT INTO products (sku, slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING *`,
       [
+        sku,
         normalizedSlug,
         data.name,
         data.category_id,
