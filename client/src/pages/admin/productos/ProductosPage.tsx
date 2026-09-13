@@ -98,6 +98,27 @@ export default function ProductosPage() {
     setQ('');
   };
 
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+
+  const toggleFeatured = async (product: Product) => {
+    setTogglingId(product.id);
+    // Optimista: refleja el cambio de inmediato, revierte si falla.
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, featured: !p.featured } : p))
+    );
+    try {
+      await api.updateProduct(product.id, { featured: !product.featured });
+      toast.success(product.featured ? 'Quitado de destacados' : 'Marcado como destacado');
+    } catch (error: any) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, featured: product.featured } : p))
+      );
+      toast.error(error.message || 'No se pudo actualizar');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const handleDelete = async (product: Product) => {
     if (!confirm(`¿Eliminar el producto "${product.name}"?`)) return;
 
@@ -334,15 +355,19 @@ export default function ProductosPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      {product.featured ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Destacado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600">
-                          Normal
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleFeatured(product)}
+                        disabled={togglingId === product.id}
+                        title={product.featured ? 'Clic para quitar de destacados' : 'Clic para marcar como destacado'}
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-wait ${
+                          product.featured
+                            ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {product.featured ? 'Destacado' : 'Normal'}
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
