@@ -35,6 +35,7 @@ export function buildCartMessage(
   const lines: string[] = [saludo, '', '*Mi selección*'];
 
   let total = 0;
+  let originalTotal = 0;
   let hasUnpriced = false;
 
   items.forEach((it, idx) => {
@@ -57,13 +58,26 @@ export function buildCartMessage(
         ? `${money(lineTotal, currency)} _(oferta, antes ~${money(it.price! * it.qty, currency)}~)_`
         : money(lineTotal, currency);
       lines.push(`${n}. *${nameWithVariant}* — x${it.qty} — ${priceStr}`);
+      // Precio "original" de este item: el normal (price) si existe, si
+      // no el efectivo (para no restar de más cuando no hay oferta).
+      originalTotal += (it.price ?? unit) * it.qty;
     }
     if (url) lines.push(`   ${url}`);
   });
 
+  total = Math.round(total * 100) / 100;
+  originalTotal = Math.round(originalTotal * 100) / 100;
+  const savings = Math.max(0, Math.round((originalTotal - total) * 100) / 100);
+
   lines.push('');
   if (total > 0) {
+    if (savings > 0) {
+      lines.push(`Precio original: ~${money(originalTotal, currency)}~`);
+    }
     lines.push(`*Total${hasUnpriced ? ' parcial' : ''}: ${money(total, currency)}*`);
+    if (savings > 0) {
+      lines.push(`*Ahorras: ${money(savings, currency)}* 🎉`);
+    }
     if (hasUnpriced) lines.push('_(hay productos por cotizar)_');
   }
   lines.push('', 'Quedo atenta/o para realizar mi pedido.');

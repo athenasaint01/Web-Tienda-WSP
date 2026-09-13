@@ -50,8 +50,15 @@ type CartContextType = {
   count: number;               // suma de cantidades
   /** Precio efectivo de un item (sale_price si hay oferta, si no price). */
   itemPrice: (item: CartItem) => number | null;
-  /** Suma de los que tienen precio. */
+  /** Suma de los que tienen precio (ya con descuento aplicado). */
   total: number;
+  /**
+   * Suma de los precios SIN descuento (price × qty) de los items con
+   * precio. Igual a `total` si ningún item está en oferta.
+   */
+  originalTotal: number;
+  /** originalTotal - total. 0 si no hay ningún item con oferta. */
+  totalSavings: number;
   /** ¿Algún item sin precio? -> el total es parcial. */
   hasItemsWithoutPrice: boolean;
   isOpen: boolean;
@@ -153,17 +160,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartContextType>(() => {
     const count = items.reduce((s, i) => s + i.qty, 0);
     let total = 0;
+    let originalTotal = 0;
     let hasItemsWithoutPrice = false;
     for (const i of items) {
       const p = itemPrice(i);
-      if (p == null) hasItemsWithoutPrice = true;
-      else total += p * i.qty;
+      if (p == null) {
+        hasItemsWithoutPrice = true;
+        continue;
+      }
+      total += p * i.qty;
+      // Precio "original" de este item: el normal (price) si existe,
+      // si no el efectivo (para no restar de más cuando no hay oferta).
+      const original = i.price ?? p;
+      originalTotal += original * i.qty;
     }
+    total = Math.round(total * 100) / 100;
+    originalTotal = Math.round(originalTotal * 100) / 100;
+    const totalSavings = Math.max(0, Math.round((originalTotal - total) * 100) / 100);
     return {
       items,
       count,
       itemPrice,
-      total: Math.round(total * 100) / 100,
+      total,
+      originalTotal,
+      totalSavings,
       hasItemsWithoutPrice,
       isOpen,
       open: () => setIsOpen(true),

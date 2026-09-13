@@ -9,8 +9,21 @@ import { waLink, buildCartMessage } from '../lib/wa';
 import { createOrder } from '../services/api';
 
 export default function CartDrawer() {
-  const { items, isOpen, close, count, itemPrice, total, hasItemsWithoutPrice, setQty, remove, clear, maxQty } =
-    useCart();
+  const {
+    items,
+    isOpen,
+    close,
+    count,
+    itemPrice,
+    total,
+    originalTotal,
+    totalSavings,
+    hasItemsWithoutPrice,
+    setQty,
+    remove,
+    clear,
+    maxQty,
+  } = useCart();
   // El carrito usa siempre el número configurado, INDEPENDIENTE del toggle
   // "Mostrar botones de WhatsApp" (ese toggle solo afecta el botón flotante
   // y el botón "Consultar" de cada producto).
@@ -191,10 +204,22 @@ export default function CartDrawer() {
                         </span>
                       </div>
                     ))}
+                    {totalSavings > 0 && (
+                      <div className="flex justify-between pt-1">
+                        <span>Precio original</span>
+                        <span className="line-through">{formatPrice(originalTotal, currency)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between pt-1 font-medium text-neutral-800">
                       <span>Total{hasItemsWithoutPrice ? ' parcial' : ''}</span>
                       <span>{total > 0 ? formatPrice(total, currency) : '—'}</span>
                     </div>
+                    {totalSavings > 0 && (
+                      <div className="flex justify-between text-[#a06f57] font-medium">
+                        <span>Ahorras</span>
+                        <span>{formatPrice(totalSavings, currency)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -308,6 +333,12 @@ export default function CartDrawer() {
 
                 {/* Footer */}
                 <div className="border-t border-black/10 p-5 space-y-3">
+                  {totalSavings > 0 && (
+                    <div className="flex items-baseline justify-between text-sm text-neutral-400">
+                      <span>Precio original</span>
+                      <span className="line-through">{formatPrice(originalTotal, currency)}</span>
+                    </div>
+                  )}
                   <div className="flex items-baseline justify-between text-sm">
                     <span className="text-neutral-500">
                       Total{hasItemsWithoutPrice ? ' parcial' : ' estimado'}
@@ -316,6 +347,12 @@ export default function CartDrawer() {
                       {total > 0 ? formatPrice(total, currency) : '—'}
                     </span>
                   </div>
+                  {totalSavings > 0 && (
+                    <div className="flex items-baseline justify-between text-sm text-[#a06f57] font-medium -mt-1">
+                      <span>Ahorras</span>
+                      <span>{formatPrice(totalSavings, currency)}</span>
+                    </div>
+                  )}
                   {hasItemsWithoutPrice && (
                     <p className="text-[11px] text-neutral-400 -mt-1">
                       Algunos productos se cotizan por WhatsApp.
