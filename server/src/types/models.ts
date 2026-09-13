@@ -455,7 +455,18 @@ export interface ProductFilters {
   q?: string; // búsqueda
   featured?: boolean;
   is_active?: boolean;
-  sort?: 'relevancia' | 'nombre-asc' | 'nombre-desc' | 'recent' | 'precio-asc' | 'precio-desc';
+  sort?:
+    | 'relevancia'
+    | 'nombre-asc'
+    | 'nombre-desc'
+    | 'recent'
+    | 'precio-asc'
+    | 'precio-desc'
+    | 'stock-asc'
+    | 'stock-desc'
+    | 'descuento-desc'
+    | 'destacados-primero'
+    | 'destacados-ultimo';
   page?: number;
   limit?: number;
 }

@@ -8,7 +8,18 @@ import { useFilterCatalogs } from "../hooks/useFilterCatalogs";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X, ChevronLeft, ChevronRight } from "lucide-react";
 
-type SortKey = "relevancia" | "recent" | "nombre-asc" | "nombre-desc";
+type SortKey =
+  | "relevancia"
+  | "recent"
+  | "nombre-asc"
+  | "nombre-desc"
+  | "precio-asc"
+  | "precio-desc"
+  | "stock-asc"
+  | "stock-desc"
+  | "descuento-desc"
+  | "destacados-primero"
+  | "destacados-ultimo";
 
 export default function Productos() {
   const [params, setParams] = useSearchParams();
@@ -267,6 +278,13 @@ export default function Productos() {
             <option value="recent">Más recientes</option>
             <option value="nombre-asc">A–Z</option>
             <option value="nombre-desc">Z–A</option>
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="descuento-desc">Mayor descuento</option>
+            <option value="destacados-primero">Destacados primero</option>
+            <option value="destacados-ultimo">Destacados al final</option>
+            <option value="stock-asc">Stock: menor a mayor</option>
+            <option value="stock-desc">Stock: mayor a menor</option>
           </select>
         </div>
       </div>

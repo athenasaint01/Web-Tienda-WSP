@@ -158,6 +158,23 @@ export const getAllProducts = async (
     case 'precio-desc':
       orderBy = 'ORDER BY COALESCE(p.sale_price, p.price) DESC NULLS LAST, p.id ASC';
       break;
+    case 'stock-asc':
+      // Menos stock primero -> útil para ver qué reponer primero.
+      orderBy = 'ORDER BY p.stock ASC, p.id ASC';
+      break;
+    case 'stock-desc':
+      orderBy = 'ORDER BY p.stock DESC, p.id ASC';
+      break;
+    case 'descuento-desc':
+      // Mayor % de descuento primero; sin descuento (NULL/0) al final.
+      orderBy = 'ORDER BY p.discount_percent DESC NULLS LAST, p.id ASC';
+      break;
+    case 'destacados-primero':
+      orderBy = 'ORDER BY p.featured DESC, p.created_at ASC, p.id ASC';
+      break;
+    case 'destacados-ultimo':
+      orderBy = 'ORDER BY p.featured ASC, p.created_at ASC, p.id ASC';
+      break;
   }
 
   // Paginación

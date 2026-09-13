@@ -33,6 +33,11 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'nombre-desc', label: 'Nombre (Z–A)' },
   { value: 'precio-asc', label: 'Precio (menor a mayor)' },
   { value: 'precio-desc', label: 'Precio (mayor a menor)' },
+  { value: 'stock-asc', label: 'Stock (menor a mayor)' },
+  { value: 'stock-desc', label: 'Stock (mayor a menor)' },
+  { value: 'descuento-desc', label: 'Mayor % de descuento' },
+  { value: 'destacados-primero', label: 'Destacados primero' },
+  { value: 'destacados-ultimo', label: 'Destacados al final' },
 ];
 
 export default function ProductosPage() {
