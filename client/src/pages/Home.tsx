@@ -442,6 +442,16 @@ export default function Home() {
       </section>
 
       {/* Colecciones */}
+      {collectionsLoading && (
+        <section className="mx-auto max-w-7xl px-4 py-6 lg:py-14">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            {[1, 2].map((i) => (
+              <div key={i} className="animate-pulse aspect-[4/3] md:aspect-[16/9] bg-gray-200" />
+            ))}
+          </div>
+        </section>
+      )}
+
       {!collectionsLoading && collections.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-6 lg:py-14">
           <div className="flex items-center justify-between">

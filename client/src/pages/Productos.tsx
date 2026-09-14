@@ -375,10 +375,21 @@ export default function Productos() {
         <div className="flex-1">
           {/* Indicador de carga */}
           {loading && (
-            <div className="flex items-center gap-2 text-xs text-neutral-500 mb-4">
-              <span className="inline-block h-3 w-3 rounded-full border-2 border-neutral-300 border-t-neutral-600 animate-spin" />
-              Cargando productos…
-            </div>
+            <>
+              <div className="flex items-center gap-2 text-xs text-neutral-500 mb-4">
+                <span className="inline-block h-3 w-3 rounded-full border-2 border-neutral-300 border-t-neutral-600 animate-spin" />
+                Cargando productos…
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-xl aspect-square mb-3" />
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </>
           )}
 
           {/* Error state */}

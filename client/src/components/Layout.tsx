@@ -18,11 +18,11 @@ function ScrollToTop() {
 
 function AnnouncementBar() {
   return (
-    <div className="bg-amber-800 text-amber-50 text-xs tracking-widest text-center py-2 px-4">
-      <span className="inline-flex items-center justify-center gap-3">
+    <div className="bg-amber-800 text-amber-50 text-xs tracking-widest text-center py-2 px-4 min-h-[52px] sm:min-h-[36px] flex items-center justify-center">
+      <span className="inline-flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
         <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
         <Truck className="h-3.5 w-3.5 shrink-0" />
-        ENVÍO GRATIS A TODO EL PERÚ EN COMPRAS SUPERIORES A S/ 299.00
+        <span>ENVÍO GRATIS A TODO EL PERÚ EN COMPRAS SUPERIORES A S/ 299.00</span>
         <Truck className="h-3.5 w-3.5 shrink-0" />
         <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
       </span>
