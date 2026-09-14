@@ -35,8 +35,10 @@ export default function Layout() {
     <CartProvider>
       <div className="min-h-dvh flex flex-col">
         <ScrollToTop />
-        <AnnouncementBar />
-        <Header />
+        <div className="sticky top-0 z-50">
+          <AnnouncementBar />
+          <Header />
+        </div>
         <main className="flex-1">
           <Outlet />
         </main>
