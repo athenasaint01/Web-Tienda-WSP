@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useSearchParams, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Search, User, ShoppingBag } from "lucide-react";
@@ -26,6 +26,12 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const categories = useCategories();
   const { count: cartCount, open: openCart } = useCart();
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  // NavLink marca "activo" comparando solo el pathname — como todas las
+  // categorías apuntan a /productos, todas quedaban subrayadas a la vez.
+  // Se calcula la categoría activa a mano, comparando también el query.
+  const activeCategorySlug = pathname === "/productos" ? searchParams.get("categoria") : null;
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -52,23 +58,20 @@ export default function Header() {
 
           {/* Desktop Navigation — centrado */}
           <nav className="hidden md:flex items-center gap-6 text-sm mx-auto">
-            {categories.map(cat => (
-              <NavLink
-                key={cat.id}
-                to={`/productos?categoria=${cat.slug}`}
-                onClick={scrollToTop}
-                className={({ isActive }) =>
-                  `relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-xs ${isActive ? "font-medium text-[#4a4438]" : "text-[#4a4438]/70"}`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span className={`group-hover:text-[#4a4438] transition-colors ${isActive ? "text-[#4a4438]" : ""}`}>{cat.name}</span>
-                    <span className={`absolute -bottom-0.5 left-0 h-px bg-[#4a4438] transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
-                  </>
-                )}
-              </NavLink>
-            ))}
+            {categories.map(cat => {
+              const isActive = activeCategorySlug === cat.slug;
+              return (
+                <NavLink
+                  key={cat.id}
+                  to={`/productos?categoria=${cat.slug}`}
+                  onClick={scrollToTop}
+                  className={`relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-[11px] ${isActive ? "font-medium text-[#4a4438]" : "text-[#4a4438]/70"}`}
+                >
+                  <span className={`group-hover:text-[#4a4438] transition-colors ${isActive ? "text-[#4a4438]" : ""}`}>{cat.name}</span>
+                  <span className={`absolute -bottom-0.5 left-0 h-px bg-[#4a4438] transition-all duration-300 ${isActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* Iconos derecha */}
