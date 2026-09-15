@@ -10,6 +10,21 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import AutoSlider from "../components/AutoSlider";
+
+const historiaSliderImages = [
+  "/assets/nosotros/historia-1.webp",
+  "/assets/nosotros/historia-2.webp",
+  "/assets/nosotros/historia-3.webp",
+];
+
+const ropaSliderImages = [
+  "/assets/nosotros/ropa-1.webp",
+  "/assets/nosotros/ropa-2.webp",
+  "/assets/nosotros/ropa-3.webp",
+  "/assets/nosotros/ropa-4.webp",
+  "/assets/home/main-4.jpg",
+];
 
 /* =============== */
 /*  Acordeón FAQ   */
@@ -112,22 +127,14 @@ export default function Nosotros() {
         </div>
 
         <div className="overflow-hidden border border-[#4a4438]/15">
-          <img
-            src="/assets/home/main-1.jpg"
-            alt="Alaha’s: elegancia cotidiana"
-            className="w-full h-full object-cover"
-          />
+          <AutoSlider images={historiaSliderImages} />
         </div>
       </section>
 
       {/* Giro hacia ropa */}
       <section className="mt-16 grid md:grid-cols-2 gap-6 items-center">
         <div className="overflow-hidden border border-[#4a4438]/15">
-          <img
-            src="/assets/home/main-4.jpg"
-            alt="Prendas y accesorios Alaha’s"
-            className="w-full h-full object-cover"
-          />
+          <AutoSlider images={ropaSliderImages} />
         </div>
 
         <div className="border border-[#4a4438]/15 p-8 md:p-10">
