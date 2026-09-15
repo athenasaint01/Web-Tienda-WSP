@@ -98,7 +98,7 @@ export default function Marca() {
               </Link>
               <Link
                 to="/nosotros"
-                className="px-6 py-3 border border-white/30 text-white text-sm font-medium hover:bg-white/10"
+                className="px-6 py-3 border border-[#4a4438]/40 text-[#4a4438] text-sm font-medium hover:bg-white/20"
               >
                 Conócenos
               </Link>
