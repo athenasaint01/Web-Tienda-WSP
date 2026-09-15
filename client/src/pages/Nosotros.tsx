@@ -69,7 +69,7 @@ export default function Nosotros() {
     <div className="mx-auto max-w-7xl px-4 py-12">
       {/* HERO historia + imagen */}
       <section className="grid md:grid-cols-2 gap-6 items-stretch">
-        <div className="bg-[#faf4ee] text-[#4a4438] p-8 md:p-12 flex items-center border border-[#4a4438]/15">
+        <div className="text-[#4a4438] p-8 md:p-12 flex items-center border border-[#4a4438]/15">
           <div>
             <p className="text-[#c4927a] tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
             <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-wide mt-2 text-[#4a4438]">
