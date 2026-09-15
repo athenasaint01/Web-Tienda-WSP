@@ -19,7 +19,22 @@ function ScrollToTop() {
 function AnnouncementBar() {
   return (
     <div className="bg-amber-800 text-amber-50 text-xs tracking-widest text-center py-2 px-4 min-h-[52px] sm:min-h-[36px] flex items-center justify-center">
-      <span className="inline-flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+      {/* Mobile: 2 líneas, cada una con su propio set de iconos */}
+      <div className="sm:hidden flex flex-col items-center gap-1">
+        <span className="inline-flex items-center justify-center gap-2">
+          <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
+          <Truck className="h-3.5 w-3.5 shrink-0" />
+          <span>ENVÍO GRATIS A TODO EL PERÚ</span>
+        </span>
+        <span className="inline-flex items-center justify-center gap-2">
+          <Truck className="h-3.5 w-3.5 shrink-0" />
+          <span>EN COMPRAS SUPERIORES A S/ 299.00</span>
+          <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
+        </span>
+      </div>
+
+      {/* Desktop: una sola línea, iconos en los extremos */}
+      <span className="hidden sm:inline-flex items-center justify-center gap-3">
         <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
         <Truck className="h-3.5 w-3.5 shrink-0" />
         <span>ENVÍO GRATIS A TODO EL PERÚ EN COMPRAS SUPERIORES A S/ 299.00</span>
