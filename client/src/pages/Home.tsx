@@ -110,7 +110,13 @@ function InfiniteGalleryCarousel({
 /* =========================
    Grid de Colecciones
 ========================= */
-type CollectionItem = { title: string; categorySlug: string; img: string };
+type CollectionItem = {
+  title: string;
+  categorySlug: string;
+  img: string;
+  ribbonLabel?: string | null;
+  ribbonColor?: string;
+};
 
 function usePerView() {
   const [perView, setPerView] = useState(typeof window !== 'undefined' && window.innerWidth >= 1024 ? 5 : 2);
@@ -139,6 +145,7 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
             loading={i === 0 ? "eager" : "lazy"}
             decoding="async"
           />
+          {c.ribbonLabel && <OfferRibbon label={c.ribbonLabel} color={c.ribbonColor} />}
           {/* Brillo que barre de izquierda a derecha solo en hover */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none overflow-hidden">
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -466,7 +473,9 @@ export default function Home() {
               items={collections.map(collection => ({
                 title: collection.title,
                 categorySlug: collection.category_slug,
-                img: collection.image_url
+                img: collection.image_url,
+                ribbonLabel: collection.ribbon_label,
+                ribbonColor: collection.ribbon_color
               }))}
             />
           </div>

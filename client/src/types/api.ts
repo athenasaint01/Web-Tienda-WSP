@@ -103,6 +103,8 @@ export type Collection = {
   image_url: string;
   display_order: number;
   is_active: boolean;
+  ribbon_label?: string | null;
+  ribbon_color: string;
   created_at: string;
   updated_at: string;
 }
@@ -119,6 +121,8 @@ export type CreateCollectionDTO = {
   image_url: string;
   display_order?: number;
   is_active?: boolean;
+  ribbon_label?: string | null;
+  ribbon_color?: string;
 }
 
 export type UpdateCollectionDTO = Partial<CreateCollectionDTO>;

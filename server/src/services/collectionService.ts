@@ -8,6 +8,8 @@ export interface Collection {
   image_url: string;
   display_order: number;
   is_active: boolean;
+  ribbon_label?: string | null;
+  ribbon_color: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -24,6 +26,8 @@ export interface CollectionInput {
   image_url: string;
   display_order?: number;
   is_active?: boolean;
+  ribbon_label?: string | null;
+  ribbon_color?: string;
 }
 
 /**
@@ -97,13 +101,16 @@ export const getCollectionByCategorySlug = async (slug: string): Promise<Collect
  * Crear nueva colección
  */
 export const createCollection = async (data: CollectionInput): Promise<Collection> => {
-  const { category_id, title, description, image_url, display_order = 0, is_active = true } = data;
+  const {
+    category_id, title, description, image_url, display_order = 0, is_active = true,
+    ribbon_label = null, ribbon_color = '#9C2819',
+  } = data;
 
   const result = await pool.query(
-    `INSERT INTO collections (category_id, title, description, image_url, display_order, is_active)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO collections (category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [category_id, title, description, image_url, display_order, is_active]
+    [category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color]
   );
 
   return result.rows[0];
@@ -116,7 +123,7 @@ export const updateCollection = async (
   id: number,
   data: Partial<CollectionInput>
 ): Promise<Collection | null> => {
-  const { category_id, title, description, image_url, display_order, is_active } = data;
+  const { category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color } = data;
 
   const result = await pool.query(
     `UPDATE collections
@@ -126,10 +133,12 @@ export const updateCollection = async (
          image_url = COALESCE($4, image_url),
          display_order = COALESCE($5, display_order),
          is_active = COALESCE($6, is_active),
+         ribbon_label = CASE WHEN $7::text IS NOT NULL THEN NULLIF($7::text, '') ELSE ribbon_label END,
+         ribbon_color = COALESCE($8, ribbon_color),
          updated_at = CURRENT_TIMESTAMP
-     WHERE id = $7
+     WHERE id = $9
      RETURNING *`,
-    [category_id, title, description, image_url, display_order, is_active, id]
+    [category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, id]
   );
 
   return result.rows[0] || null;

@@ -11,12 +11,16 @@ import FormTextarea from '../../../components/admin/ui/FormTextarea';
 import FormSelect from '../../../components/admin/ui/FormSelect';
 import ImageUpload from '../../../components/admin/ui/ImageUpload';
 
+const DEFAULT_RIBBON_COLOR = '#9C2819';
+
 const collectionSchema = z.object({
   category_id: z.number({ message: 'La categoría es requerida' }).int().positive(),
   title: z.string().min(1, 'El título es requerido').max(255),
   description: z.string().optional(),
   display_order: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
+  ribbon_label: z.string().max(40).optional(),
+  ribbon_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
 });
 
 type CollectionFormData = z.infer<typeof collectionSchema>;
@@ -35,6 +39,8 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CollectionFormData>({
     resolver: zodResolver(collectionSchema),
@@ -45,12 +51,19 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
           description: collection.description || '',
           display_order: collection.display_order,
           is_active: collection.is_active,
+          ribbon_label: collection.ribbon_label || '',
+          ribbon_color: collection.ribbon_color || DEFAULT_RIBBON_COLOR,
         }
       : {
           display_order: 0,
           is_active: true,
+          ribbon_label: '',
+          ribbon_color: DEFAULT_RIBBON_COLOR,
         },
   });
+
+  const ribbonLabelValue = watch('ribbon_label');
+  const ribbonColorValue = watch('ribbon_color') || DEFAULT_RIBBON_COLOR;
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -94,6 +107,8 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
           if (data.description) formData.append('description', data.description);
           if (data.display_order !== undefined) formData.append('display_order', data.display_order.toString());
           if (data.is_active !== undefined) formData.append('is_active', data.is_active ? 'true' : 'false');
+          formData.append('ribbon_label', data.ribbon_label ?? '');
+          formData.append('ribbon_color', data.ribbon_color || DEFAULT_RIBBON_COLOR);
           formData.append('image', newImage);
 
           const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -119,6 +134,8 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
         if (data.description) formData.append('description', data.description);
         if (data.display_order !== undefined) formData.append('display_order', data.display_order.toString());
         if (data.is_active !== undefined) formData.append('is_active', data.is_active ? 'true' : 'false');
+        formData.append('ribbon_label', data.ribbon_label ?? '');
+        formData.append('ribbon_color', data.ribbon_color || DEFAULT_RIBBON_COLOR);
 
         // Append image file (only if it's a new File, not a URL string)
         const firstImage = images[0];
@@ -220,6 +237,36 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
               Esta imagen se mostrará en la sección de Colecciones del Home
             </p>
             <ImageUpload images={images} onChange={setImages} maxImages={1} />
+          </div>
+
+          {/* Cintillo */}
+          <div className="space-y-2 border border-neutral-200 rounded-lg p-4">
+            <FormInput
+              label="Texto del cintillo"
+              {...register('ribbon_label')}
+              error={errors.ribbon_label?.message}
+              placeholder="Ej: NUEVO, -20%, EXCLUSIVO..."
+              helperText="Si lo dejas vacío, no se muestra ningún cintillo sobre la imagen"
+            />
+            {!!ribbonLabelValue && (
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={ribbonColorValue}
+                  onChange={(e) => setValue('ribbon_color', e.target.value)}
+                  className="h-9 w-12 rounded border border-neutral-300 cursor-pointer"
+                  aria-label="Color del cintillo"
+                />
+                <FormInput
+                  label="Color (hex)"
+                  value={ribbonColorValue}
+                  onChange={(e) => setValue('ribbon_color', e.target.value)}
+                  error={errors.ribbon_color?.message}
+                  placeholder={DEFAULT_RIBBON_COLOR}
+                  className="flex-1"
+                />
+              </div>
+            )}
           </div>
 
           {/* Orden de visualización */}

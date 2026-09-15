@@ -6,6 +6,8 @@ import { z } from 'zod';
 
 const router = Router();
 
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido, usa formato #RRGGBB');
+
 // Schema de validación para FormData (POST con archivo)
 const collectionFormDataSchema = z.object({
   category_id: z.string().transform(val => parseInt(val)),
@@ -13,6 +15,8 @@ const collectionFormDataSchema = z.object({
   description: z.string().optional(),
   display_order: z.string().transform(val => val ? parseInt(val) : 0).optional(),
   is_active: z.string().transform(val => val === 'true').optional(),
+  ribbon_label: z.string().max(40).optional(),
+  ribbon_color: hexColorSchema.optional(),
 });
 
 // Schema de validación para JSON (PUT sin archivo)
@@ -22,6 +26,8 @@ const collectionSchema = z.object({
   description: z.string().optional(),
   display_order: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
+  ribbon_label: z.string().max(40).optional(),
+  ribbon_color: hexColorSchema.optional(),
 });
 
 const reorderSchema = z.array(
