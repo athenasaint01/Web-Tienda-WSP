@@ -247,7 +247,7 @@ export default function Nosotros() {
         <div className="mt-6 flex justify-center gap-3">
           <Link
             to="/productos"
-            className="px-6 py-3 bg-[#4a4438] text-white text-sm font-medium hover:opacity-90"
+            className="px-6 py-3 bg-[#c4927a] text-white text-sm font-medium hover:opacity-90"
           >
             Explorar catálogo
           </Link>
