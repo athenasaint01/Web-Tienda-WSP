@@ -131,16 +131,26 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative h-[60dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
+    <section className="relative h-[45dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
       {slides.map((slide, i) => {
-        const img = (
-          <img
-            src={slide.image_url}
-            alt={slide.alt_text}
-            className="absolute inset-0 w-full h-full object-cover object-center"
-            loading={i === 0 ? "eager" : "lazy"}
-            fetchPriority={i === 0 ? "high" : "auto"}
-          />
+        const content = (
+          <>
+            {/* Fondo difuminado con la misma imagen, para rellenar el espacio
+                que deja object-contain en mobile sin franjas de color planas. */}
+            <img
+              src={slide.image_url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-60 md:hidden"
+            />
+            <img
+              src={slide.image_url}
+              alt={slide.alt_text}
+              className="absolute inset-0 w-full h-full object-contain md:object-cover object-center"
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "high" : "auto"}
+            />
+          </>
         );
         return (
           <div
@@ -149,7 +159,7 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
             style={{ opacity: i === current ? 1 : 0, pointerEvents: i === current ? "auto" : "none" }}
             aria-hidden={i !== current}
           >
-            {slide.link_url ? <Link to={slide.link_url}>{img}</Link> : img}
+            {slide.link_url ? <Link to={slide.link_url}>{content}</Link> : content}
           </div>
         );
       })}
