@@ -140,7 +140,7 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
   }, [slides.length, current]);
 
   return (
-    <section className="relative h-[40dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
+    <section className="relative h-[60dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
       {slides.map((slide, i) => {
         const img = (
           <img
