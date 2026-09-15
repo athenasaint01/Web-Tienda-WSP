@@ -56,17 +56,14 @@ export default function Marca() {
         {/* Texto */}
         <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 bg-[#c4927a] text-white flex items-center">
           <div>
-            <div className="inline-flex items-center gap-2 text-[#4a4438]">
+            <div className="inline-flex items-center gap-2 text-white/80">
               <span className="text-lg">✦</span>
               <span className="text-sm tracking-wide font-medium">COLECCIÓN DESTACADA</span>
               <span className="text-lg">✦</span>
             </div>
 
-            <h2 className="mt-2 font-display font-light text-3xl md:text-5xl tracking-wide leading-tight">
-              No limites tu{" "}
-              <span className="italic text-[#4a4438]">
-                brillo
-              </span>
+            <h2 className="mt-2 font-display font-light text-3xl md:text-5xl tracking-wide leading-tight text-white">
+              No limites tu <span className="italic">brillo</span>
             </h2>
 
             <p className="mt-4 text-white/90 max-w-xl">
@@ -76,15 +73,15 @@ export default function Marca() {
 
             <ul className="mt-6 grid gap-3 text-white/90">
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
                 Acabados de alta duración para uso diario.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
                 Libre de níquel: amable con tu piel.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
                 Diseños que combinan con todo.
               </li>
             </ul>
@@ -98,7 +95,7 @@ export default function Marca() {
               </Link>
               <Link
                 to="/nosotros"
-                className="px-6 py-3 border border-[#4a4438]/40 text-[#4a4438] text-sm font-medium hover:bg-white/20"
+                className="px-6 py-3 border border-white/50 text-white text-sm font-medium hover:bg-white/10"
               >
                 Conócenos
               </Link>
