@@ -131,13 +131,13 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
   if (slides.length === 0) return null;
 
   return (
-    <section className="relative w-full">
+    <section className="relative w-full lg:h-[calc(100dvh-96px)] lg:overflow-hidden">
       {slides.map((slide, i) => {
         const img = (
           <img
             src={slide.image_url}
             alt={slide.alt_text}
-            className="w-full h-auto"
+            className="w-full h-auto lg:absolute lg:inset-0 lg:h-full lg:object-cover lg:object-bottom"
             loading={i === 0 ? "eager" : "lazy"}
             fetchPriority={i === 0 ? "high" : "auto"}
           />
@@ -145,7 +145,7 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
         return (
           <div
             key={slide.id}
-            className={i === current ? "block" : "hidden"}
+            className={`${i === current ? "block" : "hidden"} lg:block lg:absolute lg:inset-0`}
             aria-hidden={i !== current}
           >
             {slide.link_url ? <Link to={slide.link_url}>{img}</Link> : img}
