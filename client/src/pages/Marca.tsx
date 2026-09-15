@@ -54,34 +54,31 @@ export default function Marca() {
         className="grid items-stretch gap-4 md:grid-cols-5"
       >
         {/* Texto */}
-        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 bg-[#c4927a] text-white flex items-center">
+        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 text-[#4a4438] flex items-center border border-[#4a4438]/15">
           <div>
-            <div className="inline-flex items-center gap-2 text-white/80">
-              <span className="text-lg">✦</span>
-              <span className="text-sm tracking-wide font-medium">COLECCIÓN DESTACADA</span>
-              <span className="text-lg">✦</span>
-            </div>
+            <p className="text-[#c4927a] tracking-widest text-xs font-medium">COLECCIÓN DESTACADA</p>
 
-            <h2 className="mt-2 font-display font-light text-3xl md:text-5xl tracking-wide leading-tight text-white">
-              No limites tu <span className="italic">brillo</span>
+            <h2 className="mt-2 font-serif font-bold text-3xl md:text-5xl tracking-wide leading-tight text-[#4a4438]">
+              No limites tu <span className="italic text-[#c4927a]">brillo</span>
             </h2>
+            <span className="block w-14 h-0.5 bg-[#c4927a] mt-4" />
 
-            <p className="mt-4 text-white/90 max-w-xl">
+            <p className="mt-4 text-[#4a4438]/80 max-w-xl text-justify">
               Piezas versátiles, hipoalergénicas y listas para elevar tu look en segundos.
               Combina texturas, juega con capas y expresa tu estilo sin esfuerzo.
             </p>
 
-            <ul className="mt-6 grid gap-3 text-white/90">
+            <ul className="mt-6 grid gap-3 text-[#4a4438]/80">
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#c4927a]" />
                 Acabados de alta duración para uso diario.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#c4927a]" />
                 Libre de níquel: amable con tu piel.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-white" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#c4927a]" />
                 Diseños que combinan con todo.
               </li>
             </ul>
@@ -89,13 +86,13 @@ export default function Marca() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/productos"
-                className="px-6 py-3 bg-white text-[#4a4438] text-sm font-medium hover:bg-[#faf4ee]"
+                className="px-6 py-3 bg-[#4a4438] text-white text-sm font-medium hover:opacity-90"
               >
                 Ver productos
               </Link>
               <Link
                 to="/nosotros"
-                className="px-6 py-3 border border-white/50 text-white text-sm font-medium hover:bg-white/10"
+                className="px-6 py-3 border border-[#4a4438]/30 text-[#4a4438] text-sm font-medium hover:bg-[#faf4ee]"
               >
                 Conócenos
               </Link>
