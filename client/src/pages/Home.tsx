@@ -110,19 +110,8 @@ function InfiniteGalleryCarousel({
 /* =========================
    Banner principal del Home — imagen única o carrusel con 2+
 ========================= */
-const FALLBACK_BANNER: Banner = {
-  id: -1,
-  image_url: "/images/hero-banner.webp",
-  alt_text: "Alahas — joyas esenciales",
-  link_url: null,
-  display_order: 0,
-  is_active: true,
-  created_at: "",
-  updated_at: "",
-};
-
 function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
-  const slides = banners.length > 0 ? banners : [FALLBACK_BANNER];
+  const slides = banners;
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -138,6 +127,8 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
   useEffect(() => {
     if (current >= slides.length) setCurrent(0);
   }, [slides.length, current]);
+
+  if (slides.length === 0) return null;
 
   return (
     <section className="relative h-[60dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
