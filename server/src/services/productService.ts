@@ -576,6 +576,17 @@ const replaceProductVariants = async (
   const sizeCodeById = new Map(sizeRows.rows.map((r: any) => [r.id, r.code]));
   const lengthCodeById = new Map(lengthRows.rows.map((r: any) => [r.id, r.code]));
 
+  // Nulear el sku de las filas a actualizar ANTES de reasignarlo (dos fases,
+  // mismo criterio que la migración de reset de SKUs de producto). El índice
+  // de sku es parcial (WHERE sku IS NOT NULL) así que múltiples NULL no
+  // chocan entre sí. Sin esto, si dos variantes intercambian su combinación
+  // (y por lo tanto sus sku autogenerados), el UPDATE de la primera puede
+  // colisionar contra el sku que la segunda todavía no liberó.
+  const idsToUpdate = variants.filter((v) => v.id != null && existingIds.has(v.id)).map((v) => v.id);
+  if (idsToUpdate.length > 0) {
+    await client.query('UPDATE product_variants SET sku = NULL WHERE id = ANY($1)', [idsToUpdate]);
+  }
+
   for (const v of variants) {
     const discountPct = sanitizeDiscount(v.discount_percent);
     const salePrice = computeSalePrice(v.price ?? null, discountPct);
