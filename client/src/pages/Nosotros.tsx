@@ -71,7 +71,7 @@ export default function Nosotros() {
       <section className="grid md:grid-cols-2 gap-6 items-stretch">
         <div className="bg-[#c4927a] text-white p-8 md:p-12 flex items-center">
           <div>
-            <p className="text-[#4a4438] tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
+            <p className="text-white/80 tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
             <h1 className="font-display text-4xl md:text-5xl font-light tracking-wide mt-2">
               Alaha’s nació para acercar el brillo a todos
             </h1>
