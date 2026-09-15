@@ -60,6 +60,23 @@ export default function ProductoDetalle() {
     setQty(1);
   }, [slug]);
 
+  // Con variantes: preseleccionar automáticamente la combinación ACTIVA
+  // más barata (por sale_price si tiene oferta, si no por price), igual
+  // criterio que "Desde $X" en las tarjetas de catálogo — así el cliente
+  // ve precio/stock reales desde que entra, sin tener que elegir primero.
+  // Puede cambiar la selección libremente después; no se vuelve a forzar
+  // mientras siga en el mismo producto.
+  useEffect(() => {
+    if (!product?.has_variants || !product.variants?.length) return;
+    const cheapest = [...product.variants]
+      .filter((v) => v.is_active && v.price != null)
+      .sort((a, b) => (a.sale_price ?? a.price!) - (b.sale_price ?? b.price!))[0];
+    if (!cheapest) return;
+    setSelectedColorId(product.variant_uses_color ? cheapest.color_id ?? null : null);
+    setSelectedSizeId(product.variant_uses_size ? cheapest.size_id ?? null : null);
+    setSelectedLengthId(product.variant_uses_length ? cheapest.length_id ?? null : null);
+  }, [product?.id, product?.has_variants]);
+
   // SEO: título y description dinámicos por producto
   useEffect(() => {
     if (!product) return;
