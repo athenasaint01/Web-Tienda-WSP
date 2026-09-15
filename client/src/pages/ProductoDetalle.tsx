@@ -77,6 +77,35 @@ export default function ProductoDetalle() {
     setSelectedLengthId(product.variant_uses_length ? cheapest.length_id ?? null : null);
   }, [product?.id, product?.has_variants]);
 
+  // Con variantes: si la combinación elegida tiene su propia imagen
+  // destacada (asignada en el admin), mostrarla en el carrusel — se
+  // busca su posición dentro de las fotos del producto y se salta ahí,
+  // sin reordenar el array (las flechas siguen navegando todas las
+  // fotos normalmente). Sin imagen propia, se deja la foto actual tal
+  // cual (fallback implícito a la imagen principal).
+  useEffect(() => {
+    if (!product?.has_variants || !product.variants?.length) return;
+    const resolved = product.variants.find((v) => {
+      if (product.variant_uses_color && v.color_id !== selectedColorId) return false;
+      if (product.variant_uses_size && v.size_id !== selectedSizeId) return false;
+      if (product.variant_uses_length && v.length_id !== selectedLengthId) return false;
+      return true;
+    });
+    const urls = product.images.map((img: any) => (typeof img === 'string' ? img : img.image_url));
+    if (resolved?.image_url) {
+      const idx = urls.indexOf(resolved.image_url);
+      if (idx >= 0) {
+        setI(idx);
+        return;
+      }
+    }
+    // Sin imagen propia (o variante todavía no resuelta): volver a la
+    // imagen principal del producto en vez de dejar la de la variante
+    // anterior.
+    const primaryIdx = product.images.findIndex((img: any) => typeof img !== 'string' && img.is_primary);
+    setI(primaryIdx >= 0 ? primaryIdx : 0);
+  }, [product, selectedColorId, selectedSizeId, selectedLengthId]);
+
   // SEO: título y description dinámicos por producto
   useEffect(() => {
     if (!product) return;
@@ -223,7 +252,7 @@ export default function ProductoDetalle() {
         category: (typeof product.category === 'string' ? product.category : product.category?.name)?.trim(),
         price: effectivePrice,
         sale_price: effectiveSalePrice,
-        image_url: primaryImage,
+        image_url: resolvedVariant?.image_url || primaryImage,
         stock: effectiveStock,
         ...(resolvedVariant
           ? { variantId: resolvedVariant.id, variantSku: resolvedVariant.sku, variantLabel }

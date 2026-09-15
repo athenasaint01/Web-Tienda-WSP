@@ -46,6 +46,7 @@ const optionalPercent = () =>
 const variantInputSchema = z.object({
   id: z.number().int().positive().optional(),
   sku: z.string().max(40).nullable().optional(),
+  image_url: z.string().max(500).nullable().optional(),
   color_id: z.number().int().positive().nullable().optional(),
   size_id: z.number().int().positive().nullable().optional(),
   length_id: z.number().int().positive().nullable().optional(),

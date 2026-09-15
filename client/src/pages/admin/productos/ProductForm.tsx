@@ -75,6 +75,7 @@ type VariantRow = {
   sku?: string | null;
   price?: number | null;
   discount_percent?: number | null;
+  image_url?: string | null;
   stock: number;
   low_stock_threshold?: number;
   is_active: boolean;
@@ -292,6 +293,7 @@ export default function ProductForm() {
               sku: v.sku ?? null,
               price: v.price ?? null,
               discount_percent: v.discount_percent ?? null,
+              image_url: v.image_url ?? null,
               stock: v.stock ?? 0,
               low_stock_threshold: v.low_stock_threshold ?? 5,
               is_active: v.is_active ?? true,
@@ -899,6 +901,7 @@ export default function ProductForm() {
                     <thead className="bg-neutral-50 border-b border-neutral-200">
                       <tr>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600">Combinación</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-16">Imagen</th>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600">SKU</th>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600 w-24">Precio</th>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600 w-20">Desc. %</th>
@@ -911,6 +914,30 @@ export default function ProductForm() {
                       {variantRows.map((v, i) => (
                         <tr key={comboKey(v)} className={v.is_active ? '' : 'opacity-50'}>
                           <td className="px-3 py-2 text-neutral-700 whitespace-nowrap">{variantLabel(v)}</td>
+                          <td className="px-3 py-2">
+                            <select
+                              value={v.image_url ?? ''}
+                              onChange={(e) => updateVariantRow(i, { image_url: e.target.value || null })}
+                              className="w-16 border border-neutral-300 rounded px-1 py-1 text-xs focus:outline-none focus:border-neutral-900"
+                              title="Imagen destacada de esta variante"
+                            >
+                              <option value="">—</option>
+                              {images
+                                .filter((img): img is string => typeof img === 'string')
+                                .map((url, idx) => (
+                                  <option key={url} value={url}>
+                                    Foto {idx + 1}
+                                  </option>
+                                ))}
+                            </select>
+                            {v.image_url && (
+                              <img
+                                src={v.image_url}
+                                alt=""
+                                className="mt-1 w-10 h-10 object-cover rounded border border-neutral-200"
+                              />
+                            )}
+                          </td>
                           <td className="px-3 py-2">
                             <input
                               type="text"

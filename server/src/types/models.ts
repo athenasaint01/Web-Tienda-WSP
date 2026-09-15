@@ -205,6 +205,7 @@ export interface ProductVariant {
   price?: number | null;
   discount_percent?: number | null;
   sale_price?: number | null; // DERIVADO, mismo criterio que Product.sale_price
+  image_url?: string | null; // una de las URLs de product_images de este producto
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;
@@ -376,6 +377,7 @@ export interface VariantInputDTO {
   length_id?: number | null;
   price?: number | null;
   discount_percent?: number | null;
+  image_url?: string | null;
   stock: number;
   low_stock_threshold?: number;
   is_active?: boolean;

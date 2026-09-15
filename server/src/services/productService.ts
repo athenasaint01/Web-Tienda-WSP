@@ -609,24 +609,24 @@ const replaceProductVariants = async (
         `UPDATE product_variants
          SET color_id = $1, size_id = $2, length_id = $3, price = $4, discount_percent = $5,
              sale_price = $6, stock = $7, low_stock_threshold = $8, is_active = $9,
-             display_order = $10, sku = $11, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $12 AND product_id = $13`,
+             display_order = $10, sku = $11, image_url = $12, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $13 AND product_id = $14`,
         [
           v.color_id ?? null, v.size_id ?? null, v.length_id ?? null, v.price ?? null,
           discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5, v.is_active ?? true,
-          v.display_order ?? 0, sku, v.id, productId,
+          v.display_order ?? 0, sku, v.image_url ?? null, v.id, productId,
         ]
       );
     } else {
       await client.query(
         `INSERT INTO product_variants
            (product_id, sku, color_id, size_id, length_id, price, discount_percent,
-            sale_price, stock, low_stock_threshold, is_active, display_order)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+            sale_price, stock, low_stock_threshold, is_active, display_order, image_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
         [
           productId, sku, v.color_id ?? null, v.size_id ?? null, v.length_id ?? null,
           v.price ?? null, discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5,
-          v.is_active ?? true, v.display_order ?? 0,
+          v.is_active ?? true, v.display_order ?? 0, v.image_url ?? null,
         ]
       );
     }
@@ -706,13 +706,13 @@ export const createProductVariant = async (
   const result = await pool.query(
     `INSERT INTO product_variants
        (product_id, sku, color_id, size_id, length_id, price, discount_percent,
-        sale_price, stock, low_stock_threshold, is_active, display_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        sale_price, stock, low_stock_threshold, is_active, display_order, image_url)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
      RETURNING *`,
     [
       productId, sku, data.color_id ?? null, data.size_id ?? null, data.length_id ?? null,
       data.price ?? null, discountPct, salePrice, data.stock, data.low_stock_threshold ?? 5,
-      data.is_active ?? true, data.display_order ?? 0,
+      data.is_active ?? true, data.display_order ?? 0, data.image_url ?? null,
     ]
   );
   return normalizeVariantRow(result.rows[0]);
@@ -739,6 +739,7 @@ export const updateProductVariant = async (
   };
 
   if (data.sku !== undefined) set('sku', data.sku?.trim() || null);
+  if (data.image_url !== undefined) set('image_url', data.image_url || null);
   if (data.color_id !== undefined) set('color_id', data.color_id);
   if (data.size_id !== undefined) set('size_id', data.size_id);
   if (data.length_id !== undefined) set('length_id', data.length_id);

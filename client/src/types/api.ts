@@ -86,6 +86,7 @@ export type ProductVariant = {
   price?: number | null;
   discount_percent?: number | null;
   sale_price?: number | null; // derivado
+  image_url?: string | null;
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;
