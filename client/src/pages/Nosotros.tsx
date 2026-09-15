@@ -23,7 +23,6 @@ const ropaSliderImages = [
   "/assets/nosotros/ropa-2.webp",
   "/assets/nosotros/ropa-3.webp",
   "/assets/nosotros/ropa-4.webp",
-  "/assets/home/main-4.jpg",
 ];
 
 /* =============== */
