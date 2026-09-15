@@ -23,13 +23,13 @@ function AnnouncementBar() {
       <div className="sm:hidden flex flex-col items-center gap-1">
         <span className="inline-flex items-center justify-center gap-2">
           <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
-          <Truck className="h-3.5 w-3.5 shrink-0" />
           <span>ENVÍO GRATIS A TODO EL PERÚ</span>
+          <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
         </span>
         <span className="inline-flex items-center justify-center gap-2">
           <Truck className="h-3.5 w-3.5 shrink-0" />
           <span>EN COMPRAS SUPERIORES A S/ 299.00</span>
-          <Sparkles className="h-3 w-3 shrink-0 opacity-70" />
+          <Truck className="h-3.5 w-3.5 shrink-0" />
         </span>
       </div>
 
