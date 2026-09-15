@@ -151,7 +151,7 @@ export default function Nosotros() {
 
       {/* Curaduría & Marcas Aliadas */}
       <section className="mt-16 border border-[#4a4438]/15 p-8 md:p-10">
-        <div className="flex items-center gap-2 text-[#92714a]">
+        <div className="flex items-center gap-2 text-[#c4927a]">
           <Gem className="h-5 w-5" />
           <span className="text-sm tracking-wide font-medium">CURADURÍA & MARCAS ALIADAS</span>
         </div>
