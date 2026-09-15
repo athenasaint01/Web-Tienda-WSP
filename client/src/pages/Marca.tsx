@@ -62,7 +62,7 @@ export default function Marca() {
               <span className="text-lg">✦</span>
             </div>
 
-            <h2 className="mt-2 font-serif text-3xl md:text-5xl leading-tight">
+            <h2 className="mt-2 font-display font-light text-3xl md:text-5xl tracking-wide leading-tight">
               No limites tu{" "}
               <span className="italic text-[#4a4438]">
                 brillo

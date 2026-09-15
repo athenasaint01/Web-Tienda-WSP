@@ -244,7 +244,7 @@ export default function Nosotros() {
 
       {/* Manifiesto / Cita + CTAs */}
       <section className="mt-14 text-center">
-        <blockquote className="font-serif text-2xl md:text-3xl text-[#4a4438]">
+        <blockquote className="font-display font-light text-2xl md:text-3xl tracking-wide text-[#4a4438]">
           “Elegancia cotidiana, precios honestos y una relación cercana. Eso es Alaha’s.”
         </blockquote>
         <div className="mt-6 flex justify-center gap-3">
