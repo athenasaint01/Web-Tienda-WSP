@@ -69,40 +69,45 @@ export default function Nosotros() {
     <div className="mx-auto max-w-7xl px-4 py-12">
       {/* HERO historia + imagen */}
       <section className="grid md:grid-cols-2 gap-6 items-stretch">
-        <div className="bg-[#c4927a] text-white p-8 md:p-12 flex items-center">
+        <div className="bg-[#faf4ee] text-[#4a4438] p-8 md:p-12 flex items-center border border-[#4a4438]/15">
           <div>
-            <p className="text-white/80 tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
-            <h1 className="font-display text-4xl md:text-5xl font-light tracking-wide mt-2">
+            <p className="text-[#c4927a] tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-wide mt-2 text-[#4a4438]">
               Alaha’s nació para acercar el brillo a todos
             </h1>
-            <p className="mt-4 text-white/90">
+            <span className="block w-14 h-0.5 bg-[#c4927a] mt-4" />
+            <p className="mt-4 text-[#4a4438]/80">
               Empezamos con una idea simple:{" "}
-              <span className="font-medium text-white">accesorios de buena calidad</span> a
+              <span className="font-medium text-[#4a4438]">accesorios de buena calidad</span> a
               precios realmente cómodos, pensados para el día a día. Queríamos que cada pieza
               conecte con quien la usa; que cuente una historia sin complicaciones, con
               materiales confiables y acabados que perduran.
             </p>
-            <p className="mt-3 text-white/90">
+            <p className="mt-3 text-[#4a4438]/80">
               Hoy seguimos ese camino —y damos un paso más— integrando{" "}
-              <span className="font-medium text-white">prendas y ropa</span> que complementan nuestros accesorios.
+              <span className="font-medium text-[#4a4438]">prendas y ropa</span> que complementan nuestros accesorios.
               Un mismo lenguaje: elegancia cotidiana, precios honestos y cercanía con nuestra comunidad.
             </p>
 
             {/* Microbadges */}
             <div className="mt-6 flex flex-wrap gap-2">
-              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
-                Curaduría Alaha’s
+              <span className="px-3 py-1 text-xs rounded-full bg-[#c4927a]/10 text-[#4a4438] ring-1 ring-[#c4927a]/40">
+                + Curaduría Alaha’s
               </span>
-              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
-                Precio honesto
+              <span className="px-3 py-1 text-xs rounded-full bg-[#c4927a]/10 text-[#4a4438] ring-1 ring-[#c4927a]/40">
+                + Precio Honesto
               </span>
-              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
-                Hipoalergénicos
+              <span className="px-3 py-1 text-xs rounded-full bg-[#c4927a]/10 text-[#4a4438] ring-1 ring-[#c4927a]/40">
+                + Hipoalergénicos
               </span>
-              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
-                Envíos con cuidado
+              <span className="px-3 py-1 text-xs rounded-full bg-[#c4927a]/10 text-[#4a4438] ring-1 ring-[#c4927a]/40">
+                + Envíos con Cuidado
               </span>
             </div>
+
+            <p className="mt-6 italic text-[#c4927a] text-sm">
+              Joyas y prendas diseñadas para acompañar tu brillo diario.
+            </p>
           </div>
         </div>
 
