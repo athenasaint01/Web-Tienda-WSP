@@ -54,9 +54,9 @@ export default function Marca() {
         className="grid items-stretch gap-4 md:grid-cols-5"
       >
         {/* Texto */}
-        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 bg-[#4a4438] text-white flex items-center">
+        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 bg-[#c4927a] text-white flex items-center">
           <div>
-            <div className="inline-flex items-center gap-2 text-[#d4a58a]">
+            <div className="inline-flex items-center gap-2 text-[#4a4438]">
               <span className="text-lg">✦</span>
               <span className="text-sm tracking-wide font-medium">COLECCIÓN DESTACADA</span>
               <span className="text-lg">✦</span>
@@ -64,27 +64,27 @@ export default function Marca() {
 
             <h2 className="mt-2 font-serif text-3xl md:text-5xl leading-tight">
               No limites tu{" "}
-              <span className="italic text-[#d4a58a]">
+              <span className="italic text-[#4a4438]">
                 brillo
               </span>
             </h2>
 
-            <p className="mt-4 text-white/70 max-w-xl">
+            <p className="mt-4 text-white/90 max-w-xl">
               Piezas versátiles, hipoalergénicas y listas para elevar tu look en segundos.
               Combina texturas, juega con capas y expresa tu estilo sin esfuerzo.
             </p>
 
-            <ul className="mt-6 grid gap-3 text-white/80">
+            <ul className="mt-6 grid gap-3 text-white/90">
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
                 Acabados de alta duración para uso diario.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
                 Libre de níquel: amable con tu piel.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#4a4438]" />
                 Diseños que combinan con todo.
               </li>
             </ul>

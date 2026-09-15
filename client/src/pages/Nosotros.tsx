@@ -72,20 +72,20 @@ export default function Nosotros() {
     <div className="mx-auto max-w-7xl px-4 py-12">
       {/* HERO historia + imagen */}
       <section className="grid md:grid-cols-2 gap-6 items-stretch">
-        <div className="bg-[#4a4438] text-white p-8 md:p-12 flex items-center">
+        <div className="bg-[#c4927a] text-white p-8 md:p-12 flex items-center">
           <div>
-            <p className="text-[#d4a58a] tracking-widest text-xs">NUESTRA HISTORIA</p>
+            <p className="text-[#4a4438] tracking-widest text-xs font-medium">NUESTRA HISTORIA</p>
             <h1 className="font-display text-4xl md:text-5xl font-light tracking-wide mt-2">
               Alaha’s nació para acercar el brillo a todos
             </h1>
-            <p className="mt-4 text-white/70">
+            <p className="mt-4 text-white/90">
               Empezamos con una idea simple:{" "}
               <span className="font-medium text-white">accesorios de buena calidad</span> a
               precios realmente cómodos, pensados para el día a día. Queríamos que cada pieza
               conecte con quien la usa; que cuente una historia sin complicaciones, con
               materiales confiables y acabados que perduran.
             </p>
-            <p className="mt-3 text-white/70">
+            <p className="mt-3 text-white/90">
               Hoy seguimos ese camino —y damos un paso más— integrando{" "}
               <span className="font-medium text-white">prendas y ropa</span> que complementan nuestros accesorios.
               Un mismo lenguaje: elegancia cotidiana, precios honestos y cercanía con nuestra comunidad.
@@ -93,16 +93,16 @@ export default function Nosotros() {
 
             {/* Microbadges */}
             <div className="mt-6 flex flex-wrap gap-2">
-              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
                 Curaduría Alaha’s
               </span>
-              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
                 Precio honesto
               </span>
-              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
                 Hipoalergénicos
               </span>
-              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-[#4a4438]/20 text-white ring-1 ring-white/30">
                 Envíos con cuidado
               </span>
             </div>
