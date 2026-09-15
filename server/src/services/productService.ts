@@ -361,7 +361,13 @@ const hydrateProductRelations = async (
        ORDER BY pc.is_primary DESC, co.display_order`,
       [product.id]
     ),
-    product.has_variants
+    // El admin (includeInactiveVariants=true) necesita ver las variantes
+    // aunque has_variants esté en false: si el usuario desactivó el modo
+    // variantes y lo vuelve a activar, el formulario debe recargar las
+    // filas ya existentes en vez de creer que no hay ninguna -- si no,
+    // "Generar combinaciones" las trata como nuevas y el guardado choca
+    // contra las combinaciones que ya existen en la tabla.
+    (product.has_variants || includeInactiveVariants)
       ? pool.query(
           `SELECT
              pv.*,
