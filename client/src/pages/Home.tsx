@@ -137,7 +137,7 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
           <img
             src={slide.image_url}
             alt={slide.alt_text}
-            className="w-full h-auto lg:absolute lg:inset-0 lg:h-full lg:object-cover lg:object-bottom"
+            className="w-full h-auto lg:absolute lg:inset-0 lg:h-full lg:object-fill"
             loading={i === 0 ? "eager" : "lazy"}
             fetchPriority={i === 0 ? "high" : "auto"}
           />
