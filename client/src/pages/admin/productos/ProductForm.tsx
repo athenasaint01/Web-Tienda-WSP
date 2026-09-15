@@ -114,6 +114,24 @@ export default function ProductForm() {
 
   const slugTouched = useRef(false);
 
+  // Barra de acciones flotante: visible mientras el usuario scrollea el
+  // formulario (que puede ser muy largo, sobre todo con variantes), se
+  // oculta apenas el footer real con los mismos botones entra en pantalla,
+  // para no duplicar el CTA a la vista.
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [footerVisible, setFooterVisible] = useState(true);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -1095,7 +1113,7 @@ export default function ProductForm() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t border-neutral-200">
+        <div ref={footerRef} className="flex gap-3 pt-4 border-t border-neutral-200">
           <button
             type="button"
             onClick={() => navigate('/admin/productos')}
@@ -1113,6 +1131,32 @@ export default function ProductForm() {
           </button>
         </div>
       </form>
+
+      {/* Barra flotante: mismo botón de guardar, visible mientras se
+          scrollea el formulario (puede ser muy largo con variantes) y el
+          footer real todavía no está en pantalla. */}
+      {!footerVisible && (
+        <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur px-6 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+          <div className="flex gap-3 max-w-4xl mx-auto">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/productos')}
+              className="flex-1 px-4 py-2.5 border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors font-medium bg-white"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit(onSubmit)}
+              className="flex-1 px-4 py-2.5 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Guardando...' : isEditing ? 'Actualizar Producto' : 'Crear Producto'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
