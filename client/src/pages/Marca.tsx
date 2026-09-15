@@ -3,10 +3,9 @@ import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 
 const brilloSliderImages = [
-  "/assets/home/main-1.jpg",
-  "/assets/home/main-2.jpg",
-  "/assets/home/main-3.jpg",
-  "/assets/home/main-4.jpg",
+  "/assets/marca/marca-1.webp",
+  "/assets/marca/marca-2.webp",
+  "/assets/marca/marca-3.webp",
 ];
 
 function AutoSlider({ images }: { images: string[] }) {
