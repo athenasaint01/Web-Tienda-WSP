@@ -19,7 +19,7 @@ function AutoSlider({ images }: { images: string[] }) {
   }, [images]);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl h-full">
+    <div className="relative overflow-hidden h-full">
       <div className="relative aspect-[3/4] md:aspect-[4/5] w-full h-full">
         {images.map((src, i) => (
           <img
@@ -54,9 +54,9 @@ export default function Marca() {
         className="grid items-stretch gap-4 md:grid-cols-5"
       >
         {/* Texto */}
-        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] rounded-2xl p-8 lg:p-12 bg-neutral-900 text-white flex items-center">
+        <div className="md:col-span-3 h-full min-h-[320px] md:min-h-[360px] p-8 lg:p-12 bg-[#4a4438] text-white flex items-center">
           <div>
-            <div className="inline-flex items-center gap-2 text-amber-300">
+            <div className="inline-flex items-center gap-2 text-[#d4a58a]">
               <span className="text-lg">✦</span>
               <span className="text-sm tracking-wide font-medium">COLECCIÓN DESTACADA</span>
               <span className="text-lg">✦</span>
@@ -64,27 +64,27 @@ export default function Marca() {
 
             <h2 className="mt-2 font-serif text-3xl md:text-5xl leading-tight">
               No limites tu{" "}
-              <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-200 to-emerald-200">
+              <span className="italic text-[#d4a58a]">
                 brillo
               </span>
             </h2>
 
-            <p className="mt-4 text-neutral-300 max-w-xl">
+            <p className="mt-4 text-white/70 max-w-xl">
               Piezas versátiles, hipoalergénicas y listas para elevar tu look en segundos.
               Combina texturas, juega con capas y expresa tu estilo sin esfuerzo.
             </p>
 
-            <ul className="mt-6 grid gap-3 text-neutral-200">
+            <ul className="mt-6 grid gap-3 text-white/80">
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
                 Acabados de alta duración para uso diario.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
                 Libre de níquel: amable con tu piel.
               </li>
               <li className="flex items-start gap-2">
-                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-400" />
+                <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#d4a58a]" />
                 Diseños que combinan con todo.
               </li>
             </ul>
@@ -92,13 +92,13 @@ export default function Marca() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/productos"
-                className="rounded-full px-6 py-3 bg-white text-black text-sm font-medium hover:bg-neutral-200"
+                className="px-6 py-3 bg-white text-[#4a4438] text-sm font-medium hover:bg-[#faf4ee]"
               >
                 Ver productos
               </Link>
               <Link
                 to="/nosotros"
-                className="rounded-full px-6 py-3 border border-white/30 text-white text-sm font-medium hover:bg-white/10"
+                className="px-6 py-3 border border-white/30 text-white text-sm font-medium hover:bg-white/10"
               >
                 Conócenos
               </Link>

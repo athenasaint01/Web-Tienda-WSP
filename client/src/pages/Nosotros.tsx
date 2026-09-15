@@ -19,7 +19,7 @@ function FaqItem({ q, children }: { q: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-2xl border overflow-hidden bg-white">
+    <div className="border border-[#4a4438]/15 overflow-hidden bg-white">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -30,11 +30,11 @@ function FaqItem({ q, children }: { q: string; children: React.ReactNode }) {
           }
         }}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-neutral-50 focus-visible:outline-none"
+        className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-[#faf4ee] focus-visible:outline-none"
       >
-        <span className="font-medium text-neutral-900">{q}</span>
+        <span className="font-medium text-[#4a4438]">{q}</span>
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-neutral-500 transition-transform duration-300 ${
+          className={`h-5 w-5 shrink-0 text-[#4a4438]/60 transition-transform duration-300 ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -49,7 +49,7 @@ function FaqItem({ q, children }: { q: string; children: React.ReactNode }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <div className="px-4 pb-4 text-neutral-700">
+            <div className="px-4 pb-4 text-[#4a4438]/80">
               {children}
             </div>
           </motion.div>
@@ -72,44 +72,44 @@ export default function Nosotros() {
     <div className="mx-auto max-w-7xl px-4 py-12">
       {/* HERO historia + imagen */}
       <section className="grid md:grid-cols-2 gap-6 items-stretch">
-        <div className="rounded-3xl bg-black text-white p-8 md:p-12 flex items-center">
+        <div className="bg-[#4a4438] text-white p-8 md:p-12 flex items-center">
           <div>
-            <p className="text-emerald-400 tracking-widest text-xs">NUESTRA HISTORIA</p>
+            <p className="text-[#d4a58a] tracking-widest text-xs">NUESTRA HISTORIA</p>
             <h1 className="font-display text-4xl md:text-5xl font-light tracking-wide mt-2">
               Alaha’s nació para acercar el brillo a todos
             </h1>
-            <p className="mt-4 text-neutral-300">
+            <p className="mt-4 text-white/70">
               Empezamos con una idea simple:{" "}
-              <span className="font-medium">accesorios de buena calidad</span> a
+              <span className="font-medium text-white">accesorios de buena calidad</span> a
               precios realmente cómodos, pensados para el día a día. Queríamos que cada pieza
               conecte con quien la usa; que cuente una historia sin complicaciones, con
               materiales confiables y acabados que perduran.
             </p>
-            <p className="mt-3 text-neutral-300">
+            <p className="mt-3 text-white/70">
               Hoy seguimos ese camino —y damos un paso más— integrando{" "}
-              <span className="font-medium">prendas y ropa</span> que complementan nuestros accesorios.
+              <span className="font-medium text-white">prendas y ropa</span> que complementan nuestros accesorios.
               Un mismo lenguaje: elegancia cotidiana, precios honestos y cercanía con nuestra comunidad.
             </p>
 
             {/* Microbadges */}
             <div className="mt-6 flex flex-wrap gap-2">
-              <span className="rounded-full px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
                 Curaduría Alaha’s
               </span>
-              <span className="rounded-full px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
                 Precio honesto
               </span>
-              <span className="rounded-full px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
                 Hipoalergénicos
               </span>
-              <span className="rounded-full px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
+              <span className="px-3 py-1 text-xs bg-white/10 text-white ring-1 ring-white/20">
                 Envíos con cuidado
               </span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl overflow-hidden border">
+        <div className="overflow-hidden border border-[#4a4438]/15">
           <img
             src="/assets/home/main-1.jpg"
             alt="Alaha’s: elegancia cotidiana"
@@ -120,7 +120,7 @@ export default function Nosotros() {
 
       {/* Giro hacia ropa */}
       <section className="mt-16 grid md:grid-cols-2 gap-6 items-center">
-        <div className="rounded-3xl overflow-hidden border">
+        <div className="overflow-hidden border border-[#4a4438]/15">
           <img
             src="/assets/home/main-4.jpg"
             alt="Prendas y accesorios Alaha’s"
@@ -128,18 +128,18 @@ export default function Nosotros() {
           />
         </div>
 
-        <div className="rounded-3xl border p-8 md:p-10">
-          <div className="flex items-center gap-2 text-emerald-700">
+        <div className="border border-[#4a4438]/15 p-8 md:p-10">
+          <div className="flex items-center gap-2 text-[#92714a]">
             <Shirt className="h-5 w-5" />
             <span className="text-sm tracking-wide font-medium">COLECCIONES DE ROPA</span>
           </div>
-          <h2 className="font-display text-2xl font-light tracking-wide mt-2">Del accesorio a la prenda: un mismo estilo</h2>
-          <p className="mt-3 text-neutral-700">
+          <h2 className="font-display text-2xl font-light tracking-wide mt-2 text-[#4a4438]">Del accesorio a la prenda: un mismo estilo</h2>
+          <p className="mt-3 text-[#4a4438]/80">
             Sumamos prendas cómodas y con carácter para completar tu look: polos, buzos, básicos
             esenciales y piezas con detalles que marcan la diferencia. La misma promesa de siempre:
-            <span className="font-medium"> calidad, diseño y precio justo</span>.
+            <span className="font-medium text-[#4a4438]"> calidad, diseño y precio justo</span>.
           </p>
-          <ul className="mt-4 grid gap-2 text-sm text-neutral-700 list-disc pl-4">
+          <ul className="mt-4 grid gap-2 text-sm text-[#4a4438]/80 list-disc pl-4">
             <li>Fibras pensadas para uso diario y buen tacto.</li>
             <li>Ediciones pequeñas para mantener la curaduría del catálogo.</li>
             <li>Prendas que combinan perfecto con nuestras joyas.</li>
@@ -148,70 +148,70 @@ export default function Nosotros() {
       </section>
 
       {/* Curaduría & Marcas Aliadas */}
-      <section className="mt-16 rounded-3xl border p-8 md:p-10">
-        <div className="flex items-center gap-2 text-emerald-700">
+      <section className="mt-16 border border-[#4a4438]/15 p-8 md:p-10">
+        <div className="flex items-center gap-2 text-[#92714a]">
           <Gem className="h-5 w-5" />
           <span className="text-sm tracking-wide font-medium">CURADURÍA & MARCAS ALIADAS</span>
         </div>
 
-        <h2 className="font-display text-2xl font-light tracking-wide mt-2">
+        <h2 className="font-display text-2xl font-light tracking-wide mt-2 text-[#4a4438]">
           Seleccionamos lo mejor para que te quede mejor
         </h2>
 
-        <p className="mt-3 text-neutral-700 max-w-3xl">
-          En Alaha’s <span className="font-medium">no todo es fabricación propia</span>. También trabajamos
-          con <span className="font-medium">talleres y marcas aliadas</span> que cumplen nuestros criterios de{" "}
-          <span className="font-medium">calidad, confort e hipoalergenicidad</span>. Cada pieza pasa por nuestra{" "}
-          <span className="font-medium">curaduría y control de acabados</span> antes de llegar a ti.
-          Así unimos lo mejor de ambos mundos: <span className="font-medium">diseño accesible</span> y{" "}
-          <span className="font-medium">experiencia cuidada</span>.
+        <p className="mt-3 text-[#4a4438]/80 max-w-3xl">
+          En Alaha’s <span className="font-medium text-[#4a4438]">no todo es fabricación propia</span>. También trabajamos
+          con <span className="font-medium text-[#4a4438]">talleres y marcas aliadas</span> que cumplen nuestros criterios de{" "}
+          <span className="font-medium text-[#4a4438]">calidad, confort e hipoalergenicidad</span>. Cada pieza pasa por nuestra{" "}
+          <span className="font-medium text-[#4a4438]">curaduría y control de acabados</span> antes de llegar a ti.
+          Así unimos lo mejor de ambos mundos: <span className="font-medium text-[#4a4438]">diseño accesible</span> y{" "}
+          <span className="font-medium text-[#4a4438]">experiencia cuidada</span>.
         </p>
 
         {/* Valores / pilares */}
         <ul className="mt-5 grid gap-3 md:grid-cols-4">
-          <li className="group rounded-2xl border border-neutral-700/40 bg-neutral-900 text-white p-4 transition-all duration-300 hover:bg-white hover:text-neutral-900 hover:border-neutral-900 hover:shadow-md">
+          <li className="group border border-[#4a4438]/30 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438] hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
-              <Shield className="h-4 w-4 text-neutral-300 transition-colors duration-300 group-hover:text-neutral-800" />
+              <Shield className="h-4 w-4 text-[#d4a58a] transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Estándares de calidad</span>
             </div>
-            <p className="mt-1 text-neutral-300 text-sm transition-colors duration-300 group-hover:text-neutral-600">
+            <p className="mt-1 text-white/70 text-sm transition-colors duration-300 group-hover:text-[#4a4438]/70">
               Control de acabados y pruebas de uso real.
             </p>
           </li>
 
-          <li className="group rounded-2xl border border-neutral-700/40 bg-neutral-900 text-white p-4 transition-all duration-300 hover:bg-white hover:text-neutral-900 hover:border-neutral-900 hover:shadow-md">
+          <li className="group border border-[#4a4438]/30 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438] hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
-              <Package className="h-4 w-4 text-neutral-300 transition-colors duration-300 group-hover:text-neutral-800" />
+              <Package className="h-4 w-4 text-[#d4a58a] transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Curaduría responsable</span>
             </div>
-            <p className="mt-1 text-neutral-300 text-sm transition-colors duration-300 group-hover:text-neutral-600">
+            <p className="mt-1 text-white/70 text-sm transition-colors duration-300 group-hover:text-[#4a4438]/70">
               Seleccionamos piezas que combinan, duran y favorecen.
             </p>
           </li>
 
-          <li className="group rounded-2xl border border-neutral-700/40 bg-neutral-900 text-white p-4 transition-all duration-300 hover:bg-white hover:text-neutral-900 hover:border-neutral-900 hover:shadow-md">
+          <li className="group border border-[#4a4438]/30 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438] hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
-              <Sparkles className="h-4 w-4 text-neutral-300 transition-colors duration-300 group-hover:text-neutral-800" />
+              <Sparkles className="h-4 w-4 text-[#d4a58a] transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Precio honesto</span>
             </div>
-            <p className="mt-1 text-neutral-300 text-sm transition-colors duration-300 group-hover:text-neutral-600">
+            <p className="mt-1 text-white/70 text-sm transition-colors duration-300 group-hover:text-[#4a4438]/70">
               Calidad accesible y transparente. Sin sorpresas.
             </p>
           </li>
 
-          <li className="group rounded-2xl border border-neutral-700/40 bg-neutral-900 text-white p-4 transition-all duration-300 hover:bg-white hover:text-neutral-900 hover:border-neutral-900 hover:shadow-md">
+          <li className="group border border-[#4a4438]/30 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438] hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
-              <Leaf className="h-4 w-4 text-neutral-300 transition-colors duration-300 group-hover:text-neutral-800" />
+              <Leaf className="h-4 w-4 text-[#d4a58a] transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Amables con tu piel</span>
             </div>
-            <p className="mt-1 text-neutral-300 text-sm transition-colors duration-300 group-hover:text-neutral-600">
+            <p className="mt-1 text-white/70 text-sm transition-colors duration-300 group-hover:text-[#4a4438]/70">
               Piezas hipoalergénicas y cómodas para el día a día.
             </p>
           </li>
         </ul>
 
 
-        <p className="mt-4 text-xs text-neutral-500">
+        <p className="mt-4 text-xs text-[#4a4438]/60">
           Nota de transparencia: Algunas piezas pertenecen a{" "}
           <span className="font-medium">marcas aliadas</span>. Alaha’s realiza la{" "}
           <span className="font-medium">curaduría</span> y el{" "}
@@ -222,7 +222,7 @@ export default function Nosotros() {
 
       {/* FAQ con animación */}
       <section className="mt-14">
-        <h3 className="font-display text-xl font-light tracking-wide mb-4">Preguntas frecuentes</h3>
+        <h3 className="font-display text-xl font-light tracking-wide mb-4 text-[#4a4438]">Preguntas frecuentes</h3>
         <div className="grid gap-3">
           <FaqItem q="¿Todos los productos son de fabricación propia?">
             No necesariamente. Combinamos fabricación propia con una{" "}
@@ -244,13 +244,13 @@ export default function Nosotros() {
 
       {/* Manifiesto / Cita + CTAs */}
       <section className="mt-14 text-center">
-        <blockquote className="font-serif text-2xl md:text-3xl">
+        <blockquote className="font-serif text-2xl md:text-3xl text-[#4a4438]">
           “Elegancia cotidiana, precios honestos y una relación cercana. Eso es Alaha’s.”
         </blockquote>
         <div className="mt-6 flex justify-center gap-3">
           <Link
             to="/productos"
-            className="rounded-full px-6 py-3 bg-black text-white text-sm font-medium hover:opacity-90"
+            className="px-6 py-3 bg-[#4a4438] text-white text-sm font-medium hover:opacity-90"
           >
             Explorar catálogo
           </Link>
@@ -262,7 +262,7 @@ export default function Nosotros() {
               )}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full px-6 py-3 border text-sm font-medium hover:bg-neutral-50"
+              className="px-6 py-3 border border-[#4a4438]/30 text-[#4a4438] text-sm font-medium hover:bg-[#faf4ee]"
             >
               Hablar por WhatsApp
             </a>
