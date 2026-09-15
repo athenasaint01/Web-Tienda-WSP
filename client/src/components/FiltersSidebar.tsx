@@ -13,8 +13,10 @@ type Props = {
     grosor: string[];
     color: string[];
     q: string;
+    outlet: boolean;
   };
   onToggle: (key: FilterKey, value: string) => void;
+  onOutletToggle: () => void;
   onSearch: (q: string) => void;
   onClearAll: () => void;
   categories: Option[];
@@ -75,6 +77,7 @@ function CheckboxGroup({
 function FiltersSidebarBase({
   selected,
   onToggle,
+  onOutletToggle,
   onSearch,
   onClearAll,
   categories,
@@ -126,6 +129,16 @@ function FiltersSidebarBase({
         className="w-full rounded-full border px-3 py-2 text-sm mb-4"
         type="search"
       />
+
+      <label className="flex items-center gap-2 text-sm font-medium mb-4">
+        <input
+          type="checkbox"
+          className="size-4 rounded border"
+          checked={selected.outlet}
+          onChange={onOutletToggle}
+        />
+        Solo Outlet
+      </label>
 
       <CheckboxGroup title="Categoría" options={categories} selected={selected.categoria} filterKey="categoria" onToggle={onToggle} />
       <CheckboxGroup title="Público" options={audiences} selected={selected.publico} filterKey="publico" onToggle={onToggle} />

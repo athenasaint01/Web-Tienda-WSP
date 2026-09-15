@@ -90,6 +90,7 @@ export type ProductVariant = {
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;
+  is_outlet: boolean;
   display_order: number;
   color?: Color | null;
   size?: Size | null;
@@ -187,6 +188,7 @@ export type ProductListItem = {
   colors: Array<{ name: string; slug: string; hex?: string | null }>;
   badge_labels?: string[];
   has_variants?: boolean;
+  is_outlet?: boolean;
 }
 
 // Producto completo (vista detalle)
@@ -217,6 +219,7 @@ export type ProductDetail = {
   colors: ProductColor[];
   badge_labels?: string[];
   has_variants: boolean;
+  is_outlet: boolean;
   variant_uses_color: boolean;
   variant_uses_size: boolean;
   variant_uses_length: boolean;
@@ -235,6 +238,7 @@ export type ProductFilters = {
   color?: string | string[];
   q?: string;
   featured?: boolean;
+  outlet?: boolean;
   sort?:
     | 'relevancia'
     | 'nombre-asc'

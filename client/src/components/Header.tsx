@@ -32,6 +32,12 @@ export default function Header() {
   // categorías apuntan a /productos, todas quedaban subrayadas a la vez.
   // Se calcula la categoría activa a mano, comparando también el query.
   const activeCategorySlug = pathname === "/productos" ? searchParams.get("categoria") : null;
+  const isOutletActive = pathname === "/productos" && searchParams.get("outlet") === "true";
+  // Outlet ya no es una categoría (competía con la categoría real del
+  // producto) — es un flag independiente con su propio link fijo más
+  // abajo, así que se excluye del listado dinámico si todavía existe
+  // como fila en categories.
+  const visibleCategories = categories.filter((cat) => cat.slug !== "outlet");
 
   const closeMenu = () => setIsMenuOpen(false);
 
@@ -58,7 +64,7 @@ export default function Header() {
 
           {/* Desktop Navigation — centrado */}
           <nav className="hidden md:flex items-center gap-6 text-sm mx-auto">
-            {categories.map(cat => {
+            {visibleCategories.map(cat => {
               const isActive = activeCategorySlug === cat.slug;
               return (
                 <NavLink
@@ -72,6 +78,15 @@ export default function Header() {
                 </NavLink>
               );
             })}
+            {/* Outlet: flag independiente, no una categoría — link fijo aparte */}
+            <NavLink
+              to="/productos?outlet=true"
+              onClick={scrollToTop}
+              className={`relative tracking-widest transition-colors duration-200 pb-0.5 group uppercase text-[11px] ${isOutletActive ? "font-medium text-[#4a4438]" : "text-[#4a4438]/70"}`}
+            >
+              <span className={`group-hover:text-[#4a4438] transition-colors ${isOutletActive ? "text-[#4a4438]" : ""}`}>Outlet</span>
+              <span className={`absolute -bottom-0.5 left-0 h-px bg-[#4a4438] transition-all duration-300 ${isOutletActive ? "w-full" : "w-0 group-hover:w-full"}`} />
+            </NavLink>
           </nav>
 
           {/* Iconos derecha */}
@@ -126,7 +141,7 @@ export default function Header() {
 
               <div className="flex flex-col h-full pt-20 pb-6 px-6">
                 <div className="flex flex-col gap-1">
-                  {categories.map(cat => (
+                  {visibleCategories.map(cat => (
                     <motion.div key={cat.id} variants={itemVariants}>
                       <NavLink
                         to={`/productos?categoria=${cat.slug}`}
@@ -139,6 +154,15 @@ export default function Header() {
                       </NavLink>
                     </motion.div>
                   ))}
+                  <motion.div variants={itemVariants}>
+                    <NavLink
+                      to="/productos?outlet=true"
+                      onClick={closeMenu}
+                      className={`block px-4 py-3 rounded-lg text-sm font-medium uppercase tracking-widest transition-all ${isOutletActive ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400" : "hover:bg-amber-50/60 hover:text-amber-700 text-black/80"}`}
+                    >
+                      Outlet
+                    </NavLink>
+                  </motion.div>
                 </div>
 
                 {/* Links secundarios al fondo */}

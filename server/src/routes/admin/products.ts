@@ -55,6 +55,7 @@ const variantInputSchema = z.object({
   stock: z.number().int().min(0),
   low_stock_threshold: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
+  is_outlet: z.boolean().optional(),
   display_order: z.number().int().min(0).optional(),
 });
 
@@ -87,6 +88,7 @@ const productDataSchema = z.object({
   low_stock_threshold: z.string().transform(val => val ? parseInt(val) : 5).optional(),
   wa_template: z.string().optional(),
   is_active: z.string().transform(val => val === 'true').optional(),
+  is_outlet: optionalBoolFromString(),
   material_ids: jsonIdArray(),
   tag_ids: jsonIdArray(),
   size_ids: jsonIdArray(),
@@ -262,6 +264,7 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       low_stock_threshold: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
       wa_template: z.string().optional(),
       is_active: z.string().transform(val => val === 'true').optional(),
+      is_outlet: optionalBoolFromString(),
       material_ids: jsonArrayOrUndefined(),
       tag_ids: jsonArrayOrUndefined(),
       size_ids: jsonArrayOrUndefined(),
@@ -299,6 +302,7 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       low_stock_threshold: z.number().int().min(0).optional(),
       wa_template: z.string().optional(),
       is_active: z.boolean().optional(),
+      is_outlet: z.boolean().optional(),
       material_ids: z.array(z.number().int().positive()).optional(),
       tag_ids: z.array(z.number().int().positive()).optional(),
       size_ids: z.array(z.number().int().positive()).optional(),

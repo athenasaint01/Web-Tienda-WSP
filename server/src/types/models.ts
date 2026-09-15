@@ -186,6 +186,7 @@ export interface Product {
   low_stock_threshold: number;
   wa_template?: string;
   is_active: boolean;
+  is_outlet: boolean;
   badge_labels: string[];
   has_variants: boolean;
   variant_uses_color: boolean;
@@ -209,6 +210,7 @@ export interface ProductVariant {
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;
+  is_outlet: boolean;
   display_order: number;
   created_at: Date;
   updated_at: Date;
@@ -320,6 +322,7 @@ export interface CreateProductDTO {
   stock?: number;
   low_stock_threshold?: number;
   wa_template?: string;
+  is_outlet?: boolean;
   badge_labels?: string[];
   images: {
     url: string;
@@ -354,6 +357,7 @@ export interface UpdateProductDTO {
   low_stock_threshold?: number;
   wa_template?: string;
   is_active?: boolean;
+  is_outlet?: boolean;
   badge_labels?: string[];
   material_ids?: number[];
   tag_ids?: number[];
@@ -381,6 +385,7 @@ export interface VariantInputDTO {
   stock: number;
   low_stock_threshold?: number;
   is_active?: boolean;
+  is_outlet?: boolean;
   display_order?: number;
 }
 
@@ -457,6 +462,7 @@ export interface ProductFilters {
   q?: string; // búsqueda
   featured?: boolean;
   is_active?: boolean;
+  outlet?: boolean;
   sort?:
     | 'relevancia'
     | 'nombre-asc'

@@ -32,6 +32,7 @@ router.get('/', async (req: Request, res: Response) => {
       color: req.query.color as string | string[],
       q: req.query.q as string,
       featured: req.query.featured === 'true' ? true : req.query.featured === 'false' ? false : undefined,
+      outlet: req.query.outlet === 'true' ? true : req.query.outlet === 'false' ? false : undefined,
       sort: req.query.sort as any,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,

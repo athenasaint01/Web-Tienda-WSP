@@ -75,6 +75,7 @@ export default function Productos() {
     grosor: params.getAll("grosor"),
     color: params.getAll("color"),
     q: params.get("q") ?? "",
+    outlet: params.get("outlet") === "true",
     sort: (params.get("sort") as SortKey) ?? "relevancia",
     page: parseInt(params.get("page") ?? "1"),
   };
@@ -91,6 +92,7 @@ export default function Productos() {
     grosor: selected.grosor.length > 0 ? selected.grosor : undefined,
     color: selected.color.length > 0 ? selected.color : undefined,
     q: selected.q || undefined,
+    outlet: selected.outlet || undefined,
     sort: selected.sort,
     page: selected.page,
     limit: limit,
@@ -191,6 +193,17 @@ export default function Productos() {
     updateParams(next);
   };
 
+  // Outlet es un flag booleano independiente de la categoría, no un
+  // multi-select como el resto de filtros — puede combinarse con
+  // cualquier categoría ("Anillos en Outlet").
+  const toggleOutlet = () => {
+    setIsInitialLoad(false);
+    const next = new URLSearchParams(params);
+    selected.outlet ? next.delete("outlet") : next.set("outlet", "true");
+    next.set("page", "1");
+    updateParams(next);
+  };
+
   const clearAll = () => navigate("/productos", { replace: true });
 
   // Objeto de selección compartido por ambas instancias del sidebar
@@ -202,6 +215,7 @@ export default function Productos() {
     grosor: selected.grosor,
     color: selected.color,
     q: selected.q,
+    outlet: selected.outlet,
   };
 
   const hasActiveFilters =
@@ -211,7 +225,8 @@ export default function Productos() {
     selected.publico.length ||
     selected.grosor.length ||
     selected.color.length ||
-    selected.q;
+    selected.q ||
+    selected.outlet;
 
   const setSort = (sort: SortKey) => {
     setIsInitialLoad(false);
@@ -295,6 +310,7 @@ export default function Productos() {
           <FiltersSidebar
             selected={sidebarSelected}
             onToggle={toggle}
+            onOutletToggle={toggleOutlet}
             onSearch={setQuery}
             onClearAll={clearAll}
             categories={categories}
@@ -345,6 +361,7 @@ export default function Productos() {
                   <FiltersSidebar
                     selected={sidebarSelected}
                     onToggle={toggle}
+                    onOutletToggle={toggleOutlet}
                     onSearch={setQuery}
                     onClearAll={clearAll}
                     categories={categories}
@@ -404,6 +421,7 @@ export default function Productos() {
           {!loading && hasActiveFilters ? (
             <div className="flex flex-wrap items-center gap-2 mb-6">
               {selected.q && <Chip onRemove={() => setQuery("")}>Buscar: "{selected.q}"</Chip>}
+              {selected.outlet && <Chip onRemove={toggleOutlet}>Outlet</Chip>}
               {selected.categoria.map((slug) => {
                 const category = categories.find(c => c.slug === slug);
                 return (

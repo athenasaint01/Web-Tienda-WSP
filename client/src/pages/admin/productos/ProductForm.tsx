@@ -37,6 +37,7 @@ const productSchema = z.object({
   audience_id: z.number().nullable().optional(),
   thickness_id: z.number().nullable().optional(),
   featured: z.boolean().optional(),
+  is_outlet: z.boolean().optional(),
   price: z.number().min(0, 'El precio no puede ser negativo').nullable().optional(),
   discount_percent: z
     .number()
@@ -79,6 +80,7 @@ type VariantRow = {
   stock: number;
   low_stock_threshold?: number;
   is_active: boolean;
+  is_outlet?: boolean;
 };
 
 const comboKey = (v: Pick<VariantRow, 'color_id' | 'size_id' | 'length_id'>) =>
@@ -287,6 +289,7 @@ export default function ProductForm() {
           setValue('audience_id', product.audience_id ?? null);
           setValue('thickness_id', product.thickness_id ?? null);
           setValue('featured', product.featured || false);
+          setValue('is_outlet', product.is_outlet || false);
           setValue('price', product.price ?? null);
           setValue('discount_percent', product.discount_percent ?? null);
           setValue('stock', product.stock || 0);
@@ -315,6 +318,7 @@ export default function ProductForm() {
               stock: v.stock ?? 0,
               low_stock_threshold: v.low_stock_threshold ?? 5,
               is_active: v.is_active ?? true,
+              is_outlet: v.is_outlet ?? false,
             }))
           );
           // Cargar imágenes existentes como URLs
@@ -383,6 +387,7 @@ export default function ProductForm() {
     formData.append('audience_id', data.audience_id != null ? String(data.audience_id) : '');
     formData.append('thickness_id', data.thickness_id != null ? String(data.thickness_id) : '');
     formData.append('featured', (data.featured ?? false) ? 'true' : 'false');
+    formData.append('is_outlet', (data.is_outlet ?? false) ? 'true' : 'false');
     formData.append('price', data.price != null ? String(data.price) : '');
     formData.append('discount_percent', data.discount_percent != null ? String(data.discount_percent) : '');
     formData.append('stock', (data.stock ?? 0).toString());
@@ -619,6 +624,18 @@ export default function ProductForm() {
             />
             <label htmlFor="featured" className="text-sm font-medium text-neutral-700">
               Producto destacado (aparece en la página principal)
+            </label>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_outlet"
+              {...register('is_outlet')}
+              className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-500"
+            />
+            <label htmlFor="is_outlet" className="text-sm font-medium text-neutral-700">
+              Es Outlet (mantiene su categoría, se marca también como Outlet)
             </label>
           </div>
         </div>
@@ -925,6 +942,7 @@ export default function ProductForm() {
                         <th className="text-left px-3 py-2 font-medium text-neutral-600 w-20">Desc. %</th>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600 w-20">Stock</th>
                         <th className="text-left px-3 py-2 font-medium text-neutral-600 w-16">Activa</th>
+                        <th className="text-left px-3 py-2 font-medium text-neutral-600 w-16">Outlet</th>
                         <th className="w-10"></th>
                       </tr>
                     </thead>
@@ -1000,6 +1018,15 @@ export default function ProductForm() {
                               checked={v.is_active}
                               onChange={(e) => updateVariantRow(i, { is_active: e.target.checked })}
                               className="w-4 h-4 rounded border-neutral-300"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="checkbox"
+                              checked={v.is_outlet ?? false}
+                              onChange={(e) => updateVariantRow(i, { is_outlet: e.target.checked })}
+                              className="w-4 h-4 rounded border-neutral-300"
+                              title="Esta combinación específica está en Outlet"
                             />
                           </td>
                           <td className="px-3 py-2 text-right">

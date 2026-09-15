@@ -28,6 +28,7 @@ export const getAllProducts = async (
     q,
     featured,
     is_active = true,
+    outlet,
     sort = 'relevancia',
     page: rawPage = 1,
     limit: rawLimit = 50,
@@ -50,6 +51,20 @@ export const getAllProducts = async (
   if (featured !== undefined) {
     conditions.push(`p.featured = $${paramCount++}`);
     params.push(featured);
+  }
+
+  // Filtro: outlet (a nivel producto O si alguna variante activa está en outlet)
+  if (outlet !== undefined) {
+    if (outlet) {
+      conditions.push(
+        `(p.is_outlet = TRUE OR EXISTS (
+          SELECT 1 FROM product_variants pv
+          WHERE pv.product_id = p.id AND pv.is_active = TRUE AND pv.is_outlet = TRUE
+        ))`
+      );
+    } else {
+      conditions.push(`p.is_outlet = FALSE`);
+    }
   }
 
   // Filtro: categoría (uno o múltiples)
@@ -225,7 +240,8 @@ export const getAllProducts = async (
         '[]'
       ) as colors,
       COALESCE(p.badge_labels, '{}') as badge_labels,
-      p.has_variants
+      p.has_variants,
+      p.is_outlet
     FROM products p
     JOIN categories c ON p.category_id = c.id
     ${whereClause}
@@ -609,24 +625,24 @@ const replaceProductVariants = async (
         `UPDATE product_variants
          SET color_id = $1, size_id = $2, length_id = $3, price = $4, discount_percent = $5,
              sale_price = $6, stock = $7, low_stock_threshold = $8, is_active = $9,
-             display_order = $10, sku = $11, image_url = $12, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $13 AND product_id = $14`,
+             display_order = $10, sku = $11, image_url = $12, is_outlet = $13, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $14 AND product_id = $15`,
         [
           v.color_id ?? null, v.size_id ?? null, v.length_id ?? null, v.price ?? null,
           discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5, v.is_active ?? true,
-          v.display_order ?? 0, sku, v.image_url ?? null, v.id, productId,
+          v.display_order ?? 0, sku, v.image_url ?? null, v.is_outlet ?? false, v.id, productId,
         ]
       );
     } else {
       await client.query(
         `INSERT INTO product_variants
            (product_id, sku, color_id, size_id, length_id, price, discount_percent,
-            sale_price, stock, low_stock_threshold, is_active, display_order, image_url)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+            sale_price, stock, low_stock_threshold, is_active, display_order, image_url, is_outlet)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [
           productId, sku, v.color_id ?? null, v.size_id ?? null, v.length_id ?? null,
           v.price ?? null, discountPct, salePrice, v.stock, v.low_stock_threshold ?? 5,
-          v.is_active ?? true, v.display_order ?? 0, v.image_url ?? null,
+          v.is_active ?? true, v.display_order ?? 0, v.image_url ?? null, v.is_outlet ?? false,
         ]
       );
     }
@@ -706,13 +722,13 @@ export const createProductVariant = async (
   const result = await pool.query(
     `INSERT INTO product_variants
        (product_id, sku, color_id, size_id, length_id, price, discount_percent,
-        sale_price, stock, low_stock_threshold, is_active, display_order, image_url)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        sale_price, stock, low_stock_threshold, is_active, display_order, image_url, is_outlet)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
      RETURNING *`,
     [
       productId, sku, data.color_id ?? null, data.size_id ?? null, data.length_id ?? null,
       data.price ?? null, discountPct, salePrice, data.stock, data.low_stock_threshold ?? 5,
-      data.is_active ?? true, data.display_order ?? 0, data.image_url ?? null,
+      data.is_active ?? true, data.display_order ?? 0, data.image_url ?? null, data.is_outlet ?? false,
     ]
   );
   return normalizeVariantRow(result.rows[0]);
@@ -754,6 +770,7 @@ export const updateProductVariant = async (
   if (data.stock !== undefined) set('stock', data.stock);
   if (data.low_stock_threshold !== undefined) set('low_stock_threshold', data.low_stock_threshold);
   if (data.is_active !== undefined) set('is_active', data.is_active);
+  if (data.is_outlet !== undefined) set('is_outlet', data.is_outlet);
   if (data.display_order !== undefined) set('display_order', data.display_order);
 
   if (fields.length === 0) return current;
@@ -798,8 +815,8 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
 
     // 1. Crear producto
     const productResult = await client.query(
-      `INSERT INTO products (sku, slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels, has_variants, variant_uses_color, variant_uses_size, variant_uses_length)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      `INSERT INTO products (sku, slug, name, category_id, audience_id, thickness_id, description, featured, price, discount_percent, sale_price, stock, low_stock_threshold, wa_template, badge_labels, has_variants, variant_uses_color, variant_uses_size, variant_uses_length, is_outlet)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
        RETURNING *`,
       [
         sku,
@@ -821,6 +838,7 @@ export const createProduct = async (data: CreateProductDTO): Promise<Product> =>
         data.variant_uses_color || false,
         data.variant_uses_size || false,
         data.variant_uses_length || false,
+        data.is_outlet || false,
       ]
     );
 

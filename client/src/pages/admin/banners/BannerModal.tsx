@@ -155,7 +155,7 @@ export default function BannerModal({ banner, onClose }: BannerModalProps) {
             label="Link al hacer clic"
             {...register('link_url')}
             error={errors.link_url?.message}
-            placeholder="Ej: /productos?categoria=outlet"
+            placeholder="Ej: /productos?outlet=true"
             helperText="Opcional. Si lo dejas vacío, el banner no será clickeable"
           />
 
