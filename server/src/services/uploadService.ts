@@ -136,3 +136,38 @@ export const deleteCollectionImage = async (imageUrl: string): Promise<void> => 
     console.error('Error al eliminar imagen de colección:', error);
   }
 };
+
+/**
+ * Procesa una imagen para el banner principal del Home
+ * @param buffer - Buffer de la imagen
+ * @param filename - Nombre del archivo
+ * @returns URL de Cloudinary
+ */
+export const processBannerImage = async (
+  buffer: Buffer,
+  filename: string
+): Promise<string> => {
+  try {
+    // Subir a Cloudinary en carpeta "banners"
+    const imageUrl = await uploadImage(buffer, 'banners');
+    return imageUrl;
+  } catch (error) {
+    console.error('Error al subir imagen de banner a Cloudinary:', error);
+    throw error;
+  }
+};
+
+/**
+ * Elimina archivo de imagen de banner
+ * @param imageUrl - URL de Cloudinary
+ */
+export const deleteBannerImage = async (imageUrl: string): Promise<void> => {
+  try {
+    if (imageUrl.includes('cloudinary.com')) {
+      await deleteCloudinaryImage(imageUrl);
+      console.log(`[DELETE BANNER] ✅ Imagen eliminada: ${imageUrl}`);
+    }
+  } catch (error: any) {
+    console.error('Error al eliminar imagen de banner:', error);
+  }
+};

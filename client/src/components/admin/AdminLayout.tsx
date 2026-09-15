@@ -8,6 +8,7 @@ import {
   Tag,
   Boxes,
   Images,
+  GalleryHorizontal,
   Megaphone,
   Settings,
   LogOut,
@@ -35,6 +36,7 @@ const menuItems: MenuItem[] = [
   { icon: ClipboardList, label: 'Pedidos', path: '/admin/pedidos' },
   { icon: Package, label: 'Productos', path: '/admin/productos' },
   { icon: Layers, label: 'Categorías', path: '/admin/categorias' },
+  { icon: GalleryHorizontal, label: 'Banner Principal', path: '/admin/banners' },
   { icon: Images, label: 'Colecciones', path: '/admin/colecciones' },
   {
     icon: SlidersHorizontal,

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import { useProducts } from "../hooks/useProducts";
 import { useEffect, useRef, useState } from "react";
-import type { CollectionWithCategory, ProductListItem } from "../types/api";
+import type { CollectionWithCategory, ProductListItem, Banner } from "../types/api";
 import * as api from "../services/api";
 import BadgeChips from "../components/BadgeChips";
 import OfferRibbon from "../components/OfferRibbon";
@@ -104,6 +104,80 @@ function InfiniteGalleryCarousel({
         ))}
       </div>
     </div>
+  );
+}
+
+/* =========================
+   Banner principal del Home — imagen única o carrusel con 2+
+========================= */
+const FALLBACK_BANNER: Banner = {
+  id: -1,
+  image_url: "/images/hero-banner.webp",
+  alt_text: "Alahas — joyas esenciales",
+  link_url: null,
+  display_order: 0,
+  is_active: true,
+  created_at: "",
+  updated_at: "",
+};
+
+function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
+  const slides = banners.length > 0 ? banners : [FALLBACK_BANNER];
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const id = setInterval(() => {
+      setCurrent((c) => (c + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+  // Si cambia la cantidad de slides (ej. terminó de cargar de la API),
+  // evita quedar apuntando a un índice que ya no existe.
+  useEffect(() => {
+    if (current >= slides.length) setCurrent(0);
+  }, [slides.length, current]);
+
+  return (
+    <section className="relative h-[40dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
+      {slides.map((slide, i) => {
+        const img = (
+          <img
+            src={slide.image_url}
+            alt={slide.alt_text}
+            className="absolute inset-0 w-full h-full object-cover object-bottom"
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchPriority={i === 0 ? "high" : "auto"}
+          />
+        );
+        return (
+          <div
+            key={slide.id}
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{ opacity: i === current ? 1 : 0, pointerEvents: i === current ? "auto" : "none" }}
+            aria-hidden={i !== current}
+          >
+            {slide.link_url ? <Link to={slide.link_url}>{img}</Link> : img}
+          </div>
+        );
+      })}
+
+      {slides.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+          {slides.map((slide, i) => (
+            <button
+              key={slide.id}
+              onClick={() => setCurrent(i)}
+              aria-label={`Ir al banner ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === current ? "w-6 bg-white" : "w-1.5 bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -372,6 +446,9 @@ export default function Home() {
   const [collections, setCollections] = useState<CollectionWithCategory[]>([]);
   const [collectionsLoading, setCollectionsLoading] = useState(true);
 
+  // Obtener banners activos del Home
+  const [banners, setBanners] = useState<Banner[]>([]);
+
   useEffect(() => {
     document.title = "Alahas — Joyería Fina | Collares, Pulseras, Anillos y Aretes";
     document.querySelector('meta[name="description"]')
@@ -393,22 +470,23 @@ export default function Home() {
     fetchCollections();
   }, []);
 
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const data = await api.getActiveBanners();
+        setBanners(data);
+      } catch (error) {
+        console.error('Error al cargar banners:', error);
+      }
+    };
+
+    fetchBanners();
+  }, []);
+
   return (
     <>
-      {/* HERO — banner completo */}
-      <section className="relative h-[40dvh] lg:h-[calc(100dvh-96px)] overflow-hidden">
-        <picture>
-          <source media="(min-width: 1024px)" srcSet="/images/hero-banner.webp" />
-          <source media="(max-width: 1023px)" srcSet="/images/hero-banner-mobile.webp" />
-          <img
-            src="/images/hero-banner.webp"
-            alt="Alahas — joyas esenciales"
-            className="absolute inset-0 w-full h-full object-cover object-bottom"
-            loading="eager"
-            fetchPriority="high"
-          />
-        </picture>
-      </section>
+      {/* HERO — banner completo (imagen única o carrusel si hay 2+ activos) */}
+      <HeroBannerCarousel banners={banners} />
 
       {/* Destacados */}
       <section id="destacados" className="mx-auto max-w-7xl px-4 py-6 lg:py-14 scroll-mt-12">

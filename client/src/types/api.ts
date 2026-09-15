@@ -132,6 +132,27 @@ export type ReorderCollectionItem = {
   display_order: number;
 }
 
+export type Banner = {
+  id: number;
+  image_url: string;
+  alt_text: string;
+  link_url?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateBannerDTO = {
+  image_url: string;
+  alt_text: string;
+  link_url?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export type UpdateBannerDTO = Partial<CreateBannerDTO>;
+
 export type ProductImage = {
   id: number;
   product_id: number;

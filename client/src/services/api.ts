@@ -7,6 +7,9 @@ import type {
   CreateCollectionDTO,
   UpdateCollectionDTO,
   ReorderCollectionItem,
+  Banner,
+  CreateBannerDTO,
+  UpdateBannerDTO,
 } from '../types/api';
 
 // Tipos inline para evitar problemas de HMR de Vite
@@ -615,6 +618,85 @@ export const reorderCollections = async (items: ReorderCollectionItem[]) => {
  */
 export const deleteCollection = async (id: number) => {
   return fetchAPI(`/admin/collections/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+};
+
+// =============================================
+// BANNERS (PÚBLICOS)
+// =============================================
+
+/**
+ * Obtener banners activos (para Home)
+ */
+export const getActiveBanners = async (): Promise<Banner[]> => {
+  const response = await fetchAPI<ApiResponse<Banner[]>>('/banners');
+
+  if (!response.ok || !response.data) {
+    throw new Error(response.error || 'Error al obtener banners');
+  }
+
+  return response.data;
+};
+
+// =============================================
+// ADMIN - BANNERS
+// =============================================
+
+/**
+ * Obtener todos los banners (admin)
+ */
+export const getAllBanners = async (): Promise<Banner[]> => {
+  const response = await fetchAPI<ApiResponse<Banner[]>>('/admin/banners', {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok || !response.data) {
+    throw new Error(response.error || 'Error al obtener banners');
+  }
+
+  return response.data;
+};
+
+/**
+ * Crear nuevo banner
+ */
+export const createBanner = async (data: CreateBannerDTO) => {
+  return fetchAPI('/admin/banners', {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Actualizar banner
+ */
+export const updateBanner = async (id: number, data: UpdateBannerDTO) => {
+  return fetchAPI(`/admin/banners/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+};
+
+/**
+ * Reordenar banners
+ */
+export const reorderBanners = async (items: ReorderCollectionItem[]) => {
+  return fetchAPI('/admin/banners/reorder', {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(items),
+  });
+};
+
+/**
+ * Eliminar banner
+ */
+export const deleteBanner = async (id: number) => {
+  return fetchAPI(`/admin/banners/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
