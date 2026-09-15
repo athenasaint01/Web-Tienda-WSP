@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { waLink } from "../lib/wa";
 import {
   Sparkles,
   Shield,
@@ -60,8 +59,6 @@ function FaqItem({ q, children }: { q: string; children: React.ReactNode }) {
 }
 
 export default function Nosotros() {
-  const phone = import.meta.env.VITE_WHATSAPP_PHONE as string | undefined;
-
   useEffect(() => {
     document.title = "Nosotros — Alahas | Nuestra historia";
     document.querySelector('meta[name="description"]')
@@ -254,19 +251,6 @@ export default function Nosotros() {
           >
             Explorar catálogo
           </Link>
-          {phone && (
-            <a
-              href={waLink(
-                phone,
-                "Hola, quiero saber más sobre la historia de Alaha’s y sus colecciones ✨"
-              )}
-              target="_blank"
-              rel="noreferrer"
-              className="px-6 py-3 border border-[#4a4438]/30 text-[#4a4438] text-sm font-medium hover:bg-[#faf4ee]"
-            >
-              Hablar por WhatsApp
-            </a>
-          )}
         </div>
       </section>
     </div>
