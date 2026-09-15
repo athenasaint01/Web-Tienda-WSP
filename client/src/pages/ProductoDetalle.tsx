@@ -404,8 +404,8 @@ export default function ProductoDetalle() {
                 Últimas {effectiveStock} unidades
               </div>
             ) : (
-              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-amber-800/25 text-amber-800 tracking-wide text-xs font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-700 shrink-0" />
+              <div className="inline-flex items-center gap-1.5 px-4 py-1.5 border border-emerald-700/25 text-emerald-700 tracking-wide text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
                 Disponible
               </div>
             )}
