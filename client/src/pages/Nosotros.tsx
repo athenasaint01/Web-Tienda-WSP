@@ -171,7 +171,7 @@ export default function Nosotros() {
 
         {/* Valores / pilares */}
         <ul className="mt-5 grid gap-3 md:grid-cols-4">
-          <li className="group border border-[#4a4438]/20 bg-[#c4927a] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
+          <li className="group border border-[#4a4438]/20 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
               <Shield className="h-4 w-4 text-white/80 transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Estándares de calidad</span>
@@ -181,7 +181,7 @@ export default function Nosotros() {
             </p>
           </li>
 
-          <li className="group border border-[#4a4438]/20 bg-[#c4927a] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
+          <li className="group border border-[#4a4438]/20 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
               <Package className="h-4 w-4 text-white/80 transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Curaduría responsable</span>
@@ -191,7 +191,7 @@ export default function Nosotros() {
             </p>
           </li>
 
-          <li className="group border border-[#4a4438]/20 bg-[#c4927a] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
+          <li className="group border border-[#4a4438]/20 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
               <Sparkles className="h-4 w-4 text-white/80 transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Precio honesto</span>
@@ -201,7 +201,7 @@ export default function Nosotros() {
             </p>
           </li>
 
-          <li className="group border border-[#4a4438]/20 bg-[#c4927a] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
+          <li className="group border border-[#4a4438]/20 bg-[#4a4438] text-white p-4 transition-all duration-300 hover:bg-white hover:text-[#4a4438] hover:border-[#4a4438]/30 hover:shadow-md">
             <div className="flex items-center gap-2 font-medium">
               <Leaf className="h-4 w-4 text-white/80 transition-colors duration-300 group-hover:text-[#92714a]" />
               <span>Amables con tu piel</span>
@@ -252,7 +252,7 @@ export default function Nosotros() {
         <div className="mt-6 flex justify-center gap-3">
           <Link
             to="/productos"
-            className="px-6 py-3 bg-[#c4927a] text-white text-sm font-medium hover:opacity-90"
+            className="px-6 py-3 bg-[#4a4438] text-white text-sm font-medium hover:opacity-90"
           >
             Explorar catálogo
           </Link>
