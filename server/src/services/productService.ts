@@ -167,22 +167,25 @@ export const getAllProducts = async (
       orderBy = 'ORDER BY p.created_at DESC, p.id DESC';
       break;
     case 'precio-asc':
-      // El precio efectivo (con descuento) manda; NULLS al final.
-      orderBy = 'ORDER BY COALESCE(p.sale_price, p.price) ASC NULLS LAST, p.id ASC';
+      // El precio efectivo (con descuento) manda; con variantes, el de la
+      // más barata (v_agg.min_sale_price/min_price); NULLS al final.
+      orderBy = 'ORDER BY COALESCE(CASE WHEN p.has_variants THEN v_agg.min_sale_price ELSE p.sale_price::float8 END, CASE WHEN p.has_variants THEN v_agg.min_price ELSE p.price::float8 END) ASC NULLS LAST, p.id ASC';
       break;
     case 'precio-desc':
-      orderBy = 'ORDER BY COALESCE(p.sale_price, p.price) DESC NULLS LAST, p.id ASC';
+      orderBy = 'ORDER BY COALESCE(CASE WHEN p.has_variants THEN v_agg.min_sale_price ELSE p.sale_price::float8 END, CASE WHEN p.has_variants THEN v_agg.min_price ELSE p.price::float8 END) DESC NULLS LAST, p.id ASC';
       break;
     case 'stock-asc':
       // Menos stock primero -> útil para ver qué reponer primero.
-      orderBy = 'ORDER BY p.stock ASC, p.id ASC';
+      orderBy = 'ORDER BY CASE WHEN p.has_variants THEN COALESCE(v_agg.total_stock, 0) ELSE p.stock END ASC, p.id ASC';
       break;
     case 'stock-desc':
-      orderBy = 'ORDER BY p.stock DESC, p.id ASC';
+      orderBy = 'ORDER BY CASE WHEN p.has_variants THEN COALESCE(v_agg.total_stock, 0) ELSE p.stock END DESC, p.id ASC';
       break;
     case 'descuento-desc':
       // Mayor % de descuento primero; sin descuento (NULL/0) al final.
-      orderBy = 'ORDER BY p.discount_percent DESC NULLS LAST, p.id ASC';
+      // Con variantes no hay un "% de descuento" único a nivel producto
+      // (cada variante tiene el suyo) -- quedan al final, igual que NULL.
+      orderBy = 'ORDER BY CASE WHEN p.has_variants THEN NULL ELSE p.discount_percent END DESC NULLS LAST, p.id ASC';
       break;
     case 'destacados-primero':
       orderBy = 'ORDER BY p.featured DESC, p.created_at ASC, p.id ASC';
@@ -207,11 +210,14 @@ export const getAllProducts = async (
       c.slug as category_slug,
       p.description,
       p.featured,
-      p.price::float8 AS price,
-      p.discount_percent,
-      p.sale_price::float8 AS sale_price,
-      p.stock,
-      CASE WHEN p.stock <= 0 THEN TRUE ELSE FALSE END as is_out_of_stock,
+      CASE WHEN p.has_variants THEN v_agg.min_price ELSE p.price::float8 END AS price,
+      CASE WHEN p.has_variants THEN NULL ELSE p.discount_percent END AS discount_percent,
+      CASE WHEN p.has_variants THEN v_agg.min_sale_price ELSE p.sale_price::float8 END AS sale_price,
+      CASE WHEN p.has_variants THEN COALESCE(v_agg.total_stock, 0) ELSE p.stock END AS stock,
+      CASE
+        WHEN p.has_variants THEN COALESCE(v_agg.total_stock, 0) <= 0
+        ELSE p.stock <= 0
+      END as is_out_of_stock,
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) as image_url,
       (SELECT image_url FROM product_images WHERE product_id = p.id AND is_primary = FALSE ORDER BY display_order ASC LIMIT 1) as image_url_2,
       COALESCE(
@@ -244,6 +250,23 @@ export const getAllProducts = async (
       p.is_outlet
     FROM products p
     JOIN categories c ON p.category_id = c.id
+    LEFT JOIN LATERAL (
+      -- Con variantes: el precio mostrado es el de la variante activa más
+      -- barata (por precio efectivo, sale_price si existe), y el stock es
+      -- la suma de todas las variantes activas -- el stock/precio del
+      -- producto padre se ignora por completo en ese caso (ver CASE arriba).
+      SELECT
+        (SELECT SUM(pv.stock) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = TRUE) AS total_stock,
+        cheapest.price::float8 AS min_price,
+        cheapest.sale_price::float8 AS min_sale_price
+      FROM (
+        SELECT pv.price, pv.sale_price
+        FROM product_variants pv
+        WHERE pv.product_id = p.id AND pv.is_active = TRUE
+        ORDER BY COALESCE(pv.sale_price, pv.price) ASC NULLS LAST
+        LIMIT 1
+      ) cheapest
+    ) v_agg ON p.has_variants
     ${whereClause}
     ${orderBy}
     LIMIT $${paramCount++} OFFSET $${paramCount++}
@@ -265,8 +288,12 @@ export const getAllProducts = async (
   const total = parseInt(countResult.rows[0].total);
   const totalPages = Math.ceil(total / limit);
 
-  // sale_price siempre derivado del precio y el % (por si la columna quedó desincronizada)
+  // sale_price siempre derivado del precio y el % (por si la columna quedó
+  // desincronizada) -- SOLO para productos simples. Con variantes, la query
+  // ya trae el sale_price real de la variante más barata (cada variante
+  // tiene su propio %, no hay un único discount_percent a nivel producto).
   const data = dataResult.rows.map((row: any) => {
+    if (row.has_variants) return row;
     const discountPercent = sanitizeDiscount(row.discount_percent);
     return {
       ...row,
