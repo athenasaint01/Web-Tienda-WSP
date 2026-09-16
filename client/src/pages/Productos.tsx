@@ -262,46 +262,55 @@ export default function Productos() {
       <h1 className="font-display text-2xl font-light tracking-wide mb-4">Productos</h1>
 
       {/* Barra de herramientas: Filtros y Ordenar */}
-      <div className="flex items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-4">
-          {/* Botón Filtros (visible en móvil) */}
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className="md:hidden flex items-center gap-2 border border-neutral-200 px-4 py-1.5 text-sm font-medium hover:border-neutral-400 transition-colors"
-          >
-            <SlidersHorizontal size={16} />
-            Filtrar
-          </button>
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            {/* Botón Filtros (visible en móvil) */}
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className="md:hidden flex items-center gap-2 border border-neutral-200 px-4 py-1.5 text-sm font-medium hover:border-neutral-400 transition-colors"
+            >
+              <SlidersHorizontal size={16} />
+              Filtrar
+            </button>
 
-          {/* Cantidad de productos */}
-          {!loading && pagination && (
-            <span className="text-sm text-neutral-400">
-              {pagination.total} artículos
-            </span>
-          )}
+            {/* Cantidad de productos (desktop: junto al botón Filtrar) */}
+            {!loading && pagination && (
+              <span className="hidden md:inline text-sm text-neutral-400">
+                {pagination.total} artículos
+              </span>
+            )}
+          </div>
+
+          {/* Ordenar */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-neutral-400 hidden sm:inline">Ordenar:</label>
+            <select
+              className="border border-neutral-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
+              value={selected.sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+            >
+              <option value="relevancia">Orden de la tienda</option>
+              <option value="recent">Más recientes</option>
+              <option value="nombre-asc">A–Z</option>
+              <option value="nombre-desc">Z–A</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="descuento-desc">Mayor descuento</option>
+              <option value="destacados-primero">Destacados primero</option>
+              <option value="destacados-ultimo">Destacados al final</option>
+              <option value="stock-asc">Stock: menor a mayor</option>
+              <option value="stock-desc">Stock: mayor a menor</option>
+            </select>
+          </div>
         </div>
 
-        {/* Ordenar */}
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-neutral-400 hidden sm:inline">Ordenar:</label>
-          <select
-            className="border border-neutral-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
-            value={selected.sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-          >
-            <option value="relevancia">Orden de la tienda</option>
-            <option value="recent">Más recientes</option>
-            <option value="nombre-asc">A–Z</option>
-            <option value="nombre-desc">Z–A</option>
-            <option value="precio-asc">Precio: menor a mayor</option>
-            <option value="precio-desc">Precio: mayor a menor</option>
-            <option value="descuento-desc">Mayor descuento</option>
-            <option value="destacados-primero">Destacados primero</option>
-            <option value="destacados-ultimo">Destacados al final</option>
-            <option value="stock-asc">Stock: menor a mayor</option>
-            <option value="stock-desc">Stock: mayor a menor</option>
-          </select>
-        </div>
+        {/* Cantidad de productos (móvil: en su propia fila, debajo) */}
+        {!loading && pagination && (
+          <span className="md:hidden block mt-2 text-sm text-neutral-400">
+            {pagination.total} artículos
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
