@@ -132,11 +132,11 @@ export default function Nosotros() {
 
       {/* Giro hacia ropa */}
       <section className="mt-16 grid md:grid-cols-2 gap-6 items-center">
-        <div className="overflow-hidden border border-[#4a4438]/15">
+        <div className="order-2 md:order-1 overflow-hidden border border-[#4a4438]/15">
           <AutoSlider images={ropaSliderImages} />
         </div>
 
-        <div className="border border-[#4a4438]/15 p-8 md:p-10">
+        <div className="order-1 md:order-2 border border-[#4a4438]/15 p-8 md:p-10">
           <div className="flex items-center gap-2 text-[#92714a]">
             <Shirt className="h-5 w-5" />
             <span className="text-sm tracking-wide font-medium">COLECCIONES DE ROPA</span>
