@@ -81,7 +81,7 @@ export default function Productos() {
   };
 
   // Catálogos completos para los filtros (no dependen de los productos filtrados)
-  const { materials: allMaterials, audiences, thicknesses, colors: allColors } = useFilterCatalogs();
+  const { materials: allMaterials, audiences, thicknesses, colors: allColors, categories } = useFilterCatalogs();
 
   // Obtener productos desde la API con filtros
   const { products, pagination, loading, error } = useProducts({
@@ -98,17 +98,9 @@ export default function Productos() {
     limit: limit,
   });
 
-  // Extraer opciones de filtros desde los productos disponibles
-  const categories = useMemo(() => {
-    const categoryMap = new Map<string, { name: string; slug: string }>();
-    products.forEach(p => {
-      if (!categoryMap.has(p.category_slug)) {
-        categoryMap.set(p.category_slug, { name: p.category, slug: p.category_slug });
-      }
-    });
-    return Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [products]);
-
+  // Tags: catálogo público dedicado aún no existe en el frontend, se sigue
+  // derivando de los productos cargados (limitación conocida, igual que
+  // categorías tenía antes de pasar a useFilterCatalogs).
   const tags = useMemo(() => {
     const tagsMap = new Map<string, { name: string; slug: string }>();
     products.forEach(p => {
