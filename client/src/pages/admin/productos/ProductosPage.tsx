@@ -51,6 +51,7 @@ export default function ProductosPage() {
   // Filtros
   const [categories, setCategories] = useState<api.CategoryLite[]>([]);
   const [categoria, setCategoria] = useState('');           // slug ('' = todas)
+  const [outletOnly, setOutletOnly] = useState(false);
   const [sort, setSort] = useState<SortKey>('relevancia');
   const [searchInput, setSearchInput] = useState('');       // lo que se teclea
   const [q, setQ] = useState('');                           // valor con debounce que se envía
@@ -70,7 +71,7 @@ export default function ProductosPage() {
   // Volver a la página 1 cuando cambia un filtro
   useEffect(() => {
     setPage(1);
-  }, [categoria, sort, q, limit]);
+  }, [categoria, outletOnly, sort, q, limit]);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -80,6 +81,7 @@ export default function ProductosPage() {
         limit,
         sort,
         categoria: categoria || undefined,
+        outlet: outletOnly || undefined,
         q: q || undefined,
       });
       setProducts(response.data as Product[]);
@@ -89,15 +91,16 @@ export default function ProductosPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, sort, categoria, q]);
+  }, [page, limit, sort, categoria, outletOnly, q]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  const hasFilters = categoria !== '' || q !== '' || sort !== 'relevancia';
+  const hasFilters = categoria !== '' || outletOnly || q !== '' || sort !== 'relevancia';
   const clearFilters = () => {
     setCategoria('');
+    setOutletOnly(false);
     setSort('relevancia');
     setSearchInput('');
     setQ('');
@@ -194,6 +197,16 @@ export default function ProductosPage() {
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-neutral-600">
+          <input
+            type="checkbox"
+            checked={outletOnly}
+            onChange={(e) => setOutletOnly(e.target.checked)}
+            className="w-4 h-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+          />
+          Solo Outlet
         </label>
 
         <label className="flex items-center gap-2 text-sm text-neutral-600">
