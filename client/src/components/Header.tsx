@@ -130,10 +130,11 @@ export default function Header() {
             />
             <motion.nav
               variants={menuVariants} initial="closed" animate="open" exit="closed"
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-white shadow-2xl z-[55] md:hidden overflow-y-auto"
+              className="fixed top-0 right-0 bottom-0 w-[280px] shadow-2xl z-[55] md:hidden overflow-y-auto"
+              style={{ backgroundColor: '#fcf3ed' }}
             >
               <button onClick={closeMenu}
-                className="absolute top-4 right-4 p-2 hover:bg-black/5 rounded-lg transition-colors z-10"
+                className="absolute top-4 right-4 p-2 hover:bg-black/5 rounded-lg transition-colors z-10 text-[#4a4438]"
                 aria-label="Cerrar menú"
               >
                 <X size={24} />
@@ -141,24 +142,25 @@ export default function Header() {
 
               <div className="flex flex-col h-full pt-20 pb-6 px-6">
                 <div className="flex flex-col gap-1">
-                  {visibleCategories.map(cat => (
-                    <motion.div key={cat.id} variants={itemVariants}>
-                      <NavLink
-                        to={`/productos?categoria=${cat.slug}`}
-                        onClick={closeMenu}
-                        className={({ isActive }) =>
-                          `block px-4 py-3 rounded-lg text-sm font-medium uppercase tracking-widest transition-all ${isActive ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400" : "hover:bg-amber-50/60 hover:text-amber-700 text-black/80"}`
-                        }
-                      >
-                        {cat.name}
-                      </NavLink>
-                    </motion.div>
-                  ))}
+                  {visibleCategories.map(cat => {
+                    const isActive = activeCategorySlug === cat.slug;
+                    return (
+                      <motion.div key={cat.id} variants={itemVariants}>
+                        <NavLink
+                          to={`/productos?categoria=${cat.slug}`}
+                          onClick={closeMenu}
+                          className={`block px-4 py-3 text-sm font-medium uppercase tracking-widest transition-all border-l-2 ${isActive ? "border-[#4a4438] text-[#4a4438]" : "border-transparent text-[#4a4438]/70 hover:text-[#4a4438] hover:border-[#c4927a]"}`}
+                        >
+                          {cat.name}
+                        </NavLink>
+                      </motion.div>
+                    );
+                  })}
                   <motion.div variants={itemVariants}>
                     <NavLink
                       to="/productos?outlet=true"
                       onClick={closeMenu}
-                      className={`block px-4 py-3 rounded-lg text-sm font-medium uppercase tracking-widest transition-all ${isOutletActive ? "bg-amber-50 text-amber-700 border-l-2 border-amber-400" : "hover:bg-amber-50/60 hover:text-amber-700 text-black/80"}`}
+                      className={`block px-4 py-3 text-sm font-medium uppercase tracking-widest transition-all border-l-2 ${isOutletActive ? "border-[#4a4438] text-[#4a4438]" : "border-transparent text-[#4a4438]/70 hover:text-[#4a4438] hover:border-[#c4927a]"}`}
                     >
                       Outlet
                     </NavLink>
@@ -166,18 +168,18 @@ export default function Header() {
                 </div>
 
                 {/* Links secundarios al fondo */}
-                <motion.div variants={itemVariants} className="mt-auto pt-6 border-t border-black/10 flex flex-col gap-1">
+                <motion.div variants={itemVariants} className="mt-auto pt-6 border-t border-[#4a4438]/10 flex flex-col gap-1">
                   <Link to="/nosotros" onClick={closeMenu}
-                    className="px-4 py-2 text-sm text-neutral-500 hover:text-amber-700 transition-colors"
+                    className="px-4 py-2 text-sm text-[#4a4438]/60 hover:text-[#4a4438] transition-colors"
                   >
                     Nosotros
                   </Link>
                   <Link to="/marca" onClick={closeMenu}
-                    className="px-4 py-2 text-sm text-neutral-500 hover:text-amber-700 transition-colors"
+                    className="px-4 py-2 text-sm text-[#4a4438]/60 hover:text-[#4a4438] transition-colors"
                   >
                     Marca
                   </Link>
-                  <p className="text-xs text-black/30 text-center mt-4">© {new Date().getFullYear()} Alaha's</p>
+                  <p className="text-xs text-[#4a4438]/30 text-center mt-4">© {new Date().getFullYear()} Alaha's</p>
                 </motion.div>
               </div>
             </motion.nav>
