@@ -176,7 +176,7 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
 ========================= */
 type CollectionItem = {
   title: string;
-  categorySlug: string;
+  href: string;
   img: string;
   ribbonLabel?: string | null;
   ribbonColor?: string;
@@ -198,8 +198,8 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
       {items.map((c, i) => (
         <Link
-          key={c.categorySlug}
-          to={`/productos?categoria=${c.categorySlug}`}
+          key={c.href}
+          to={c.href}
           className="group relative overflow-hidden block"
         >
           <img
@@ -540,7 +540,9 @@ export default function Home() {
             <CollectionsCarouselFader
               items={collections.map(collection => ({
                 title: collection.title,
-                categorySlug: collection.category_slug,
+                href: collection.is_outlet_collection
+                  ? "/productos?outlet=true"
+                  : `/productos?categoria=${collection.category_slug}`,
                 img: collection.image_url,
                 ribbonLabel: collection.ribbon_label,
                 ribbonColor: collection.ribbon_color

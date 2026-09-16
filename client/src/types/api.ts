@@ -99,7 +99,7 @@ export type ProductVariant = {
 
 export type Collection = {
   id: number;
-  category_id: number;
+  category_id: number | null;
   title: string;
   description?: string;
   image_url: string;
@@ -107,17 +107,18 @@ export type Collection = {
   is_active: boolean;
   ribbon_label?: string | null;
   ribbon_color: string;
+  is_outlet_collection: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export type CollectionWithCategory = Collection & {
-  category_name: string;
-  category_slug: string;
+  category_name: string | null;
+  category_slug: string | null;
 }
 
 export type CreateCollectionDTO = {
-  category_id: number;
+  category_id?: number | null;
   title: string;
   description?: string;
   image_url: string;
@@ -125,6 +126,7 @@ export type CreateCollectionDTO = {
   is_active?: boolean;
   ribbon_label?: string | null;
   ribbon_color?: string;
+  is_outlet_collection?: boolean;
 }
 
 export type UpdateCollectionDTO = Partial<CreateCollectionDTO>;

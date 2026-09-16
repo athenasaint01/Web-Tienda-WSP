@@ -14,14 +14,18 @@ import ImageUpload from '../../../components/admin/ui/ImageUpload';
 const DEFAULT_RIBBON_COLOR = '#9C2819';
 
 const collectionSchema = z.object({
-  category_id: z.number({ message: 'La categoría es requerida' }).int().positive(),
+  category_id: z.number().int().positive().optional(),
   title: z.string().min(1, 'El título es requerido').max(255),
   description: z.string().optional(),
   display_order: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
   ribbon_label: z.string().max(40).optional(),
   ribbon_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido').optional(),
-});
+  is_outlet_collection: z.boolean().optional(),
+}).refine(
+  (data) => data.is_outlet_collection === true || data.category_id !== undefined,
+  { message: 'La categoría es requerida', path: ['category_id'] }
+);
 
 type CollectionFormData = z.infer<typeof collectionSchema>;
 
@@ -46,24 +50,27 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
     resolver: zodResolver(collectionSchema),
     defaultValues: collection
       ? {
-          category_id: collection.category_id,
+          category_id: collection.category_id ?? undefined,
           title: collection.title,
           description: collection.description || '',
           display_order: collection.display_order,
           is_active: collection.is_active,
           ribbon_label: collection.ribbon_label || '',
           ribbon_color: collection.ribbon_color || DEFAULT_RIBBON_COLOR,
+          is_outlet_collection: collection.is_outlet_collection,
         }
       : {
           display_order: 0,
           is_active: true,
           ribbon_label: '',
           ribbon_color: DEFAULT_RIBBON_COLOR,
+          is_outlet_collection: false,
         },
   });
 
   const ribbonLabelValue = watch('ribbon_label');
   const ribbonColorValue = watch('ribbon_color') || DEFAULT_RIBBON_COLOR;
+  const isOutletCollection = watch('is_outlet_collection');
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -102,7 +109,10 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
         if (newImage) {
           // Enviar FormData si hay nueva imagen
           const formData = new FormData();
-          formData.append('category_id', data.category_id.toString());
+          formData.append('is_outlet_collection', data.is_outlet_collection ? 'true' : 'false');
+          if (!data.is_outlet_collection && data.category_id !== undefined) {
+            formData.append('category_id', data.category_id.toString());
+          }
           formData.append('title', data.title);
           if (data.description) formData.append('description', data.description);
           if (data.display_order !== undefined) formData.append('display_order', data.display_order.toString());
@@ -128,7 +138,10 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
       } else {
         // For creating, use FormData to send file
         const formData = new FormData();
-        formData.append('category_id', data.category_id.toString());
+        formData.append('is_outlet_collection', data.is_outlet_collection ? 'true' : 'false');
+        if (!data.is_outlet_collection && data.category_id !== undefined) {
+          formData.append('category_id', data.category_id.toString());
+        }
         formData.append('title', data.title);
 
         if (data.description) formData.append('description', data.description);
@@ -186,28 +199,43 @@ export default function CollectionModal({ collection, onClose }: CollectionModal
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-          {/* Categoría */}
-          <div className="space-y-2">
-            {loadingCategories ? (
-              <div className="text-sm text-neutral-500">Cargando categorías...</div>
-            ) : (
-              <FormSelect
-                label="Categoría"
-                {...register('category_id', { valueAsNumber: true })}
-                error={errors.category_id?.message}
-              >
-                <option value="">Seleccionar categoría...</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </FormSelect>
-            )}
-            <p className="text-xs text-neutral-500">
-              Al hacer clic en esta colección, el usuario irá a la página de productos filtrados por esta categoría
-            </p>
+          {/* Es la colección Outlet */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_outlet_collection"
+              {...register('is_outlet_collection')}
+              className="w-4 h-4 text-neutral-900 border-neutral-300 rounded focus:ring-neutral-900"
+            />
+            <label htmlFor="is_outlet_collection" className="text-sm font-medium text-neutral-700">
+              Es la colección Outlet (enlaza a productos con el flag Outlet, no a una categoría)
+            </label>
           </div>
+
+          {/* Categoría */}
+          {!isOutletCollection && (
+            <div className="space-y-2">
+              {loadingCategories ? (
+                <div className="text-sm text-neutral-500">Cargando categorías...</div>
+              ) : (
+                <FormSelect
+                  label="Categoría"
+                  {...register('category_id', { valueAsNumber: true })}
+                  error={errors.category_id?.message}
+                >
+                  <option value="">Seleccionar categoría...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </FormSelect>
+              )}
+              <p className="text-xs text-neutral-500">
+                Al hacer clic en esta colección, el usuario irá a la página de productos filtrados por esta categoría
+              </p>
+            </div>
+          )}
 
           {/* Título */}
           <FormInput

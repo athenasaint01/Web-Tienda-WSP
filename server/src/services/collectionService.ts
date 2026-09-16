@@ -2,7 +2,7 @@ import pool from '../config/database';
 
 export interface Collection {
   id: number;
-  category_id: number;
+  category_id: number | null;
   title: string;
   description?: string;
   image_url: string;
@@ -10,17 +10,18 @@ export interface Collection {
   is_active: boolean;
   ribbon_label?: string | null;
   ribbon_color: string;
+  is_outlet_collection: boolean;
   created_at: Date;
   updated_at: Date;
 }
 
 export interface CollectionWithCategory extends Collection {
-  category_name: string;
-  category_slug: string;
+  category_name: string | null;
+  category_slug: string | null;
 }
 
 export interface CollectionInput {
-  category_id: number;
+  category_id?: number | null;
   title: string;
   description?: string;
   image_url: string;
@@ -28,6 +29,7 @@ export interface CollectionInput {
   is_active?: boolean;
   ribbon_label?: string | null;
   ribbon_color?: string;
+  is_outlet_collection?: boolean;
 }
 
 /**
@@ -40,7 +42,7 @@ export const getAllCollections = async (): Promise<CollectionWithCategory[]> => 
       cat.name AS category_name,
       cat.slug AS category_slug
      FROM collections c
-     INNER JOIN categories cat ON c.category_id = cat.id
+     LEFT JOIN categories cat ON c.category_id = cat.id
      ORDER BY c.display_order ASC, c.created_at DESC`
   );
   return result.rows;
@@ -56,7 +58,7 @@ export const getActiveCollections = async (): Promise<CollectionWithCategory[]> 
       cat.name AS category_name,
       cat.slug AS category_slug
      FROM collections c
-     INNER JOIN categories cat ON c.category_id = cat.id
+     LEFT JOIN categories cat ON c.category_id = cat.id
      WHERE c.is_active = TRUE
      ORDER BY c.display_order ASC`
   );
@@ -73,7 +75,7 @@ export const getCollectionById = async (id: number): Promise<CollectionWithCateg
       cat.name AS category_name,
       cat.slug AS category_slug
      FROM collections c
-     INNER JOIN categories cat ON c.category_id = cat.id
+     LEFT JOIN categories cat ON c.category_id = cat.id
      WHERE c.id = $1`,
     [id]
   );
@@ -102,15 +104,15 @@ export const getCollectionByCategorySlug = async (slug: string): Promise<Collect
  */
 export const createCollection = async (data: CollectionInput): Promise<Collection> => {
   const {
-    category_id, title, description, image_url, display_order = 0, is_active = true,
-    ribbon_label = null, ribbon_color = '#9C2819',
+    category_id = null, title, description, image_url, display_order = 0, is_active = true,
+    ribbon_label = null, ribbon_color = '#9C2819', is_outlet_collection = false,
   } = data;
 
   const result = await pool.query(
-    `INSERT INTO collections (category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO collections (category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, is_outlet_collection)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color]
+    [is_outlet_collection ? null : category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, is_outlet_collection]
   );
 
   return result.rows[0];
@@ -123,22 +125,29 @@ export const updateCollection = async (
   id: number,
   data: Partial<CollectionInput>
 ): Promise<Collection | null> => {
-  const { category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color } = data;
+  const { category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, is_outlet_collection } = data;
+
+  // is_outlet_collection y category_id son mutuamente excluyentes (constraint
+  // collections_category_xor_outlet) -- al activar el flag hay que nulear
+  // category_id explícitamente, COALESCE no permite poner NULL a propósito.
+  const categoryIdParam = is_outlet_collection === true ? null : category_id ?? null;
+  const useCategoryIdParam = is_outlet_collection === true || category_id !== undefined;
 
   const result = await pool.query(
     `UPDATE collections
-     SET category_id = COALESCE($1, category_id),
-         title = COALESCE($2, title),
-         description = COALESCE($3, description),
-         image_url = COALESCE($4, image_url),
-         display_order = COALESCE($5, display_order),
-         is_active = COALESCE($6, is_active),
-         ribbon_label = CASE WHEN $7::text IS NOT NULL THEN NULLIF($7::text, '') ELSE ribbon_label END,
-         ribbon_color = COALESCE($8, ribbon_color),
+     SET category_id = CASE WHEN $1 THEN $2 ELSE category_id END,
+         title = COALESCE($3, title),
+         description = COALESCE($4, description),
+         image_url = COALESCE($5, image_url),
+         display_order = COALESCE($6, display_order),
+         is_active = COALESCE($7, is_active),
+         ribbon_label = CASE WHEN $8::text IS NOT NULL THEN NULLIF($8::text, '') ELSE ribbon_label END,
+         ribbon_color = COALESCE($9, ribbon_color),
+         is_outlet_collection = COALESCE($10, is_outlet_collection),
          updated_at = CURRENT_TIMESTAMP
-     WHERE id = $9
+     WHERE id = $11
      RETURNING *`,
-    [category_id, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, id]
+    [useCategoryIdParam, categoryIdParam, title, description, image_url, display_order, is_active, ribbon_label, ribbon_color, is_outlet_collection, id]
   );
 
   return result.rows[0] || null;

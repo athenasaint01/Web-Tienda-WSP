@@ -10,14 +10,23 @@ const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color inválido, u
 
 // Schema de validación para FormData (POST con archivo)
 const collectionFormDataSchema = z.object({
-  category_id: z.string().transform(val => parseInt(val)),
+  category_id: z.string().transform(val => val ? parseInt(val) : undefined).optional(),
   title: z.string().min(1, 'El título es requerido').max(255),
   description: z.string().optional(),
   display_order: z.string().transform(val => val ? parseInt(val) : 0).optional(),
   is_active: z.string().transform(val => val === 'true').optional(),
   ribbon_label: z.string().max(40).optional(),
   ribbon_color: hexColorSchema.optional(),
+  is_outlet_collection: z.string().transform(val => val === 'true').optional(),
 });
+
+// En creación, category_id es obligatorio salvo que sea la colección Outlet
+// (is_outlet_collection=true) -- el .refine() no se aplica en edición porque
+// .partial() no está disponible sobre ZodEffects.
+const collectionFormDataCreateSchema = collectionFormDataSchema.refine(
+  (data) => data.is_outlet_collection === true || data.category_id !== undefined,
+  { message: 'La categoría es requerida', path: ['category_id'] }
+);
 
 // Schema de validación para JSON (PUT sin archivo)
 const collectionSchema = z.object({
@@ -28,6 +37,7 @@ const collectionSchema = z.object({
   is_active: z.boolean().optional(),
   ribbon_label: z.string().max(40).optional(),
   ribbon_color: hexColorSchema.optional(),
+  is_outlet_collection: z.boolean().optional(),
 });
 
 const reorderSchema = z.array(
@@ -58,7 +68,7 @@ router.get('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: R
 router.post('/', authenticateToken, requireAdmin, upload.single('image'), async (req: AuthRequest, res: Response) => {
   try {
     // Validar datos del formulario
-    const validation = collectionFormDataSchema.safeParse(req.body);
+    const validation = collectionFormDataCreateSchema.safeParse(req.body);
 
     if (!validation.success) {
       res.status(400).json({
