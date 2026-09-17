@@ -105,6 +105,13 @@ export default function ProductForm() {
   const [badgeLabels, setBadgeLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(isEditing);
   const [copied, setCopied] = useState(false);
+  // Guard síncrono contra doble-submit: el botón flotante y el del footer
+  // real ambos llaman onSubmit por su propio onClick, y `isSubmitting` de
+  // react-hook-form solo se actualiza después de un render -- un segundo
+  // clic dentro de esa ventana (doble clic, o clic en los dos botones
+  // casi a la vez) puede colarse antes de que el botón quede disabled y
+  // duplicar el request (y con él, las imágenes nuevas subidas).
+  const isSavingRef = useRef(false);
 
   // Variantes (precio/descuento/stock propios por color/talla/largo).
   // Estado local aparte del form validado, mismo criterio que badgeLabels.
@@ -420,19 +427,22 @@ export default function ProductForm() {
   };
 
   const onSubmit = async (data: ProductFormData) => {
-    if (hasVariants) {
-      if (variantRows.length === 0) {
-        toast.error('Activaste variantes pero no generaste ninguna combinación');
-        return;
-      }
-      const invalidStock = variantRows.some((v) => v.stock == null || v.stock < 0);
-      if (invalidStock) {
-        toast.error('Cada variante necesita un stock válido (0 o más)');
-        return;
-      }
-    }
+    if (isSavingRef.current) return;
+    isSavingRef.current = true;
 
     try {
+      if (hasVariants) {
+        if (variantRows.length === 0) {
+          toast.error('Activaste variantes pero no generaste ninguna combinación');
+          return;
+        }
+        const invalidStock = variantRows.some((v) => v.stock == null || v.stock < 0);
+        if (invalidStock) {
+          toast.error('Cada variante necesita un stock válido (0 o más)');
+          return;
+        }
+      }
+
       const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
       const token = localStorage.getItem('auth_token');
 
@@ -456,8 +466,8 @@ export default function ProductForm() {
           throw new Error(result.error || 'Error al actualizar producto');
         }
 
-        setDeletedImageUrls([]);
         toast.success('Producto actualizado');
+        navigate('/admin/productos');
       } else {
         const formData = buildProductFormData(data);
         images.forEach((image) => {
@@ -480,6 +490,8 @@ export default function ProductForm() {
       }
     } catch (error: any) {
       toast.error(error.message || 'Error al guardar');
+    } finally {
+      isSavingRef.current = false;
     }
   };
 

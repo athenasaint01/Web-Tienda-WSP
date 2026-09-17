@@ -9,6 +9,14 @@ const router = Router();
 // Aplicar middleware de autenticación a todas las rutas
 router.use(authenticateToken, requireAdmin);
 
+// Mutex en memoria por producto: si dos PUT concurrentes llegan para el
+// mismo id (doble clic que se coló, reintento de red, etc.), cada archivo
+// nuevo se procesaría y guardaría por separado -- duplicando imágenes en
+// la BD y en Cloudinary (confirmado con una prueba real). Como el backend
+// corre como una sola instancia, un Set en memoria basta para rechazar el
+// segundo request mientras el primero sigue en curso.
+const productUpdateLocks = new Set<number>();
+
 // Schema de validación para producto (sin imágenes, se manejan aparte)
 // Helper: parsear un campo FormData que contiene un array JSON de IDs
 const jsonIdArray = () =>
@@ -195,14 +203,20 @@ router.post('/', upload.array('images', 6), async (req: AuthRequest, res: Respon
  * Actualizar producto (datos básicos sin imágenes)
  */
 router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Response) => {
+  const id = parseInt(req.params.id);
+
+  if (isNaN(id)) {
+    res.status(400).json({ ok: false, error: 'ID inválido' });
+    return;
+  }
+
+  if (productUpdateLocks.has(id)) {
+    res.status(409).json({ ok: false, error: 'Ya hay una actualización de este producto en curso. Espera a que termine.' });
+    return;
+  }
+  productUpdateLocks.add(id);
+
   try {
-    const id = parseInt(req.params.id);
-
-    if (isNaN(id)) {
-      res.status(400).json({ ok: false, error: 'ID inválido' });
-      return;
-    }
-
     const files = req.files as Express.Multer.File[] | undefined;
 
     // Helper: campo FormData con array JSON opcional (undefined si no se envía / inválido)
@@ -396,6 +410,8 @@ router.put('/:id', upload.array('images', 6), async (req: AuthRequest, res: Resp
       return;
     }
     res.status(500).json({ ok: false, error: error.message || 'Error al actualizar producto' });
+  } finally {
+    productUpdateLocks.delete(id);
   }
 });
 
