@@ -77,6 +77,12 @@ export default function ProductoDetalle() {
     setSelectedLengthId(product.variant_uses_length ? cheapest.length_id ?? null : null);
   }, [product?.id, product?.has_variants]);
 
+  // Ref que distingue "el índice de imagen cambió porque el efecto de abajo
+  // lo sincronizó desde la variante elegida" de "el usuario navegó la
+  // galería a mano" -- sin esto, el efecto imagen→variante (más abajo)
+  // reaccionaría a su propio setI y ambos efectos entrarían en bucle.
+  const syncingImageFromVariant = useRef(false);
+
   // Con variantes: si la combinación elegida tiene su propia imagen
   // destacada (asignada en el admin), mostrarla en el carrusel — se
   // busca su posición dentro de las fotos del producto y se salta ahí,
@@ -92,19 +98,48 @@ export default function ProductoDetalle() {
       return true;
     });
     const urls = product.images.map((img: any) => (typeof img === 'string' ? img : img.image_url));
-    if (resolved?.image_url) {
-      const idx = urls.indexOf(resolved.image_url);
-      if (idx >= 0) {
-        setI(idx);
-        return;
-      }
-    }
-    // Sin imagen propia (o variante todavía no resuelta): volver a la
-    // imagen principal del producto en vez de dejar la de la variante
-    // anterior.
+    // Fallback: sin imagen propia (o variante todavía no resuelta), la
+    // imagen principal del producto.
     const primaryIdx = product.images.findIndex((img: any) => typeof img !== 'string' && img.is_primary);
-    setI(primaryIdx >= 0 ? primaryIdx : 0);
+    const targetIdx = resolved?.image_url && urls.indexOf(resolved.image_url) >= 0
+      ? urls.indexOf(resolved.image_url)
+      : (primaryIdx >= 0 ? primaryIdx : 0);
+
+    // Marcar el ref solo si el índice realmente va a cambiar -- si ya
+    // apuntaba ahí, setI es un no-op y el efecto inverso nunca se
+    // dispara para consumir (limpiar) el ref, dejándolo en `true` y
+    // haciendo que ignore el próximo clic real del usuario en la galería.
+    setI((curr) => {
+      if (curr !== targetIdx) syncingImageFromVariant.current = true;
+      return targetIdx;
+    });
   }, [product, selectedColorId, selectedSizeId, selectedLengthId]);
+
+  // Camino inverso: si el cliente navega la galería a mano (miniatura,
+  // flechas, teclado) y esa foto es la imagen destacada de OTRA variante,
+  // actualizar la selección para reflejarla -- mismo criterio de "una
+  // imagen == una variante" que ya usa el efecto de arriba, solo que en
+  // sentido contrario.
+  useEffect(() => {
+    if (syncingImageFromVariant.current) {
+      syncingImageFromVariant.current = false;
+      return;
+    }
+    if (!product?.has_variants || !product.variants?.length) return;
+    const urls = product.images.map((img: any) => (typeof img === 'string' ? img : img.image_url));
+    const currentUrl = urls[i];
+    if (!currentUrl) return;
+    const matching = product.variants.find((v) => v.is_active && v.image_url === currentUrl);
+    if (!matching) return;
+    const alreadySelected =
+      (!product.variant_uses_color || matching.color_id === selectedColorId) &&
+      (!product.variant_uses_size || matching.size_id === selectedSizeId) &&
+      (!product.variant_uses_length || matching.length_id === selectedLengthId);
+    if (alreadySelected) return;
+    setSelectedColorId(product.variant_uses_color ? matching.color_id ?? null : null);
+    setSelectedSizeId(product.variant_uses_size ? matching.size_id ?? null : null);
+    setSelectedLengthId(product.variant_uses_length ? matching.length_id ?? null : null);
+  }, [i]);
 
   // SEO: título y description dinámicos por producto
   useEffect(() => {
