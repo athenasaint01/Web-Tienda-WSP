@@ -7,6 +7,7 @@ import * as api from "../services/api";
 import BadgeChips from "../components/BadgeChips";
 import OfferRibbon from "../components/OfferRibbon";
 import { useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
+import { cloudinaryOptimized } from "../lib/cloudinaryUrl";
 
 
 
@@ -135,9 +136,15 @@ function HeroBannerCarousel({ banners }: { banners: Banner[] }) {
       {slides.map((slide, i) => {
         const img = (
           <img
-            src={slide.image_url}
+            src={cloudinaryOptimized(slide.image_url, 1600)}
+            srcSet={`${cloudinaryOptimized(slide.image_url, 800)} 800w, ${cloudinaryOptimized(slide.image_url, 1200)} 1200w, ${cloudinaryOptimized(slide.image_url, 1600)} 1600w`}
+            sizes="100vw"
             alt={slide.alt_text}
-            className="w-full h-auto"
+            // aspect-ratio reserva el espacio antes de que la imagen cargue
+            // (evita el salto de layout que causaba el CLS reportado por
+            // PageSpeed) sin depender de conocer el tamaño real de cada
+            // banner subido por el admin.
+            className="w-full aspect-[16/9] object-cover"
             loading={i === 0 ? "eager" : "lazy"}
             fetchPriority={i === 0 ? "high" : "auto"}
           />
