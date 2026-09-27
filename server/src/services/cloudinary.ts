@@ -23,10 +23,16 @@ export const uploadImage = async (
       {
         folder: `${process.env.CLOUDINARY_FOLDER || 'alahas'}/${folder}`,
         resource_type: 'image',
+        // fetch_format NO va aquí: es una transformación de ENTREGA (para
+        // URLs de descarga), no de almacenamiento -- puesta en el upload,
+        // Cloudinary la trata como transformación eager y termina
+        // guardando el asset en un formato distinto al que se subió (ej.
+        // un WebP subido se guardaba como JPEG). El formato óptimo por
+        // navegador se resuelve en la URL de entrega (ver cloudinaryUrl.ts
+        // en el cliente: w_<ancho>,f_auto,q_auto), no al guardar.
         transformation: [
           { width: 1200, height: 1200, crop: 'limit' }, // Limitar tamaño máximo
           { quality: 'auto:good' }, // Optimización automática
-          { fetch_format: 'auto' }, // Formato automático (WebP si el navegador lo soporta)
         ],
       },
       (error, result: UploadApiResponse | undefined) => {
