@@ -1,0 +1,15 @@
+# Alaha's
+
+> Tienda online de joyería fina en Perú: collares, pulseras, anillos, aretes y dijes en acero inoxidable 316L y plata 925. Envíos a todo el Perú, con productos organizados por categoría, material, color y colecciones Outlet.
+
+## Páginas principales
+
+- [Inicio](https://alahas.vercel.app/): destacados, colecciones y ofertas vigentes.
+- [Catálogo de productos](https://alahas.vercel.app/productos): listado completo con filtros por categoría, material, color, público y precio.
+- [Nosotros](https://alahas.vercel.app/nosotros): historia y valores de la marca.
+- [Marca](https://alahas.vercel.app/marca): línea de producto y estilo de Alaha's.
+
+## Notas para agentes
+
+- Los precios y el stock mostrados en el catálogo son los vigentes al momento de la consulta; los productos con variantes (color/talla/largo) tienen precio y stock propios por combinación.
+- El contacto y los pedidos se gestionan por WhatsApp desde cada ficha de producto.
