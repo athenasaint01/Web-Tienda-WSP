@@ -25,10 +25,23 @@
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="/brand/favicon.jpg" />
 
-    <!-- Fonts -->
+    <!-- Fonts: carga no-bloqueante -- el truco media="print"+onload hace que
+         el navegador la descargue en paralelo sin bloquear el primer pintado,
+         y el swap a "all" la aplica en cuanto está lista (con <noscript> de
+         respaldo si JS está deshabilitado). Antes era un <link rel="stylesheet">
+         directo, que Lighthouse marcaba como "solicitud que bloquea el
+         renderizado". -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Josefin+Sans:wght@100;200;300;400&family=Great+Vibes&family=Bebas+Neue&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Josefin+Sans:wght@100;200;300;400&family=Great+Vibes&family=Bebas+Neue&family=Archivo+Narrow:wght@500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    >
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Josefin+Sans:wght@100;200;300;400&family=Great+Vibes&family=Bebas+Neue&family=Archivo+Narrow:wght@500;600;700&display=swap">
+    </noscript>
 
     <!-- Backend API e imágenes: evita que la primera imagen (LCP) espere
          la negociación DNS/TLS completa además del round-trip del fetch -->
