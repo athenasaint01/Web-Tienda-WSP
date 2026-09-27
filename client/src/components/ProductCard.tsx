@@ -3,6 +3,7 @@ import type { ProductListItem } from "../types/api";
 import BadgeChips from "./BadgeChips";
 import OfferRibbon from "./OfferRibbon";
 import { useCurrency, formatPrice, getOffer } from "../hooks/useSettings";
+import { cloudinaryOptimized } from "../lib/cloudinaryUrl";
 
 type ProductCardProps = ProductListItem;
 
@@ -18,19 +19,23 @@ export default function ProductCard({ p }: { p: ProductCardProps }) {
       <Link to={`/producto/${p.slug}`} className="block" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="relative aspect-square overflow-hidden bg-neutral-50">
           <img
-            src={img1}
+            src={cloudinaryOptimized(img1, 500)}
             alt={p.name}
             className={hasSecondImage
               ? "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
               : "absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             }
+            loading="lazy"
+            decoding="async"
           />
           {img2 && (
             <img
-              src={img2}
+              src={cloudinaryOptimized(img2, 500)}
               alt=""
               aria-hidden="true"
               fetchPriority="low"
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
             />
           )}

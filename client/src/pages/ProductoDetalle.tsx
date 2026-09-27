@@ -11,6 +11,7 @@ import { useCart } from "../context/CartContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { BsWhatsapp } from "react-icons/bs";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
+import { cloudinaryOptimized } from "../lib/cloudinaryUrl";
 
 export default function ProductoDetalle() {
   const { slug } = useParams();
@@ -316,7 +317,7 @@ export default function ProductoDetalle() {
         <AnimatePresence mode="wait">
           <motion.img
             key={imageUrls[i] ?? imageUrls[0]}
-            src={imageUrls[i] ?? imageUrls[0]}
+            src={cloudinaryOptimized(imageUrls[i] ?? imageUrls[0], 1200)}
             alt={product.name}
             className="w-full h-full object-cover select-none touch-none"
             style={{ transformOrigin: mobileOrigin }}
@@ -391,7 +392,7 @@ export default function ProductoDetalle() {
                   ].join(" ")}
                 >
                   <div className="grid place-items-center w-full h-full p-2">
-                    <img src={src} alt={`${product.name} ${idx + 1}`} className="max-w-[90%] max-h-[90%] object-contain" />
+                    <img src={cloudinaryOptimized(src, 120)} alt={`${product.name} ${idx + 1}`} className="max-w-[90%] max-h-[90%] object-contain" loading="lazy" decoding="async" />
                   </div>
                 </motion.button>
               );
@@ -417,7 +418,7 @@ export default function ProductoDetalle() {
             <AnimatePresence mode="wait">
               <motion.img
                 key={imageUrls[i] ?? imageUrls[0]}
-                src={imageUrls[i] ?? imageUrls[0]}
+                src={cloudinaryOptimized(imageUrls[i] ?? imageUrls[0], 1200)}
                 alt={product.name}
                 className="w-full aspect-square object-cover select-none"
                 style={{ transformOrigin: origin as any }}

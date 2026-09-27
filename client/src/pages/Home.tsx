@@ -210,7 +210,7 @@ function CollectionsCarouselFader({ items }: { items: CollectionItem[] }) {
           className="group relative overflow-hidden block"
         >
           <img
-            src={c.img}
+            src={cloudinaryOptimized(c.img, 800)}
             alt={c.title}
             className="w-full aspect-[4/3] md:aspect-[16/9] object-cover" style={{ objectPosition: '50% 73%' }}
             loading={i === 0 ? "eager" : "lazy"}
@@ -247,7 +247,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
         <div className="relative aspect-square overflow-hidden bg-neutral-100">
           {offer && <OfferRibbon label={`-${offer.percent}%`} />}
           <img
-            src={img1}
+            src={cloudinaryOptimized(img1, 500)}
             alt={p.name}
             className={hasSecondImage
               ? "absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover:opacity-0"
@@ -258,7 +258,7 @@ function FeaturedCard({ p }: { p: ProductListItem }) {
           />
           {img2 && (
             <img
-              src={img2}
+              src={cloudinaryOptimized(img2, 500)}
               alt=""
               aria-hidden="true"
               fetchPriority="low"
